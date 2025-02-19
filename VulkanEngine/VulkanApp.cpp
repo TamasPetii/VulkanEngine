@@ -1,4 +1,6 @@
 #include "VulkanApp.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
 #ifdef NDEBUG
 bool VulkanApp::enableValidationLayers = false;
@@ -53,6 +55,8 @@ void VulkanApp::InitVulkan()
 	InitWindow();
 	CreateInstance();
 	SetupDebugMessenger();
+	PickPhysicalDevice();
+	CreateLogicalDevice();
 }
 
 void VulkanApp::MainLoop()
@@ -68,6 +72,7 @@ void VulkanApp::Cleanup()
 	if(enableValidationLayers)
 		DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 
+	vkDestroyDevice(device, nullptr);
 	vkDestroyInstance(instance, nullptr);
 	glfwDestroyWindow(window);
 	glfwTerminate();
@@ -89,6 +94,20 @@ void VulkanApp::InitWindow()
 	COLORREF color = RGB(0, 0, 0);
 	const DWORD DWMWA_CAPTION_COLOR = 35;
 	HRESULT hr = DwmSetWindowAttribute(hwnd, DWMWA_CAPTION_COLOR, &color, sizeof(color));
+
+	int width, height, channels;
+	unsigned char* pixels = stbi_load("DendriteLogo.png", &width, &height, &channels, 0);
+
+	if (pixels)
+	{
+		GLFWimage images[1];
+		images[0].width = width;
+		images[0].height = height;
+		images[0].pixels = pixels;
+		glfwSetWindowIcon(window, 1, images);
+	}
+
+	stbi_image_free(pixels);
 }
 
 void VulkanApp::CreateInstance()
@@ -219,4 +238,103 @@ void VulkanApp::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfo
 	createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 	createInfo.pfnUserCallback = DebugCallback;
 	createInfo.pUserData = nullptr; // Optional
+}
+
+void VulkanApp::PickPhysicalDevice()
+{
+	uint32_t deviceCount = 0;
+	vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+
+	if (deviceCount == 0) {
+		throw std::runtime_error("Failed to find GPUs with Vulkan support!");
+	}
+
+	std::vector<VkPhysicalDevice> devices(deviceCount);
+	vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+
+	for (auto& device : devices)
+	{
+		if (IsDeviceSuitable(device))
+		{
+			physicalDevice = device;
+			break;
+		}
+	}
+
+	if (physicalDevice == VK_NULL_HANDLE) {
+		throw std::runtime_error("Failed to find a suitable GPU!");
+	}
+}
+
+bool VulkanApp::IsDeviceSuitable(VkPhysicalDevice device)
+{
+	VkPhysicalDeviceProperties deviceProperties;
+	vkGetPhysicalDeviceProperties(device, &deviceProperties);
+
+	VkPhysicalDeviceFeatures deviceFeatures;
+	vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+
+	QueueFamilyIndices indices = FindQueueFamilies(device);
+
+	return indices.isComplete();
+}
+
+QueueFamilyIndices VulkanApp::FindQueueFamilies(VkPhysicalDevice device)
+{
+	QueueFamilyIndices indices;
+
+	uint32_t queueFamilyCount = 0;
+	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+	std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+	for (int i = 0; i < queueFamilies.size(); i++)
+	{
+		if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
+		{
+			indices.graphicsFamily = i;
+		}
+
+		if (indices.isComplete())
+		{
+			break;
+		}
+	}
+
+	return indices;
+}
+
+void VulkanApp::CreateLogicalDevice()
+{
+	QueueFamilyIndices indices = FindQueueFamilies(physicalDevice);
+
+	VkDeviceQueueCreateInfo queueCreateInfo = {};
+	queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+	queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
+	queueCreateInfo.queueCount = 1;
+	float queuePriority = 1.0f;
+	queueCreateInfo.pQueuePriorities = &queuePriority;
+
+	VkPhysicalDeviceFeatures deviceFeatures{};
+
+	VkDeviceCreateInfo createInfo = {};
+	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	createInfo.pQueueCreateInfos = &queueCreateInfo;
+	createInfo.queueCreateInfoCount = 1;
+	createInfo.pEnabledFeatures = &deviceFeatures;
+	createInfo.enabledExtensionCount = 0;
+
+	if(enableValidationLayers)
+	{
+		createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+		createInfo.ppEnabledLayerNames = validationLayers.data();
+	}
+	else
+	{
+		createInfo.enabledLayerCount = 0;
+	}
+
+	VK_CHECK(vkCreateDevice(physicalDevice, &createInfo, nullptr, &device), "Failed to create logical device!");
+	vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
 }
