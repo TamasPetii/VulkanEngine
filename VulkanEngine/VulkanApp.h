@@ -1,4 +1,5 @@
 #pragma once
+#define NOMINMAX
 #define GLFW_INCLUDE_VULKAN
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <glfw/glfw3.h>
@@ -11,6 +12,9 @@
 #include <cstdlib>
 #include <vector>
 #include <optional>
+#include <set>
+#include <cstdint>
+#include <limits>
 
 #include "Logger.h"
 
@@ -19,36 +23,61 @@
 struct QueueFamilyIndices 
 {
 	std::optional<uint32_t> graphicsFamily;
+	std::optional<uint32_t> presentFamily;
 
-	bool isComplete() { return graphicsFamily.has_value(); }
+	bool isComplete() { return graphicsFamily.has_value() && presentFamily.has_value(); }
+};
+
+struct SwapChainSupportDetails {
+	VkSurfaceCapabilitiesKHR capabilities;
+	std::vector<VkSurfaceFormatKHR> formats;
+	std::vector<VkPresentModeKHR> presentModes;
 };
 
 class VulkanApp
 {
 public:
 	void Run();
-	void CreateInstance();
-private:
-	void InitWindow();
 	void InitVulkan();
 	void MainLoop();
 	void Cleanup();
-	bool CheckValidationLayerSupport();
+private:
+	void InitWindow();
+	void CreateInstance();
 	void SetupDebugMessenger();
-	void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
-	std::vector<const char*> GetRequiredExtensions();
 	void PickPhysicalDevice();
-	bool IsDeviceSuitable(VkPhysicalDevice device);
-	QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
 	void CreateLogicalDevice();
+	void CreateSurface();
+	void CreateSwapChain();
+	void CreateImageViews();
+	void CreateGraphicsPipline();
+private: //Helper Functions
+	std::vector<const char*> GetRequiredExtensions();
+	bool CheckValidationLayerSupport();
+	void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+	bool IsDeviceSuitable(VkPhysicalDevice device);
+	bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
+	QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
+	SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device);
+	VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+	VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+	VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 private:
 	GLFWwindow* window = VK_NULL_HANDLE;
 	VkInstance instance = VK_NULL_HANDLE;
 	VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
+	VkSurfaceKHR surface = VK_NULL_HANDLE;
 	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 	VkDevice device = VK_NULL_HANDLE;
 	VkQueue graphicsQueue = VK_NULL_HANDLE;
-
+	VkQueue presentQueue = VK_NULL_HANDLE;
+	VkSwapchainKHR swapChain = VK_NULL_HANDLE;
+	VkFormat swapChainImageFormat;
+	VkExtent2D swapChainExtent;
+	std::vector<VkImage> swapChainImages;
+	std::vector<VkImageView> swapChainImageViews;
+private:
 	static bool enableValidationLayers;
 	static std::vector<const char*> validationLayers;
+	static std::vector<const char*> deviceExtensions;
 };
