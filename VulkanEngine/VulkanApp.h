@@ -42,7 +42,9 @@ public:
 	void InitVulkan();
 	void MainLoop();
 	void Cleanup();
+	bool framebufferResized = true;
 private:
+	void DrawFrame();
 	void InitWindow();
 	void CreateInstance();
 	void SetupDebugMessenger();
@@ -56,6 +58,9 @@ private:
 	void CreateFramebuffers();
 	void CreateCommandPool();
 	void CreateCommandBuffer();
+	void CreateSyncObjects();
+	void ReCreateSwapChain();
+	void CleanUpSwapChain();
 private: //Helper Functions
 	void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 	std::vector<const char*> GetRequiredExtensions();
@@ -89,9 +94,14 @@ private:
 	VkPipeline graphicsPipeline = VK_NULL_HANDLE;
 	std::vector<VkFramebuffer> swapChainFramebuffers;
 	VkCommandPool commandPool = VK_NULL_HANDLE;
-	VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+	std::vector<VkCommandBuffer> commandBuffers;
+	std::vector <VkSemaphore> imageAvailableSemaphores;
+	std::vector <VkSemaphore> renderFinishedSemaphores;
+	std::vector <VkFence> inFlightFences;
 private:
 	static bool enableValidationLayers;
 	static std::vector<const char*> validationLayers;
 	static std::vector<const char*> deviceExtensions;
+	const int MAX_FRAMES_IN_FLIGHT = 2;
+	uint32_t currentFrame = 0;
 };
