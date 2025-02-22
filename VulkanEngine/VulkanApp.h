@@ -15,6 +15,7 @@
 #include <set>
 #include <cstdint>
 #include <limits>
+#include <fstream>
 
 #include "Logger.h"
 
@@ -50,8 +51,13 @@ private:
 	void CreateSurface();
 	void CreateSwapChain();
 	void CreateImageViews();
+	void CreateRenderPass();
 	void CreateGraphicsPipline();
+	void CreateFramebuffers();
+	void CreateCommandPool();
+	void CreateCommandBuffer();
 private: //Helper Functions
+	void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 	std::vector<const char*> GetRequiredExtensions();
 	bool CheckValidationLayerSupport();
 	void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
@@ -62,6 +68,8 @@ private: //Helper Functions
 	VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 	VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 	VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+	std::vector<char> ReadShaderFile(const std::string& filename);
+	VkShaderModule CreateShaderModule(const std::vector<char>& code);
 private:
 	GLFWwindow* window = VK_NULL_HANDLE;
 	VkInstance instance = VK_NULL_HANDLE;
@@ -76,6 +84,12 @@ private:
 	VkExtent2D swapChainExtent;
 	std::vector<VkImage> swapChainImages;
 	std::vector<VkImageView> swapChainImageViews;
+	VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
+	VkRenderPass renderPass = VK_NULL_HANDLE;
+	VkPipeline graphicsPipeline = VK_NULL_HANDLE;
+	std::vector<VkFramebuffer> swapChainFramebuffers;
+	VkCommandPool commandPool = VK_NULL_HANDLE;
+	VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
 private:
 	static bool enableValidationLayers;
 	static std::vector<const char*> validationLayers;
