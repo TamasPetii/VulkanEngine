@@ -2,9 +2,11 @@
 #define NOMINMAX
 #define GLFW_INCLUDE_VULKAN
 #define GLFW_EXPOSE_NATIVE_WIN32
+#define GLM_FORCE_RADIANS
 #include <glfw/glfw3.h>
 #include <glfw/glfw3native.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <stdexcept>
 #include <algorithm>
@@ -18,6 +20,7 @@
 #include <limits>
 #include <fstream>
 #include <array>
+#include <chrono>
 
 #include "Logger.h"
 
@@ -67,6 +70,12 @@ struct Vertex
 	}
 };
 
+struct UniformBufferObject {
+	glm::mat4 model;
+	glm::mat4 view;
+	glm::mat4 proj;
+};
+
 class VulkanApp
 {
 public:
@@ -86,17 +95,22 @@ private:
 	void CreateSwapChain();
 	void CreateImageViews();
 	void CreateRenderPass();
+	void CreateDescriptorSetLayout();
 	void CreateGraphicsPipline();
 	void CreateFramebuffers();
 	void CreateCommandPool();
 	void CreateVertexBuffer();
 	void CreateIndexBuffer();
+	void CreateUniformBuffers();
+	void CreateDescriptorPool();
+	void CreateDescriptorSets();
 	void CreateCommandBuffer();
 	void CreateSyncObjects();
 	void ReCreateSwapChain();
 	void CleanUpSwapChain();
 	void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 private: //Helper Functions
+	void UpdateUniformBuffer(uint32_t currentFrame);
 	void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 	void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 	std::vector<const char*> GetRequiredExtensions();
@@ -151,7 +165,14 @@ private:
 	VkDeviceMemory vertexBufferMemory = VK_NULL_HANDLE;
 	VkBuffer indexBuffer = VK_NULL_HANDLE;
 	VkDeviceMemory indexBufferMemory = VK_NULL_HANDLE;
+	VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
 
+	std::vector<VkBuffer> uniformBuffers;
+	std::vector<VkDeviceMemory> uniformBuffersMemory;
+	std::vector<void*> uniformBuffersMapped;
+
+	VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
+	std::vector<VkDescriptorSet> descriptorSets;
 private:
 	static bool enableValidationLayers;
 	static std::vector<const char*> validationLayers;
