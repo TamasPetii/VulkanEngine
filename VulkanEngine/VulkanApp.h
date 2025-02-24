@@ -179,4 +179,6 @@ private:
 	static std::vector<const char*> deviceExtensions;
 	const int MAX_FRAMES_IN_FLIGHT = 2;
 	uint32_t currentFrame = 0;
+	float time = 0;
+	float deltaTime = 0;
 };
