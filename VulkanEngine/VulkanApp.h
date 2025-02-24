@@ -89,11 +89,15 @@ private:
 	void CreateGraphicsPipline();
 	void CreateFramebuffers();
 	void CreateCommandPool();
+	void CreateVertexBuffer();
+	void CreateIndexBuffer();
 	void CreateCommandBuffer();
 	void CreateSyncObjects();
 	void ReCreateSwapChain();
 	void CleanUpSwapChain();
+	void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 private: //Helper Functions
+	void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 	void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 	std::vector<const char*> GetRequiredExtensions();
 	bool CheckValidationLayerSupport();
@@ -107,6 +111,7 @@ private: //Helper Functions
 	VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 	std::vector<char> ReadShaderFile(const std::string& filename);
 	VkShaderModule CreateShaderModule(const std::vector<char>& code);
+	uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 private:
 	GLFWwindow* window = VK_NULL_HANDLE;
 	VkInstance instance = VK_NULL_HANDLE;
@@ -132,10 +137,20 @@ private:
 	std::vector <VkFence> inFlightFences;
 
 	const std::vector<Vertex> vertices = {
-		{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-		{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-		{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+		{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+		{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+		{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+		{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
 	};
+
+	const std::vector<uint32_t> indices = {
+		0, 1, 2, 2, 3, 0
+	};
+
+	VkBuffer vertexBuffer = VK_NULL_HANDLE;
+	VkDeviceMemory vertexBufferMemory = VK_NULL_HANDLE;
+	VkBuffer indexBuffer = VK_NULL_HANDLE;
+	VkDeviceMemory indexBufferMemory = VK_NULL_HANDLE;
 
 private:
 	static bool enableValidationLayers;
