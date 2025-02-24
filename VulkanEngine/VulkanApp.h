@@ -4,6 +4,7 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <glfw/glfw3.h>
 #include <glfw/glfw3native.h>
+#include <glm/glm.hpp>
 
 #include <stdexcept>
 #include <algorithm>
@@ -16,6 +17,7 @@
 #include <cstdint>
 #include <limits>
 #include <fstream>
+#include <array>
 
 #include "Logger.h"
 
@@ -33,6 +35,36 @@ struct SwapChainSupportDetails {
 	VkSurfaceCapabilitiesKHR capabilities;
 	std::vector<VkSurfaceFormatKHR> formats;
 	std::vector<VkPresentModeKHR> presentModes;
+};
+
+struct Vertex
+{
+	glm::vec2 pos;
+	glm::vec3 color;
+
+	static VkVertexInputBindingDescription GetBindingDescription() {
+		VkVertexInputBindingDescription bindingDescription{};
+		bindingDescription.binding = 0;
+		bindingDescription.stride = sizeof(Vertex);
+		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+		return bindingDescription;
+	}
+
+	static std::array<VkVertexInputAttributeDescription, 2> GetAttributeDescriptions() {
+		std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
+
+		attributeDescriptions[0].binding = 0;
+		attributeDescriptions[0].location = 0;
+		attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+		attributeDescriptions[0].offset = offsetof(Vertex, pos);
+
+		attributeDescriptions[1].binding = 0;
+		attributeDescriptions[1].location = 1;
+		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+		attributeDescriptions[1].offset = offsetof(Vertex, color);
+
+		return attributeDescriptions;
+	}
 };
 
 class VulkanApp
@@ -98,6 +130,13 @@ private:
 	std::vector <VkSemaphore> imageAvailableSemaphores;
 	std::vector <VkSemaphore> renderFinishedSemaphores;
 	std::vector <VkFence> inFlightFences;
+
+	const std::vector<Vertex> vertices = {
+		{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+		{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+		{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+	};
+
 private:
 	static bool enableValidationLayers;
 	static std::vector<const char*> validationLayers;
