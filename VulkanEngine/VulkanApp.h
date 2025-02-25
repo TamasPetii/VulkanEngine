@@ -109,7 +109,13 @@ private:
 	void ReCreateSwapChain();
 	void CleanUpSwapChain();
 	void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+	void CreateTextureImage();
+	void CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
 private: //Helper Functions
+	void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+	void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+	VkCommandBuffer BeginSingleTimeCommands();
+	void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
 	void UpdateUniformBuffer(uint32_t currentFrame);
 	void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 	void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
@@ -173,6 +179,9 @@ private:
 
 	VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
 	std::vector<VkDescriptorSet> descriptorSets;
+
+	VkImage textureImage = VK_NULL_HANDLE;
+	VkDeviceMemory textureImageMemory = VK_NULL_HANDLE;
 private:
 	static bool enableValidationLayers;
 	static std::vector<const char*> validationLayers;
