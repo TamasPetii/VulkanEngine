@@ -111,7 +111,10 @@ private:
 	void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 	void CreateTextureImage();
 	void CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
+	void CreateTextureImageView();
+	void CreateTextureSampler();
 private: //Helper Functions
+	VkImageView CreateImageView(VkImage image, VkFormat format);
 	void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 	void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
 	VkCommandBuffer BeginSingleTimeCommands();
@@ -182,6 +185,8 @@ private:
 
 	VkImage textureImage = VK_NULL_HANDLE;
 	VkDeviceMemory textureImageMemory = VK_NULL_HANDLE;
+	VkImageView textureImageView = VK_NULL_HANDLE;
+	VkSampler textureSampler = VK_NULL_HANDLE;
 private:
 	static bool enableValidationLayers;
 	static std::vector<const char*> validationLayers;
