@@ -1495,6 +1495,7 @@ bool VulkanApp::CheckDeviceExtensionSupport(VkPhysicalDevice device)
 
 	for (const auto& extension : availableExtensions) {
 		requiredExtensions.erase(extension.extensionName);
+		std::cout << std::format("GPU Driver Extension: {0} | Version: {1}", extension.extensionName, extension.specVersion) << std::endl;
 	}
 
 	return requiredExtensions.empty();

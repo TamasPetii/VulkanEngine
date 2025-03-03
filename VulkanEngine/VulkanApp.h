@@ -25,6 +25,7 @@
 #include <array>
 #include <chrono>
 #include <unordered_map>
+#include <format>
 
 #include "Logger.h"
 
