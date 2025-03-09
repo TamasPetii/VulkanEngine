@@ -771,8 +771,8 @@ void VulkanApp::CreateDescriptorSetLayout()
 
 void VulkanApp::CreateGraphicsPipline()
 {
-	auto vertShaderCode = ReadShaderFile("Shaders/Shader-vs.spv");
-	auto fragShaderCode = ReadShaderFile("Shaders/Shader-fs.spv");
+	auto vertShaderCode = ShaderCompiler::Compile("Shaders/Shader.vert", shaderc_vertex_shader);
+	auto fragShaderCode = ShaderCompiler::Compile("Shaders/Shader.frag", shaderc_fragment_shader);
 
 	VkShaderModule vertShaderModule = CreateShaderModule(vertShaderCode);
 	VkShaderModule fragShaderModule = CreateShaderModule(fragShaderCode);
@@ -1605,12 +1605,12 @@ std::vector<char> VulkanApp::ReadShaderFile(const std::string& filename)
 	return buffer;
 }
 
-VkShaderModule VulkanApp::CreateShaderModule(const std::vector<char>& code)
+VkShaderModule VulkanApp::CreateShaderModule(const std::vector<uint32_t>& code)
 {
 	VkShaderModuleCreateInfo createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-	createInfo.codeSize = code.size();
-	createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+	createInfo.codeSize = code.size() * sizeof(uint32_t);
+	createInfo.pCode = code.data();
 
 	VkShaderModule shaderModule;
 	VK_CHECK(vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule), "Failed to create shader module!")
