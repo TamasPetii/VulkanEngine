@@ -1,8 +1,7 @@
 #include "VulkanApp.h"
 
-
 int main() {
-	VulkanApp app;
+    VulkanApp app;
 
     try {
         app.Run();
