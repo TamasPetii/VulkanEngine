@@ -1,5 +1,12 @@
 #pragma once
 #include "Pool.h"
+#include "Unique.h"
+
+template<typename T>
+inline Pool<T>::Pool()
+{
+	uniqueIndex = Unique::typeID<T>();
+}
 
 template<typename T>
 inline void Pool<T>::AddEntity(Entity entity)

@@ -1,11 +1,15 @@
 #include "Registry.h"
+#include "Relationship.h"
 
 Entity Registry::CreateEntity()
 {
     Entity entity = NULL_ENTITY;
 
     if (destroyedEntities.empty())
+    {
         entity = counter++;
+        bitsetComponents.push_back(std::bitset<MAX_COMPONENTS>{});
+    }
     else
     {
         auto it = destroyedEntities.begin();
@@ -13,7 +17,7 @@ Entity Registry::CreateEntity()
         destroyedEntities.erase(it);
     }
 
-    AddComponent<Relationship>(entity);
+    AddComponents<Relationship>(entity);
 
     return entity;
 }
@@ -27,4 +31,5 @@ void Registry::DestroyEntity(Entity entity)
         pool->RemoveEntity(entity);
     
     destroyedEntities.insert(entity);
+    bitsetComponents[entity].reset();
 }
