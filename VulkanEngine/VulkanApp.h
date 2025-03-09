@@ -11,6 +11,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/hash.hpp>
 
+#include "ImGui/imgui.h"
+#include "ImGui/imgui_impl_glfw.h"
+#include "ImGui/imgui_impl_vulkan.h"
+
 #include <stdexcept>
 #include <algorithm>
 #include <iostream>
@@ -142,6 +146,7 @@ private:
 	void CreateTextureSampler();
 	void CreateDepthResources();
 	void LoadModel(const std::string& modelPath);
+	void InitImgui();
 private: //Helper Functions
 	bool HasStencilComponent(VkFormat format);
 	VkFormat FindDepthFormat();
@@ -167,6 +172,7 @@ private: //Helper Functions
 	std::vector<char> ReadShaderFile(const std::string& filename);
 	VkShaderModule CreateShaderModule(const std::vector<uint32_t>& code);
 	uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+	void SetDarkGreyImGuiStyle();
 private:
 	GLFWwindow* window = VK_NULL_HANDLE;
 	VkInstance instance = VK_NULL_HANDLE;
@@ -216,6 +222,8 @@ private:
 	VkImage depthImage = VK_NULL_HANDLE;
 	VkDeviceMemory depthImageMemory = VK_NULL_HANDLE;
 	VkImageView depthImageView = VK_NULL_HANDLE;
+
+	VkDescriptorPool imguiPool = VK_NULL_HANDLE;
 private:
 	static bool enableValidationLayers;
 	static std::vector<const char*> validationLayers;
