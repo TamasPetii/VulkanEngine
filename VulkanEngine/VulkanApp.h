@@ -27,6 +27,8 @@
 #include <unordered_map>
 #include <format>
 
+#include "Utils/ShaderCompiler.h"
+
 #include "Logger.h"
 
 #define VK_CHECK(functionCall, errorMessage) if (functionCall != VK_SUCCESS) { Logger::Log("VulkanApp", errorMessage); throw std::runtime_error("Vulkan Error"); }
@@ -163,7 +165,7 @@ private: //Helper Functions
 	VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 	VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 	std::vector<char> ReadShaderFile(const std::string& filename);
-	VkShaderModule CreateShaderModule(const std::vector<char>& code);
+	VkShaderModule CreateShaderModule(const std::vector<uint32_t>& code);
 	uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 private:
 	GLFWwindow* window = VK_NULL_HANDLE;
