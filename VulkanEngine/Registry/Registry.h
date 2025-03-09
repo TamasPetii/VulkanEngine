@@ -1,5 +1,6 @@
 #pragma once
 #include "Pool.h"
+#include "Unique.h"
 
 #include <set>
 #include <tuple>
@@ -15,7 +16,7 @@ public:
 	Entity CreateEntity();
 	void   DestroyEntity(Entity entity);
 	template <typename... T>
-	void RegisterComponentBitset();
+	std::bitset<MAX_COMPONENTS> RegisterComponentsBitset();
 	template <typename... T>
 	bool HasComponents(Entity entity);
 	template <typename... T>
@@ -27,6 +28,8 @@ public:
 	template <typename... T>
 	void RemoveComponents(Entity entity);
 protected:
+	template <typename T>
+	void RegisterComponentBit(std::bitset<MAX_COMPONENTS>& bitset);
 	template <typename T>
 	bool HasComponent(Entity entity);
 	template <typename T>
@@ -40,12 +43,10 @@ protected:
 private:
 	Entity counter;
 	Entity activeEntity;
-
 	std::set<Entity> destroyedEntities;
 	std::unordered_map<std::type_index, std::shared_ptr<PoolBase>> pools;
-
 	std::vector<std::bitset<MAX_COMPONENTS>> bitsetComponents;
-	std::unordered_map<std::bitset<MAX_COMPONENTS>, std::vector<Entity>> bitsetEntities;
+	std::unordered_map<std::bitset<MAX_COMPONENTS>, std::set<Entity>> bitsetEntities;
 };
 
 #include "Registry.inl"

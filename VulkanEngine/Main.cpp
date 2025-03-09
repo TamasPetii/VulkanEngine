@@ -1,6 +1,7 @@
 #include "VulkanApp.h"
 
-int main() {
+int main()
+{
     VulkanApp app;
 
     try {

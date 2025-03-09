@@ -1,6 +1,11 @@
 #pragma once
 #include "Registry.h"
-#include "Unique.h"
+
+template<typename T>
+inline void Registry::RegisterComponentBit(std::bitset<MAX_COMPONENTS>& bitset)
+{
+	bitset.set(Unique::typeID<T>());
+}
 
 template <typename T>
 inline bool Registry::HasComponent(Entity entity)
@@ -52,14 +57,15 @@ inline void Registry::RemoveComponent(Entity entity)
 }
 
 template<typename ...T>
-inline void Registry::RegisterComponentBitset()
+inline std::bitset<MAX_COMPONENTS> Registry::RegisterComponentsBitset()
 {
 	std::bitset<MAX_COMPONENTS> bitset;
 
-	auto setBit = [&](auto typeID) { bitset.set(typeID, 1); };
-	(setBit(Unique::typeID<T>()), ...);
+	(RegisterComponentBit<T>(bitset), ...);
 
-	bitsetEntities.insert(bitset);
+	bitsetEntities[bitset];
+
+	return bitset;
 }
 
 template<typename... T>
@@ -78,7 +84,14 @@ template<typename ...T>
 inline void Registry::AddComponents(Entity entity)
 {
 	static_assert((std::is_default_constructible<T>::value && ...), "T must be default constructible.");
+
 	(AddComponent<T>(entity), ...);
+
+	for (auto& [requiredBitset, entities] : bitsetEntities)
+	{
+		if ((requiredBitset & bitsetComponents[entity]) == requiredBitset)
+			entities.insert(entity);
+	}
 }
 
 template<typename ...T>
