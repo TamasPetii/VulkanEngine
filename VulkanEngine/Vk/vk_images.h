@@ -5,5 +5,6 @@ class Vkimages
 {
 public:
 	static void TransitionImage(VkCommandBuffer commandBuffer, VkImage image, VkImageLayout currentLayout, VkImageLayout newLayout);
+	static void CopyImageToImage(VkCommandBuffer commandBuffer, VkImage imageSource, VkImage imageDestination, VkExtent2D sourceSize, VkExtent2D destinationSize);
 };
 

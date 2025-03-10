@@ -72,5 +72,6 @@
   <ItemGroup>
     <None Include="Shaders\Shader.vert" />
     <None Include="Shaders\Shader.frag" />
+    <None Include="Shaders\Gradient.comp" />
   </ItemGroup>
 </Project>

@@ -2,6 +2,10 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+
+#define VMA_IMPLEMENTATION
+#include "vma/vk_mem_alloc.h"
+
 #include <dwmapi.h>
 
 void VulkanApp::Run()
@@ -18,6 +22,8 @@ void VulkanApp::Init()
 	InitSwapChain();
 	InitCommands();
 	InitSyncStructures();
+	InitDescriptors();
+	InitPipelines();
 }
 
 void VulkanApp::MainLoop()
@@ -50,14 +56,22 @@ void VulkanApp::MainLoop()
 
 		glfwPollEvents();
 		Draw();
-
-		frame++;
 	}
 }
 
 void VulkanApp::Cleanup()
 {
 	vkDeviceWaitIdle(logicalDevice);
+
+	vkDestroyPipelineLayout(logicalDevice, gradientPipelineLayout, nullptr);
+	vkDestroyPipeline(logicalDevice, gradientPipeline, nullptr);
+
+	globalDescriptorAllocator.DestroyPool(logicalDevice);
+	vkDestroyDescriptorSetLayout(logicalDevice, drawImageDescriptorLayout, nullptr);
+
+	vkDestroyImageView(logicalDevice, drawImage.imageView, nullptr);
+	vmaDestroyImage(vmaAllocator, drawImage.image, drawImage.allocation);
+	vmaDestroyAllocator(vmaAllocator);
 
 	for (uint32_t i = 0; i < FRAME_OVERLAP; ++i)
 	{
@@ -90,16 +104,22 @@ void VulkanApp::Draw()
 
 	VK_CHECK(vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo), "Couldn't begin command buffer!");
 
-	Vkimages::TransitionImage(commandBuffer, swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
+	drawExtent.width = drawImage.imageExtent.width;
+	drawExtent.height = drawImage.imageExtent.height;
 
-	VkClearColorValue clearValue;
-	float flash = std::abs(std::sin(frame / 120.f));
-	clearValue = { { 0.0f, 0.0f, flash, 1.0f } };
-	VkImageSubresourceRange clearRange = Vkinit::ImageSubResourceRange(VK_IMAGE_ASPECT_COLOR_BIT);
+	//Clear color values in image, and transferimage layout properly to being able to copy its data
+	Vkimages::TransitionImage(commandBuffer, drawImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
+	
+	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, gradientPipeline);
+	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, gradientPipelineLayout, 0, 1, &drawImageDescriptor, 0, nullptr);
+	vkCmdDispatch(commandBuffer, std::ceil(drawExtent.width / 16.0), std::ceil(drawExtent.height / 16.0), 1);
 
-	vkCmdClearColorImage(commandBuffer, swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_GENERAL, &clearValue, 1, &clearRange);
+	Vkimages::TransitionImage(commandBuffer, drawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
-	Vkimages::TransitionImage(commandBuffer, swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+	//Copy image to swapchain image, and transfer image layout properly
+	Vkimages::TransitionImage(commandBuffer, swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+	Vkimages::CopyImageToImage(commandBuffer, drawImage.image, swapchainImages[swapchainImageIndex], drawExtent, swapchainExtent);
+	Vkimages::TransitionImage(commandBuffer, swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
 	VK_CHECK(vkEndCommandBuffer(commandBuffer), "Error occured while ending command buffer!");
 
@@ -121,6 +141,11 @@ void VulkanApp::Draw()
 
 	VK_CHECK(vkQueuePresentKHR(graphicsQueue, &presentInfo), "Couldn't start presentation operations!");
 
+	frame++;
+}
+
+void VulkanApp::DrawBackground()
+{
 }
 
 void VulkanApp::InitWindow()
@@ -196,11 +221,46 @@ void VulkanApp::InitVulkan()
 
 	graphicsQueue = vkbLogicalDevice.get_queue(vkb::QueueType::graphics).value();
 	graphicsQueueIndex = vkbLogicalDevice.get_queue_index(vkb::QueueType::graphics).value();
+
+	VmaAllocatorCreateInfo vamAllocatorInfo{};
+	vamAllocatorInfo.device = logicalDevice;
+	vamAllocatorInfo.instance = instance;
+	vamAllocatorInfo.physicalDevice = physicalDevice;
+	vamAllocatorInfo.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
+	vmaCreateAllocator(&vamAllocatorInfo, &vmaAllocator);
 }
 
 void VulkanApp::InitSwapChain()
 {
 	CreateSwapchain();
+
+	VkExtent3D drawImageExtent;
+	drawImageExtent.width = WIDTH;
+	drawImageExtent.height = HEIGHT;
+	drawImageExtent.depth = 1;
+
+	drawImage.imageFormat = VK_FORMAT_R16G16B16A16_SFLOAT;
+	drawImage.imageExtent = drawImageExtent;
+	
+	VkImageUsageFlags drawImageUsages{};
+	drawImageUsages |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+	drawImageUsages |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+	drawImageUsages |= VK_IMAGE_USAGE_STORAGE_BIT;
+	drawImageUsages |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+	VkImageCreateInfo imageCreateInfo = Vkinit::ImageCreateInfo(drawImage.imageFormat, drawImageUsages, drawImage.imageExtent);
+
+	VmaAllocationCreateInfo imageAllocationInfo{};
+	imageAllocationInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+	imageAllocationInfo.requiredFlags = VkMemoryPropertyFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+	VK_CHECK(vmaCreateImage(vmaAllocator, &imageCreateInfo, &imageAllocationInfo, &drawImage.image, &drawImage.allocation, nullptr), "Couldn't allocate image");
+
+	VkImageViewCreateInfo imageViewCreateInfo = Vkinit::ImageViewCreateInfo(drawImage.imageFormat, drawImage.image, VK_IMAGE_ASPECT_COLOR_BIT);
+
+	VK_CHECK(vkCreateImageView(logicalDevice, &imageViewCreateInfo, nullptr, &drawImage.imageView), "Couldn't create image view");
+
+
 }
 
 void VulkanApp::InitCommands()
@@ -231,6 +291,76 @@ void VulkanApp::InitSyncStructures()
 	}
 }
 
+void VulkanApp::InitDescriptors()
+{
+	std::vector<DescriptorAllocator::PoolSizeRatio> sizes =
+	{
+		{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1 }
+	};
+
+	globalDescriptorAllocator.InitPool(logicalDevice, 10, sizes);
+
+	{
+		DescriptorLayoutBuilder builder;
+		builder.AddBinding(0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+		drawImageDescriptorLayout = builder.Build(logicalDevice, VK_SHADER_STAGE_COMPUTE_BIT);
+	}
+
+	drawImageDescriptor = globalDescriptorAllocator.Allocate(logicalDevice, drawImageDescriptorLayout);
+
+	VkDescriptorImageInfo imageInfo{};
+	imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+	imageInfo.imageView = drawImage.imageView;
+
+	VkWriteDescriptorSet writeSet{};
+	writeSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	writeSet.pNext = nullptr;
+	writeSet.dstBinding = 0;
+	writeSet.descriptorCount = 1;
+	writeSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+	writeSet.dstSet = drawImageDescriptor;
+	writeSet.pImageInfo = &imageInfo;
+
+	vkUpdateDescriptorSets(logicalDevice, 1, &writeSet, 0, nullptr);
+
+}
+
+void VulkanApp::InitPipelines()
+{
+	InitBackgroundPipelines();
+}
+
+void VulkanApp::InitBackgroundPipelines()
+{
+	VkPipelineLayoutCreateInfo layoutCreateInfo{};
+	layoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	layoutCreateInfo.pNext = nullptr;
+	layoutCreateInfo.pSetLayouts = &drawImageDescriptorLayout;
+	layoutCreateInfo.setLayoutCount = 1;
+
+	VK_CHECK(vkCreatePipelineLayout(logicalDevice, &layoutCreateInfo, nullptr, &gradientPipelineLayout), "Couldn't create pipeline layout!");
+
+	VkShaderModule computeDrawShader;
+	VK_CHECK(!Vkpipelines::LoadShaderModule("Shaders/Shader-cp.spv", logicalDevice, &computeDrawShader), "Couldn't load shader modul!");
+
+	VkPipelineShaderStageCreateInfo stageinfo{};
+	stageinfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	stageinfo.pNext = nullptr;
+	stageinfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+	stageinfo.module = computeDrawShader;
+	stageinfo.pName = "main";
+
+	VkComputePipelineCreateInfo computePipelineCreateInfo{};
+	computePipelineCreateInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+	computePipelineCreateInfo.pNext = nullptr;
+	computePipelineCreateInfo.layout = gradientPipelineLayout;
+	computePipelineCreateInfo.stage = stageinfo;
+	
+	VK_CHECK(vkCreateComputePipelines(logicalDevice, VK_NULL_HANDLE, 1, &computePipelineCreateInfo, nullptr, &gradientPipeline), "Couldn't create pipeline!");
+
+	vkDestroyShaderModule(logicalDevice, computeDrawShader, nullptr);
+}
+
 void VulkanApp::CreateSwapchain()
 {
 	vkb::SwapchainBuilder swapchainBuilder{physicalDevice, logicalDevice, surface};
@@ -241,7 +371,7 @@ void VulkanApp::CreateSwapchain()
 	surfaceFormat.colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 
 	vkb::Swapchain vkbSwapchain = swapchainBuilder.set_desired_format(surfaceFormat)
-												  .set_desired_present_mode(VK_PRESENT_MODE_FIFO_KHR)
+												  .set_desired_present_mode(VK_PRESENT_MODE_MAILBOX_KHR)
 												  .set_desired_extent(WIDTH, HEIGHT)
 												  .add_image_usage_flags(VK_IMAGE_USAGE_TRANSFER_DST_BIT)
 												  .build()

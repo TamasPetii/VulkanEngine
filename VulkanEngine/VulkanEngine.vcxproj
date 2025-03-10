@@ -172,6 +172,7 @@
     <ClInclude Include="VulkanApp.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\Gradient.comp" />
     <None Include="Shaders\Shader.frag" />
     <None Include="Shaders\Shader.vert" />
   </ItemGroup>
