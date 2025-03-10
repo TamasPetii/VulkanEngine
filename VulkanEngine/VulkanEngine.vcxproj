@@ -72,7 +72,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>$(VCPKG)\include;$(VULKAN_SDK)\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(VCPKG)\lib;$(VULKAN_SDK)\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(VCPKG)\debug\lib;$(VULKAN_SDK)\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>$(VCPKG)\include;$(VULKAN_SDK)\include;$(IncludePath)</IncludePath>
@@ -80,7 +80,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(VCPKG)\include;$(VULKAN_SDK)\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(VCPKG)\lib;$(VULKAN_SDK)\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(VCPKG)\debug\lib;$(VULKAN_SDK)\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(VCPKG)\include;$(VULKAN_SDK)\include;$(IncludePath)</IncludePath>
@@ -97,7 +97,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(CoreLibraryDependencies);vulkan-1.lib;glfw3dll.lib;dwmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);vulkan-1.lib;glfw3dll.lib;dwmapi.lib;vk-bootstrap.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -115,7 +115,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(CoreLibraryDependencies);vulkan-1.lib;glfw3dll.lib;dwmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);vulkan-1.lib;glfw3dll.lib;dwmapi.lib;vk-bootstrap.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -129,7 +129,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(CoreLibraryDependencies);vulkan-1.lib;glfw3dll.lib;dwmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);vulkan-1.lib;glfw3dll.lib;dwmapi.lib;vk-bootstrap.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -147,16 +147,28 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(CoreLibraryDependencies);vulkan-1.lib;glfw3dll.lib;dwmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);vulkan-1.lib;glfw3dll.lib;dwmapi.lib;vk-bootstrap.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Vk\vk_initializers.cpp" />
+    <ClCompile Include="Vk\vk_images.cpp" />
+    <ClCompile Include="Vk\vk_pipelines.cpp" />
+    <ClCompile Include="Vk\vk_descriptors.cpp" />
+    <ClCompile Include="Vk\vk_loader.cpp" />
+    <ClCompile Include="Vk\vk_types.cpp" />
     <ClCompile Include="VulkanApp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Logger.h" />
+    <ClInclude Include="Vk\vk_initializers.h" />
+    <ClInclude Include="Vk\vk_images.h" />
+    <ClInclude Include="Vk\vk_pipelines.h" />
+    <ClInclude Include="Vk\vk_descriptors.h" />
+    <ClInclude Include="Vk\vk_loader.h" />
+    <ClInclude Include="Vk\vk_types.h" />
     <ClInclude Include="VulkanApp.h" />
   </ItemGroup>
   <ItemGroup>
