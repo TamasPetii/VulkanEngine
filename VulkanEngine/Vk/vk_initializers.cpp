@@ -142,3 +142,36 @@ VkImageViewCreateInfo Vkinit::ImageViewCreateInfo(VkFormat format, VkImage image
 
 	return imageViewCreateInfo;
 }
+
+VkRenderingAttachmentInfo Vkinit::AttachmentInfo(VkImageView imageView, VkClearValue* clearValue, VkImageLayout layoyut)
+{
+	VkRenderingAttachmentInfo attachmentInfo{};
+	attachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+	attachmentInfo.pNext = nullptr;
+	attachmentInfo.imageView = imageView;
+	attachmentInfo.imageLayout = layoyut;
+	attachmentInfo.loadOp = clearValue ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
+	attachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+	if (clearValue)
+		attachmentInfo.clearValue = *clearValue;
+
+	return attachmentInfo;
+}
+
+VkRenderingInfo Vkinit::RenderingInfo(VkExtent2D extent, VkRenderingAttachmentInfo* colorAttachment, VkRenderingAttachmentInfo* depthAttachment)
+{
+	VkRenderingInfoKHR renderInfo{};
+	renderInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR;
+	renderInfo.pNext = nullptr;
+	renderInfo.renderArea.offset = { 0, 0 };
+	renderInfo.renderArea.extent = extent;
+	renderInfo.layerCount = 1;
+	renderInfo.viewMask = 0;
+	renderInfo.colorAttachmentCount = 1;
+	renderInfo.pColorAttachments = colorAttachment;
+	renderInfo.pDepthAttachment = depthAttachment;
+	renderInfo.pStencilAttachment = nullptr;  // If needed, you can pass this too
+
+	return renderInfo;
+}

@@ -5,6 +5,10 @@
 #include <glfw/glfw3native.h>
 #include <VkBootstrap.h>
 
+#include "Imgui/imgui.h"
+#include "Imgui/imgui_impl_glfw.h"
+#include "Imgui/imgui_impl_vulkan.h"
+
 #include "Vk/vk_types.h"
 #include "Vk/vk_initializers.h"
 #include "Vk/vk_images.h"
@@ -63,6 +67,10 @@ private:
 	void InitBackgroundPipelines();
 	void CreateSwapchain();
 	void DestroySwapchain();
+	void ImmediateSubmit(std::function<void(VkCommandBuffer cmd)>&& function);
+	void InitImgui();
+	void DrawImGui(VkCommandBuffer commandBuffer, VkImageView imageView);
+	void RenderGui();
 private:
 	GLFWwindow* window = nullptr;
 	VkInstance instance = nullptr;
@@ -90,6 +98,12 @@ private:
 
 	VkPipeline gradientPipeline;
 	VkPipelineLayout gradientPipelineLayout;
+
+	VkFence immediateFance;
+	VkCommandPool immediateCommandPool;
+	VkCommandBuffer immediateCommandBuffer;
+
+	VkDescriptorPool imguiPool;
 private:
 	uint32_t frame = 0;
 	uint32_t currentFrame = 0;

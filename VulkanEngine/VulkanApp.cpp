@@ -6,6 +6,12 @@
 #define VMA_IMPLEMENTATION
 #include "vma/vk_mem_alloc.h"
 
+#ifdef NDEBUG
+bool useValidationLayers = false;
+#else
+bool useValidationLayers = true;
+#endif
+
 #include <dwmapi.h>
 
 void VulkanApp::Run()
@@ -24,6 +30,7 @@ void VulkanApp::Init()
 	InitSyncStructures();
 	InitDescriptors();
 	InitPipelines();
+	InitImgui();
 }
 
 void VulkanApp::MainLoop()
@@ -63,6 +70,12 @@ void VulkanApp::Cleanup()
 {
 	vkDeviceWaitIdle(logicalDevice);
 
+	ImGui_ImplVulkan_Shutdown();
+	vkDestroyDescriptorPool(logicalDevice, imguiPool, nullptr);
+
+	vkDestroyFence(logicalDevice, immediateFance, nullptr);
+	vkDestroyCommandPool(logicalDevice, immediateCommandPool, nullptr);
+
 	vkDestroyPipelineLayout(logicalDevice, gradientPipelineLayout, nullptr);
 	vkDestroyPipeline(logicalDevice, gradientPipeline, nullptr);
 
@@ -84,7 +97,10 @@ void VulkanApp::Cleanup()
 	DestroySwapchain();
 	vkDestroySurfaceKHR(instance, surface, nullptr);
 	vkDestroyDevice(logicalDevice, nullptr);
-	vkb::destroy_debug_utils_messenger(instance, debugMessenger);
+
+	if(useValidationLayers)
+		vkb::destroy_debug_utils_messenger(instance, debugMessenger);
+
 	vkDestroyInstance(instance, nullptr);
 	glfwDestroyWindow(window);
 }
@@ -119,7 +135,10 @@ void VulkanApp::Draw()
 	//Copy image to swapchain image, and transfer image layout properly
 	Vkimages::TransitionImage(commandBuffer, swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 	Vkimages::CopyImageToImage(commandBuffer, drawImage.image, swapchainImages[swapchainImageIndex], drawExtent, swapchainExtent);
-	Vkimages::TransitionImage(commandBuffer, swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+	Vkimages::TransitionImage(commandBuffer, swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+	RenderGui();
+	DrawImGui(commandBuffer, swapchainImageViews[swapchainImageIndex]);
+	Vkimages::TransitionImage(commandBuffer, swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
 	VK_CHECK(vkEndCommandBuffer(commandBuffer), "Error occured while ending command buffer!");
 
@@ -183,14 +202,16 @@ void VulkanApp::InitVulkan()
 	vkb::InstanceBuilder builder;
 
 	auto buildedResource = builder.set_app_name("Vulkan Engine")
-								  .request_validation_layers(true)
+								  .request_validation_layers(useValidationLayers)
 								  .use_default_debug_messenger()
 								  .require_api_version(1, 3, 0)
 								  .build();
 
 	vkb::Instance vkbInstance = buildedResource.value();
 	instance = vkbInstance;
-	debugMessenger = vkbInstance.debug_messenger;
+
+	if(useValidationLayers)
+		debugMessenger = vkbInstance.debug_messenger;
 
 	VK_CHECK(glfwCreateWindowSurface(instance, window, nullptr, &surface), "Failed to create window surface");
 
@@ -276,6 +297,12 @@ void VulkanApp::InitCommands()
 
 		VK_CHECK(vkAllocateCommandBuffers(logicalDevice, &commandBufferInfo, &frameData[i].commandBuffer), "Couldn't allocate command buffer");
 	}
+
+	VK_CHECK(vkCreateCommandPool(logicalDevice, &commandPoolInfo, nullptr, &immediateCommandPool), "Couldn't create command pool!");
+
+	VkCommandBufferAllocateInfo commandBufferInfo = Vkinit::CommandBufferAllocateInfo(immediateCommandPool, 1);
+
+	VK_CHECK(vkAllocateCommandBuffers(logicalDevice, &commandBufferInfo, &immediateCommandBuffer), "Couldn't allocate command buffer");
 }
 
 void VulkanApp::InitSyncStructures()
@@ -289,6 +316,8 @@ void VulkanApp::InitSyncStructures()
 		VK_CHECK(vkCreateSemaphore(logicalDevice, &semaphoreInfo, nullptr, &frameData[i].renderSemaphore), "Couldn't create render semaphore");
 		VK_CHECK(vkCreateSemaphore(logicalDevice, &semaphoreInfo, nullptr, &frameData[i].swapchainSemaphore), "Couldn't create swapchain semaphore");
 	}
+
+	VK_CHECK(vkCreateFence(logicalDevice, &fenceInfo, nullptr, &immediateFance), "Couldn't create immediate fence");
 }
 
 void VulkanApp::InitDescriptors()
@@ -390,4 +419,110 @@ void VulkanApp::DestroySwapchain()
 
 		vkDestroyImageView(logicalDevice, swapchainImageViews[i], nullptr);
 	}
+}
+
+void VulkanApp::ImmediateSubmit(std::function<void(VkCommandBuffer cmd)>&& function)
+{
+	VK_CHECK(vkResetFences(logicalDevice, 1, &immediateFance), "Couldn't create immediate fence!");
+	VK_CHECK(vkResetCommandBuffer(immediateCommandBuffer, 0), "Couldn't reset immediate command buffer");
+
+	VkCommandBuffer commandBuffer = immediateCommandBuffer;
+
+	VkCommandBufferBeginInfo commandBufferBeginInfo = Vkinit::CommandBufferBeginInfo(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+
+	VK_CHECK(vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo), "Couldn't begin immediate command buffer");
+
+	function(commandBuffer);
+
+	VK_CHECK(vkEndCommandBuffer(commandBuffer), "Couldn't end immediate command buffer");
+
+	VkCommandBufferSubmitInfo commandBufferSubmitInfo = Vkinit::CommandBufferSubmitInfo(commandBuffer);
+	VkSubmitInfo2 submitInfo = Vkinit::SubmitInfo(&commandBufferSubmitInfo, nullptr, nullptr);
+
+	VK_CHECK(vkQueueSubmit2(graphicsQueue, 1, &submitInfo, immediateFance), "Couldn't submit immediate buffer into queue");
+	VK_CHECK(vkWaitForFences(logicalDevice, 1, &immediateFance, true, UINT64_MAX), "Error occured while waiting for immediateFance to be signaled!");
+}
+
+void VulkanApp::InitImgui()
+{
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+
+	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable keyboard controls
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable docking
+	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;   // Enable multi-viewport support
+
+	ImGui_ImplGlfw_InitForVulkan(window, true);
+
+	VkDescriptorPoolSize poolSizes[] =
+	{
+		{ VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
+		{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
+		{ VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
+		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
+		{ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
+	};
+
+	VkDescriptorPoolCreateInfo poolInfo = {};
+	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+	poolInfo.maxSets = 1000 * IM_ARRAYSIZE(poolSizes);
+	poolInfo.poolSizeCount = (uint32_t)IM_ARRAYSIZE(poolSizes);
+	poolInfo.pPoolSizes = poolSizes;
+
+	VK_CHECK(vkCreateDescriptorPool(logicalDevice, &poolInfo, nullptr, &imguiPool), "Couldn't create imgui descriptor pool");
+
+	ImGui_ImplVulkan_InitInfo init_info = {};
+	init_info.Instance = instance;
+	init_info.PhysicalDevice = physicalDevice;
+	init_info.Device = logicalDevice;
+	init_info.QueueFamily = graphicsQueueIndex;
+	init_info.Queue = graphicsQueue;
+	init_info.DescriptorPool = imguiPool;
+	init_info.Allocator = nullptr;
+	init_info.MinImageCount = static_cast<uint32_t>(3);
+	init_info.ImageCount = static_cast<uint32_t>(3);
+	init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+	init_info.UseDynamicRendering = true;
+	init_info.PipelineRenderingCreateInfo = { .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO };
+	init_info.PipelineRenderingCreateInfo.colorAttachmentCount = 1;
+	init_info.PipelineRenderingCreateInfo.pColorAttachmentFormats = &swapchainImageFormat;
+
+	ImGui_ImplVulkan_Init(&init_info);
+	ImGui_ImplVulkan_CreateFontsTexture();
+}
+
+void VulkanApp::DrawImGui(VkCommandBuffer commandBuffer, VkImageView imageView)
+{
+	VkRenderingAttachmentInfo attachmentInfo = Vkinit::AttachmentInfo(imageView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+	VkRenderingInfo renderingInfo = Vkinit::RenderingInfo(swapchainExtent, &attachmentInfo, nullptr);
+
+	vkCmdBeginRendering(commandBuffer, &renderingInfo);
+	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
+	vkCmdEndRendering(commandBuffer);
+
+	if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+		ImGui::UpdatePlatformWindows();
+		ImGui::RenderPlatformWindowsDefault();
+	}
+}
+
+void VulkanApp::RenderGui()
+{
+	ImGui_ImplVulkan_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+
+	//some imgui UI to test
+	ImGui::ShowDemoWindow();
+
+	//make imgui calculate internal draw structures
+	ImGui::Render();
 }
