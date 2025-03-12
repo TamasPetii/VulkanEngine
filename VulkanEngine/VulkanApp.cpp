@@ -70,6 +70,9 @@ void VulkanApp::Cleanup()
 {
 	vkDeviceWaitIdle(logicalDevice);
 
+	vkDestroyPipelineLayout(logicalDevice, trianglePipelineLayout, nullptr);
+	vkDestroyPipeline(logicalDevice, trianglePipeline, nullptr);
+
 	ImGui_ImplVulkan_Shutdown();
 	vkDestroyDescriptorPool(logicalDevice, imguiPool, nullptr);
 
@@ -120,17 +123,16 @@ void VulkanApp::Draw()
 
 	VK_CHECK(vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo), "Couldn't begin command buffer!");
 
-	drawExtent.width = drawImage.imageExtent.width;
-	drawExtent.height = drawImage.imageExtent.height;
-
 	//Clear color values in image, and transferimage layout properly to being able to copy its data
 	Vkimages::TransitionImage(commandBuffer, drawImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
 	
-	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, gradientPipeline);
-	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, gradientPipelineLayout, 0, 1, &drawImageDescriptor, 0, nullptr);
-	vkCmdDispatch(commandBuffer, std::ceil(drawExtent.width / 16.0), std::ceil(drawExtent.height / 16.0), 1);
+	DrawBackground(commandBuffer);
 
-	Vkimages::TransitionImage(commandBuffer, drawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+	Vkimages::TransitionImage(commandBuffer, drawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+	DrawGeometry(commandBuffer);
+
+	Vkimages::TransitionImage(commandBuffer, drawImage.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
 	//Copy image to swapchain image, and transfer image layout properly
 	Vkimages::TransitionImage(commandBuffer, swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
@@ -163,8 +165,53 @@ void VulkanApp::Draw()
 	frame++;
 }
 
-void VulkanApp::DrawBackground()
+void VulkanApp::DrawBackground(VkCommandBuffer commandBuffer)
 {
+	drawExtent.width = drawImage.imageExtent.width;
+	drawExtent.height = drawImage.imageExtent.height;
+
+	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, gradientPipeline);
+	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, gradientPipelineLayout, 0, 1, &drawImageDescriptor, 0, nullptr);
+
+	ComputePushConstants pushConstants;
+	pushConstants.data1 = glm::vec4(1, 0, 0, 1);
+	pushConstants.data2 = glm::vec4(0, 0, 1, 1);
+
+	vkCmdPushConstants(commandBuffer, gradientPipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(ComputePushConstants), &pushConstants);
+	vkCmdDispatch(commandBuffer, std::ceil(drawExtent.width / 16.0), std::ceil(drawExtent.height / 16.0), 1);
+}
+
+void VulkanApp::DrawGeometry(VkCommandBuffer commandBuffer)
+{
+	//begin a render pass  connected to our draw image
+	VkRenderingAttachmentInfo colorAttachment = Vkinit::AttachmentInfo(drawImage.imageView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+	VkRenderingInfo renderInfo = Vkinit::RenderingInfo(drawExtent, &colorAttachment, nullptr);
+
+	vkCmdBeginRendering(commandBuffer, &renderInfo);
+	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, trianglePipeline);
+
+	//set dynamic viewport and scissor
+	VkViewport viewport = {};
+	viewport.x = 0;
+	viewport.y = 0;
+	viewport.width = drawExtent.width;
+	viewport.height = drawExtent.height;
+	viewport.minDepth = 0.f;
+	viewport.maxDepth = 1.f;
+
+	vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+	VkRect2D scissor = {};
+	scissor.offset.x = 0;
+	scissor.offset.y = 0;
+	scissor.extent.width = drawExtent.width;
+	scissor.extent.height = drawExtent.height;
+
+	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+	vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+
+	vkCmdEndRendering(commandBuffer);
 }
 
 void VulkanApp::InitWindow()
@@ -356,6 +403,7 @@ void VulkanApp::InitDescriptors()
 
 void VulkanApp::InitPipelines()
 {
+	InitTrianglePipeline();
 	InitBackgroundPipelines();
 }
 
@@ -367,10 +415,18 @@ void VulkanApp::InitBackgroundPipelines()
 	layoutCreateInfo.pSetLayouts = &drawImageDescriptorLayout;
 	layoutCreateInfo.setLayoutCount = 1;
 
+	VkPushConstantRange pushConstant{};
+	pushConstant.offset = 0;
+	pushConstant.size = sizeof(ComputePushConstants);
+	pushConstant.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+	
+	layoutCreateInfo.pushConstantRangeCount = 1;
+	layoutCreateInfo.pPushConstantRanges = &pushConstant;
+
 	VK_CHECK(vkCreatePipelineLayout(logicalDevice, &layoutCreateInfo, nullptr, &gradientPipelineLayout), "Couldn't create pipeline layout!");
 
 	VkShaderModule computeDrawShader;
-	VK_CHECK(!Vkpipelines::LoadShaderModule("Shaders/Shader-cp.spv", logicalDevice, &computeDrawShader), "Couldn't load shader modul!");
+	VK_CHECK(!Vkpipelines::LoadShaderModule("Shaders/GradientPush-cp.spv", logicalDevice, &computeDrawShader), "Couldn't load shader modul!");
 
 	VkPipelineShaderStageCreateInfo stageinfo{};
 	stageinfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -388,6 +444,37 @@ void VulkanApp::InitBackgroundPipelines()
 	VK_CHECK(vkCreateComputePipelines(logicalDevice, VK_NULL_HANDLE, 1, &computePipelineCreateInfo, nullptr, &gradientPipeline), "Couldn't create pipeline!");
 
 	vkDestroyShaderModule(logicalDevice, computeDrawShader, nullptr);
+}
+
+void VulkanApp::InitTrianglePipeline()
+{
+	VkShaderModule triangleVertShader;
+	VK_CHECK(!Vkpipelines::LoadShaderModule("Shaders/Triangle-vs.spv", logicalDevice, &triangleVertShader), "Couldn't load shader modul!");
+
+	VkShaderModule triangleFragShader;
+	VK_CHECK(!Vkpipelines::LoadShaderModule("Shaders/Triangle-fs.spv", logicalDevice, &triangleFragShader), "Couldn't load shader modul!");
+
+	VkPipelineLayoutCreateInfo layoutCreateInfo{};
+	layoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	layoutCreateInfo.pNext = nullptr;
+	VK_CHECK(vkCreatePipelineLayout(logicalDevice, &layoutCreateInfo, nullptr, &trianglePipelineLayout), "Couldn't create pipeline layout!");
+
+	PipelineBuilder pipelineBuilder;
+	pipelineBuilder.pipelineLayout = trianglePipelineLayout;
+	pipelineBuilder.SetShaders(triangleVertShader, triangleFragShader);
+	pipelineBuilder.SetInputTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+	pipelineBuilder.SetPolygonMode(VK_POLYGON_MODE_FILL);
+	pipelineBuilder.SetCullMode(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
+	pipelineBuilder.SetMultisamplingNone();
+	pipelineBuilder.DisableBlending();
+	pipelineBuilder.DisableDepthTest();
+	pipelineBuilder.SetColorAttachmentFormat(drawImage.imageFormat);
+	pipelineBuilder.SetDepthFormat(VK_FORMAT_UNDEFINED);
+
+	trianglePipeline = pipelineBuilder.BuildPipeline(logicalDevice);
+
+	vkDestroyShaderModule(logicalDevice, triangleFragShader, nullptr);
+	vkDestroyShaderModule(logicalDevice, triangleVertShader, nullptr);
 }
 
 void VulkanApp::CreateSwapchain()

@@ -45,6 +45,13 @@ struct FrameData
 	VkFence renderFence;
 };
 
+struct ComputePushConstants {
+	glm::vec4 data1;
+	glm::vec4 data2;
+	glm::vec4 data3;
+	glm::vec4 data4;
+};
+
 constexpr uint32_t FRAME_OVERLAP = 2;
 
 class VulkanApp
@@ -56,7 +63,8 @@ public:
 	void Cleanup();
 private:
 	void Draw();
-	void DrawBackground();
+	void DrawBackground(VkCommandBuffer commandBuffer);
+	void DrawGeometry(VkCommandBuffer commandBuffer);
 	void InitWindow();
 	void InitVulkan();
 	void InitSwapChain();
@@ -65,6 +73,7 @@ private:
 	void InitDescriptors();
 	void InitPipelines();
 	void InitBackgroundPipelines();
+	void InitTrianglePipeline();
 	void CreateSwapchain();
 	void DestroySwapchain();
 	void ImmediateSubmit(std::function<void(VkCommandBuffer cmd)>&& function);
@@ -104,6 +113,9 @@ private:
 	VkCommandBuffer immediateCommandBuffer;
 
 	VkDescriptorPool imguiPool;
+
+	VkPipelineLayout trianglePipelineLayout;
+	VkPipeline trianglePipeline;
 private:
 	uint32_t frame = 0;
 	uint32_t currentFrame = 0;

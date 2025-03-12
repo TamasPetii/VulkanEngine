@@ -188,8 +188,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\Gradient.comp" />
+    <None Include="Shaders\GradientPush.comp" />
     <None Include="Shaders\Shader.frag" />
     <None Include="Shaders\Shader.vert" />
+    <None Include="Shaders\Triangle.frag" />
+    <None Include="Shaders\Triangle.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
