@@ -189,6 +189,8 @@
   <ItemGroup>
     <None Include="Shaders\Gradient.comp" />
     <None Include="Shaders\GradientPush.comp" />
+    <None Include="Shaders\Mesh.frag" />
+    <None Include="Shaders\Mesh.vert" />
     <None Include="Shaders\Shader.frag" />
     <None Include="Shaders\Shader.vert" />
     <None Include="Shaders\Triangle.frag" />

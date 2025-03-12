@@ -52,6 +52,34 @@ struct ComputePushConstants {
 	glm::vec4 data4;
 };
 
+struct AllocatedBuffer 
+{
+	VkBuffer buffer;
+	VmaAllocation allocation;
+	VmaAllocationInfo info;
+};
+
+struct Vertex {
+
+	glm::vec3 position;
+	float uv_x;
+	glm::vec3 normal;
+	float uv_y;
+	glm::vec4 color;
+};
+
+struct GPUMeshBuffers {
+
+	AllocatedBuffer indexBuffer;
+	AllocatedBuffer vertexBuffer;
+	VkDeviceAddress vertexBufferAddress;
+};
+
+struct GPUDrawPushConstants {
+	glm::mat4 worldMatrix;
+	VkDeviceAddress vertexBuffer;
+};
+
 constexpr uint32_t FRAME_OVERLAP = 2;
 
 class VulkanApp
@@ -74,12 +102,18 @@ private:
 	void InitPipelines();
 	void InitBackgroundPipelines();
 	void InitTrianglePipeline();
+	void InitMeshPipeline();
 	void CreateSwapchain();
 	void DestroySwapchain();
 	void ImmediateSubmit(std::function<void(VkCommandBuffer cmd)>&& function);
 	void InitImgui();
 	void DrawImGui(VkCommandBuffer commandBuffer, VkImageView imageView);
 	void RenderGui();
+
+	void InitDefaultData();
+	AllocatedBuffer CreateBuffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
+	void DestroyBuffer(const AllocatedBuffer& buffer);
+	GPUMeshBuffers UploadMesh(std::span<uint32_t> indices, std::span<Vertex> vertices);
 private:
 	GLFWwindow* window = nullptr;
 	VkInstance instance = nullptr;
@@ -116,6 +150,11 @@ private:
 
 	VkPipelineLayout trianglePipelineLayout;
 	VkPipeline trianglePipeline;
+
+	VkPipelineLayout meshPipelineLayout;
+	VkPipeline meshPipeline;
+	GPUMeshBuffers rectangle;
+
 private:
 	uint32_t frame = 0;
 	uint32_t currentFrame = 0;

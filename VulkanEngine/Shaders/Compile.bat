@@ -4,4 +4,6 @@
 %VULKAN_SDK%\Bin\glslc.exe GradientPush.comp -o GradientPush-cp.spv
 %VULKAN_SDK%\Bin\glslc.exe Triangle.vert -o Triangle-vs.spv
 %VULKAN_SDK%\Bin\glslc.exe Triangle.frag -o Triangle-fs.spv
+%VULKAN_SDK%\Bin\glslc.exe Mesh.vert -o Mesh-vs.spv
+%VULKAN_SDK%\Bin\glslc.exe Mesh.frag -o Mesh-fs.spv
 pause
