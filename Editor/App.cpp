@@ -49,7 +49,7 @@ void App::Clear()
 
 void App::InitWindow()
 {
-	CHECK_ERROR_NULL(glfwInit());
+	CHECK_ERROR_NULL_MESSAGE(glfwInit(), "Couldn't initialize glfw!");
 
 	GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
 	const GLFWvidmode* videoMode = glfwGetVideoMode(primaryMonitor);
@@ -61,7 +61,7 @@ void App::InitWindow()
 	glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
 
 	window = glfwCreateWindow(width, height, "Vulkan Engine", nullptr, nullptr);
-	CHECK_ERROR_NULL(window);
+	CHECK_ERROR_NULL_MESSAGE(window, "Couldn't create glfw window!");
 
 	glfwSetWindowUserPointer(window, this);
 	//glfwSetFramebufferSizeCallback(window, FramebufferResizeCallback);
@@ -101,6 +101,21 @@ void App::InitEngine()
 	glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 	std::vector<const char*> glfwExtensionNames(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
-	for (uint32_t i = 0; i < glfwExtensionCount; i++)
-		engine->SetRequiredExtension(glfwExtensionNames[i]);
+	engine->SetRequiredInstanceExtensions(glfwExtensionNames);
+	
+	engine->SetSurfaceCreationFunction(
+		[&](const Vk::Instance* const instance, VkSurfaceKHR* surface) -> void {
+			VK_CHECK_MESSAGE(glfwCreateWindowSurface(instance->Value(), window, nullptr, surface), "Failed to create window surface");
+		}
+	);
+
+	engine->SetWindowExtentFunction(
+		[&]() -> std::pair<int, int> {
+			int width, height;
+			glfwGetFramebufferSize(window, &width, &height);
+			return std::make_pair(width, height);
+		}
+	);
+
+	engine->Init();
 }

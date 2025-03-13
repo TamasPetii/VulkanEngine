@@ -159,6 +159,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Vulkan\SwapChain.h" />
+    <ClInclude Include="Vulkan\Device.h" />
+    <ClInclude Include="Vulkan\PhysicalDevice.h" />
+    <ClInclude Include="Vulkan\Surface.h" />
     <ClInclude Include="Vulkan\ValidationLayer.h" />
     <ClInclude Include="Vulkan\Instance.h" />
     <ClInclude Include="Vulkan\DebugMessenger.h" />
@@ -171,6 +175,10 @@
     <ClInclude Include="Timer\Timer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Vulkan\SwapChain.cpp" />
+    <ClCompile Include="Vulkan\Device.cpp" />
+    <ClCompile Include="Vulkan\PhysicalDevice.cpp" />
+    <ClCompile Include="Vulkan\Surface.cpp" />
     <ClCompile Include="Vulkan\ValidationLayer.cpp" />
     <ClCompile Include="Vulkan\Instance.cpp" />
     <ClCompile Include="Vulkan\DebugMessenger.cpp" />
