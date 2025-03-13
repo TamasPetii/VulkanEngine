@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Engine.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Logger\Logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -55,6 +52,24 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Vulkan\SwapChain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Registry\Entity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Registry\Pool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Registry\Registry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Registry\Relationship.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Registry\Unique.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -95,5 +110,22 @@
     <ClCompile Include="Vulkan\SwapChain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Registry\Registry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Registry\Relationship.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Registry\Unique.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Registry\Pool.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="Registry\Registry.inl">
+      <Filter>Header Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

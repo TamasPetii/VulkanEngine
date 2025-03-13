@@ -159,6 +159,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Engine.h" />
+    <ClInclude Include="Registry\Entity.h" />
+    <ClInclude Include="Registry\Pool.h" />
+    <ClInclude Include="Registry\Registry.h" />
+    <ClInclude Include="Registry\Relationship.h" />
+    <ClInclude Include="Registry\Unique.h" />
     <ClInclude Include="Vulkan\SwapChain.h" />
     <ClInclude Include="Vulkan\Device.h" />
     <ClInclude Include="Vulkan\PhysicalDevice.h" />
@@ -168,13 +174,15 @@
     <ClInclude Include="Vulkan\DebugMessenger.h" />
     <ClInclude Include="EngineApi.h" />
     <ClInclude Include="Timer\BlockTimer.h" />
-    <ClInclude Include="Engine.h" />
     <ClInclude Include="Timer\FrameTimer.h" />
     <ClInclude Include="Logger\Checker.h" />
     <ClInclude Include="Logger\Logger.h" />
     <ClInclude Include="Timer\Timer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Registry\Registry.cpp" />
+    <ClCompile Include="Registry\Relationship.cpp" />
+    <ClCompile Include="Registry\Unique.cpp" />
     <ClCompile Include="Vulkan\SwapChain.cpp" />
     <ClCompile Include="Vulkan\Device.cpp" />
     <ClCompile Include="Vulkan\PhysicalDevice.cpp" />
@@ -187,6 +195,10 @@
     <ClCompile Include="Timer\FrameTimer.cpp" />
     <ClCompile Include="Logger\Logger.cpp" />
     <ClCompile Include="Timer\Timer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Registry\Pool.inl" />
+    <None Include="Registry\Registry.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

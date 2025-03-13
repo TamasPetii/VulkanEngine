@@ -15,8 +15,11 @@ class Registry
 public:
 	Entity CreateEntity();
 	void   DestroyEntity(Entity entity);
+
 	template <typename... T>
-	void RegisterComponentsBitset();
+	void RegisterComponentBitset();
+	template <typename... T>
+	const std::set<Entity>& GetEntitiesWithBitset() const;
 	template <typename... T>
 	bool HasComponents(Entity entity);
 	template <typename... T>
@@ -28,8 +31,10 @@ public:
 	template <typename... T>
 	void RemoveComponents(Entity entity);
 protected:
+	template <typename... T>
+	void GetComponentsBitset();
 	template <typename T>
-	void RegisterComponentBit(std::bitset<MAX_COMPONENTS>& bitset);
+	void SetComponentBit(std::bitset<MAX_COMPONENTS>& bitset);
 	template <typename T>
 	bool HasComponent(Entity entity);
 	template <typename T>
