@@ -12,68 +12,39 @@ Engine::~Engine()
 
 void Engine::Init()
 {
+	auto vulkanContext = Vk::VulkanContext::GetContext();
+	vulkanContext->SetRequiredDeviceExtension(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+	vulkanContext->SetRequiredDeviceExtension(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
+	vulkanContext->SetRequiredDeviceExtension(VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME);
+	vulkanContext->SetRequiredDeviceExtension(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
+	vulkanContext->SetRequiredDeviceExtension(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME);
+	vulkanContext->Init();
+
 	frameTimer = std::make_unique<FrameTimer>();
-
-	SetRequiredDeviceExtension(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-	SetRequiredDeviceExtension(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
-	SetRequiredDeviceExtension(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
-	SetRequiredDeviceExtension(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME);
-
-	if (Vk::ValidationLayer::ValidationLayerEnabled())
-		SetRequiredInstanceExtension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-
-	instance = std::make_unique<Vk::Instance>(requiredInstanceExtensions);
-	debugMessenger = std::make_unique<Vk::DebugMessenger>(instance.get());
-	surface = std::make_unique<Vk::Surface>(instance.get(), surfaceCreationFunction);
-	physicalDevice = std::make_unique<Vk::PhysicalDevice>(instance.get(), surface.get(), requiredDeviceExtensions);
-	device = std::make_unique<Vk::Device>(physicalDevice.get(), requiredDeviceExtensions);
-	swapChain = std::make_unique<Vk::SwapChain>(physicalDevice.get(), device.get(), surface.get(), windowExtentFunction);
-
 	registry = std::make_shared<Registry>();
 }
 
 void Engine::Clean()
 {
-	vkDeviceWaitIdle(device->Value());
-
-	swapChain.reset();
-	device.reset();
-	physicalDevice.reset();
-	surface.reset();
-	debugMessenger.reset();
-	instance.reset();
+	Vk::VulkanContext::DestroyContext();
 }
 
-void Engine::SetRequiredDeviceExtension(const char* extensionName)
+void Engine::SetRequiredWindowExtensions(std::span<const char*> extensionNames)
 {
-	requiredDeviceExtensions.push_back(extensionName);
-}
-
-void Engine::SetRequiredInstanceExtension(const char* extensionName)
-{
-	requiredInstanceExtensions.push_back(extensionName);
-}
-
-void Engine::SetRequiredDeviceExtensions(std::span<const char*> extensionNames)
-{
-	for (auto extension : extensionNames)
-		SetRequiredDeviceExtension(extension);
-}
-
-void Engine::SetRequiredInstanceExtensions(std::span<const char*> extensionNames)
-{
-	for (auto extension : extensionNames)
-		SetRequiredInstanceExtension(extension);
+	auto vulkanContext = Vk::VulkanContext::GetContext();
+	vulkanContext->SetRequiredInstanceExtensions(extensionNames);
 }
 
 void Engine::SetSurfaceCreationFunction(const std::function<void(const Vk::Instance* const, VkSurfaceKHR* surface)>& function)
 {
-	surfaceCreationFunction = function;
+	auto vulkanContext = Vk::VulkanContext::GetContext();
+	vulkanContext->SetSurfaceCreationFunction(function);
 }
 
 void Engine::SetWindowExtentFunction(const std::function<std::pair<int, int>()>& function)
 {
-	windowExtentFunction = function;
+	auto vulkanContext = Vk::VulkanContext::GetContext();
+	vulkanContext->SetWindowExtentFunction(function);
 }
 
 void Engine::Update()
@@ -101,6 +72,6 @@ void Engine::Render()
 void Engine::WindowResizeEvent()
 {
 	isWindowResized = true;
-	swapChain->ReCreate();
+	Vk::VulkanContext::GetContext()->GetSwapChain()->ReCreate();
 }
 

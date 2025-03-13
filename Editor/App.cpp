@@ -101,7 +101,7 @@ void App::InitEngine()
 	glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 	std::vector<const char*> glfwExtensionNames(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
-	engine->SetRequiredInstanceExtensions(glfwExtensionNames);
+	engine->SetRequiredWindowExtensions(glfwExtensionNames);
 	
 	engine->SetSurfaceCreationFunction(
 		[&](const Vk::Instance* const instance, VkSurfaceKHR* surface) -> void {
