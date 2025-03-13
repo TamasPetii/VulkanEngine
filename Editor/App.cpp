@@ -11,7 +11,7 @@
 
 static void FramebufferResizeCallback(GLFWwindow* window, int width, int height) {
 	auto app = reinterpret_cast<App*>(glfwGetWindowUserPointer(window));
-	//app-> = true;
+	app->GetEngine()->WindowResizeEvent();
 }
 
 App::App()
@@ -64,7 +64,7 @@ void App::InitWindow()
 	CHECK_ERROR_NULL_MESSAGE(window, "Couldn't create glfw window!");
 
 	glfwSetWindowUserPointer(window, this);
-	//glfwSetFramebufferSizeCallback(window, FramebufferResizeCallback);
+	glfwSetFramebufferSizeCallback(window, FramebufferResizeCallback);
 
 	HWND hwnd = glfwGetWin32Window(window);
 	COLORREF color = RGB(0, 0, 0);

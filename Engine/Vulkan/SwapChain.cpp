@@ -6,13 +6,15 @@ Vk::SwapChain::SwapChain(const Vk::PhysicalDevice* const physicalDevice, const V
 	surface(surface),
 	windowExtentFunction(windowExtentFunction)
 {
+	Init();
 }
 
 Vk::SwapChain::~SwapChain()
 {
+	Destroy();
 }
 
-void Vk::SwapChain::Reset()
+void Vk::SwapChain::ReCreate()
 {
 	vkDeviceWaitIdle(device->Value());
 	Destroy();

@@ -21,7 +21,7 @@ namespace Vk
 		SwapChain(const Vk::PhysicalDevice* const physicalDevice, const Vk::Device* const device, const Vk::Surface* const surface, const std::function<std::pair<int, int>()>& windowExtentFunction);
 		~SwapChain();
 
-		void Reset();
+		void ReCreate();
 		VkSwapchainKHR Value() const;
 		VkExtent2D GetExtent() const;
 		VkFormat GetImageFormat() const;

@@ -11,6 +11,7 @@ public:
 	App();
 	~App();
 	void Run();
+	auto GetEngine() { return engine; }
 private:
 	void Init();
 	void Clear();

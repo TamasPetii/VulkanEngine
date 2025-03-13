@@ -1,6 +1,7 @@
 #include "Engine.h"
 
-Engine::Engine()
+Engine::Engine() : 
+	isWindowResized(false)
 {
 }
 
@@ -27,6 +28,8 @@ void Engine::Init()
 	physicalDevice = std::make_unique<Vk::PhysicalDevice>(instance.get(), surface.get(), requiredDeviceExtensions);
 	device = std::make_unique<Vk::Device>(physicalDevice.get(), requiredDeviceExtensions);
 	swapChain = std::make_unique<Vk::SwapChain>(physicalDevice.get(), device.get(), surface.get(), windowExtentFunction);
+
+	registry = std::make_shared<Registry>();
 }
 
 void Engine::Clean()
@@ -75,10 +78,29 @@ void Engine::SetWindowExtentFunction(const std::function<std::pair<int, int>()>&
 
 void Engine::Update()
 {
+	static float time = 0;
+	static int counter = 0;
+
 	frameTimer->Update();
+
+	time += frameTimer->GetDeltaTime();
+	counter++;
+
+	if (time > 1)
+	{
+		std::cout << std::format("Fps: {}", counter) << std::endl;
+		time = 0;
+		counter = 0;
+	}
 }
 
 void Engine::Render()
 {
+}
+
+void Engine::WindowResizeEvent()
+{
+	isWindowResized = true;
+	swapChain->ReCreate();
 }
 

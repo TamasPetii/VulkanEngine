@@ -11,6 +11,8 @@
 #include "Vulkan/Device.h"
 #include "Vulkan/SwapChain.h"
 
+#include "Registry/Registry.h"
+
 class ENGINE_API Engine
 {
 public:
@@ -19,6 +21,7 @@ public:
 	void Init();
 	void Update();
 	void Render();
+	void WindowResizeEvent();
 public:
 	void SetRequiredInstanceExtension(const char* extensionName);
 	void SetRequiredInstanceExtensions(std::span<const char*> extensionNames);
@@ -29,6 +32,9 @@ private:
 	void SetRequiredDeviceExtensions(std::span<const char*> extensionNames);
 	void Clean();
 private:
+	bool isWindowResized;
+	std::shared_ptr<Registry> registry;
+
 	std::unique_ptr<Vk::Instance> instance;
 	std::unique_ptr<Vk::DebugMessenger> debugMessenger;
 	std::unique_ptr<Vk::Surface> surface;
@@ -42,4 +48,3 @@ private:
 	std::function<std::pair<int, int>()> windowExtentFunction;
 	std::function<void(const Vk::Instance* const, VkSurfaceKHR* surface)> surfaceCreationFunction;
 };
-
