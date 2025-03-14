@@ -2,6 +2,7 @@
 
 #ifdef NDEBUG
 bool Vk::ValidationLayer::enableValidationLayers = false;
+std::vector<const char*> Vk::ValidationLayer::validationLayers = {};
 #else
 bool Vk::ValidationLayer::enableValidationLayers = true;
 std::vector<const char*> Vk::ValidationLayer::validationLayers = { "VK_LAYER_KHRONOS_validation" };

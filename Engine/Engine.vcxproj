@@ -165,6 +165,8 @@
     <ClInclude Include="Registry\Registry.h" />
     <ClInclude Include="Registry\Relationship.h" />
     <ClInclude Include="Registry\Unique.h" />
+    <ClInclude Include="Vulkan\ShaderModule.h" />
+    <ClInclude Include="Vulkan\ShaderCompiler.h" />
     <ClInclude Include="Vulkan\VulkanContext.h" />
     <ClInclude Include="Vulkan\SwapChain.h" />
     <ClInclude Include="Vulkan\Device.h" />
@@ -184,6 +186,8 @@
     <ClCompile Include="Registry\Registry.cpp" />
     <ClCompile Include="Registry\Relationship.cpp" />
     <ClCompile Include="Registry\Unique.cpp" />
+    <ClCompile Include="Vulkan\ShaderModule.cpp" />
+    <ClCompile Include="Vulkan\ShaderCompiler.cpp" />
     <ClCompile Include="Vulkan\VulkanContext.cpp" />
     <ClCompile Include="Vulkan\SwapChain.cpp" />
     <ClCompile Include="Vulkan\Device.cpp" />

@@ -22,6 +22,9 @@ void Engine::Init()
 
 	frameTimer = std::make_unique<FrameTimer>();
 	registry = std::make_shared<Registry>();
+
+	std::shared_ptr<Vk::ShaderModule> vertexShader = std::make_shared<Vk::ShaderModule>("../VulkanEngine/Shaders/Shader.vert", VK_SHADER_STAGE_VERTEX_BIT);
+	std::shared_ptr<Vk::ShaderModule> fragmentShader = std::make_shared<Vk::ShaderModule>("../VulkanEngine/Shaders/Shader.frag", VK_SHADER_STAGE_FRAGMENT_BIT);
 }
 
 void Engine::Clean()
@@ -73,5 +76,6 @@ void Engine::WindowResizeEvent()
 {
 	isWindowResized = true;
 	Vk::VulkanContext::GetContext()->GetSwapChain()->ReCreate();
+	isWindowResized = false;
 }
 

@@ -4,6 +4,7 @@
 #include "Timer/FrameTimer.h"
 
 #include "Vulkan/VulkanContext.h"
+#include "Vulkan/ShaderModule.h"
 
 #include "Registry/Registry.h"
 
