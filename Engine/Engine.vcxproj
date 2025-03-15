@@ -160,6 +160,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h" />
+    <ClInclude Include="Vulkan\RenderPass.h" />
+    <ClInclude Include="Vulkan\GraphicsPipeline.h" />
     <ClInclude Include="Registry\Entity.h" />
     <ClInclude Include="Registry\Pool.h" />
     <ClInclude Include="Registry\Registry.h" />
@@ -183,6 +185,8 @@
     <ClInclude Include="Timer\Timer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Vulkan\RenderPass.cpp" />
+    <ClCompile Include="Vulkan\GraphicsPipeline.cpp" />
     <ClCompile Include="Registry\Registry.cpp" />
     <ClCompile Include="Registry\Relationship.cpp" />
     <ClCompile Include="Registry\Unique.cpp" />
