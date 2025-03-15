@@ -23,9 +23,6 @@ void Engine::Init()
 	frameTimer = std::make_unique<FrameTimer>();
 	registry = std::make_shared<Registry>();
 
-	std::shared_ptr<Vk::ShaderModule> vertexShader = std::make_shared<Vk::ShaderModule>("../VulkanEngine/Shaders/Shader.vert", VK_SHADER_STAGE_VERTEX_BIT);
-	std::shared_ptr<Vk::ShaderModule> fragmentShader = std::make_shared<Vk::ShaderModule>("../VulkanEngine/Shaders/Shader.frag", VK_SHADER_STAGE_FRAGMENT_BIT);
-
 	Vk::ImageSpecification colorImageSpec;
 	colorImageSpec.type = VK_IMAGE_TYPE_2D;
 	colorImageSpec.viewType = VK_IMAGE_VIEW_TYPE_2D;
@@ -54,11 +51,33 @@ void Engine::Init()
 	renderPassBuilder.AttachSubpassDependency("mainSubpass", Vk::DependencyStage::DST, 0, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
 	auto renderPass = renderPassBuilder.BuildRenderPass();
 
+
+	auto swapChainExtent = Vk::VulkanContext::GetContext()->GetSwapChain()->GetExtent();;
 	Vk::FrameBufferBuilder frameBufferBuilder;
-	frameBufferBuilder.SetInitialSize(500, 500);
+	frameBufferBuilder.SetInitialSize(swapChainExtent.width, swapChainExtent.height);
 	frameBufferBuilder.AttachImageSpec("colorImage", 0, colorImageSpec);
 	frameBufferBuilder.AttachDepthSpec(1, depthImageSpec);
 	auto frameBuffer = frameBufferBuilder.BuildFrameBuffer(renderPass);
+
+	std::shared_ptr<Vk::ShaderModule> vertexShader = std::make_shared<Vk::ShaderModule>("../Engine/Shaders/Basic.vert", VK_SHADER_STAGE_VERTEX_BIT);
+	std::shared_ptr<Vk::ShaderModule> fragmentShader = std::make_shared<Vk::ShaderModule>("../Engine/Shaders/Basic.frag", VK_SHADER_STAGE_FRAGMENT_BIT);
+
+	std::vector<VkVertexInputBindingDescription> vertexBindingDescirption = { Vertex::GetBindingDescription() };
+	auto vertexAttributeDescription = Vertex::GetAttributeDescriptions();
+
+	Vk::GraphicsPipelineBuilder pipelineBuilder;
+	pipelineBuilder.SetDefaultInfos();
+	pipelineBuilder.SetShaderStage(vertexShader);
+	pipelineBuilder.SetShaderStage(fragmentShader);
+	pipelineBuilder.SetVertexInputInfo();
+	pipelineBuilder.SetInputAssemblyTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+	pipelineBuilder.DefaultDynamicStates();
+	pipelineBuilder.DefaultRasterizationInfo();
+	pipelineBuilder.DefaultColorBlendOptions();
+	pipelineBuilder.SetDepthStencilOptions(VK_TRUE, VK_TRUE, VK_COMPARE_OP_LESS);
+	//pipelineBuilder.SetPushConstantRange();
+	//pipelineBuilder.SetDescriptorSetLayout();
+	std::shared_ptr<Vk::GraphicsPipeline> pipeline = pipelineBuilder.BuildPipeline(renderPass, 0);
 }
 
 void Engine::Clean()

@@ -23,8 +23,9 @@ namespace Vk
 	public:
 		FrameBuffer(uint32_t width, uint32_t height, std::shared_ptr<RenderPass> renderPass);
 		~FrameBuffer();
-		const VkFramebuffer Value() const;
 		void Resize(uint32_t width, uint32_t height);
+		const VkFramebuffer Value() const;
+		const std::shared_ptr<Image> GetImage(const std::string& imageName) const;
 	private:
 		void Init();
 		void Destroy();

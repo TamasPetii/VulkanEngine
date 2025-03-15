@@ -8,6 +8,8 @@
 #include "Vulkan/RenderPass.h"
 #include "Vulkan/Image.h"
 #include "Vulkan/FrameBuffer.h"
+#include "Vulkan/GraphicsPipeline.h"
+#include "Render/Vertex.h"
 
 #include "Registry/Registry.h"
 

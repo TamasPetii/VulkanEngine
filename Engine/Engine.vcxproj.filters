@@ -96,6 +96,12 @@
     <ClInclude Include="Vulkan\Memory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Render\Vertex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\Renderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -167,6 +173,12 @@
     <ClCompile Include="Vulkan\Memory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Render\Vertex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\Renderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Registry\Pool.inl">
@@ -175,5 +187,7 @@
     <None Include="Registry\Registry.inl">
       <Filter>Header Files</Filter>
     </None>
+    <None Include="Shaders\Basic.vert" />
+    <None Include="Shaders\Basic.frag" />
   </ItemGroup>
 </Project>

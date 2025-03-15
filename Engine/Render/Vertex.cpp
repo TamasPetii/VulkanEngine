@@ -1,0 +1,42 @@
+#include "Vertex.h"
+
+VkVertexInputBindingDescription Vertex::GetBindingDescription() {
+	VkVertexInputBindingDescription bindingDescription{};
+	bindingDescription.binding = 0;
+	bindingDescription.stride = sizeof(Vertex);
+	bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+	return bindingDescription;
+}
+
+std::vector<VkVertexInputAttributeDescription> Vertex::GetAttributeDescriptions() {
+	std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
+
+	{
+		VkVertexInputAttributeDescription attributeDescription = {};
+		attributeDescription.binding = 0;
+		attributeDescription.location = 0;
+		attributeDescription.format = VK_FORMAT_R32G32B32_SFLOAT;
+		attributeDescription.offset = offsetof(Vertex, position);
+		attributeDescriptions.push_back(attributeDescription);
+	}
+
+	{
+		VkVertexInputAttributeDescription attributeDescription = {};
+		attributeDescription.binding = 0;
+		attributeDescription.location = 1;
+		attributeDescription.format = VK_FORMAT_R32G32B32_SFLOAT;
+		attributeDescription.offset = offsetof(Vertex, normal);
+		attributeDescriptions.push_back(attributeDescription);
+	}
+
+	{
+		VkVertexInputAttributeDescription attributeDescription = {};
+		attributeDescription.binding = 0;
+		attributeDescription.location = 2;
+		attributeDescription.format = VK_FORMAT_R32G32_SFLOAT;
+		attributeDescription.offset = offsetof(Vertex, texCoord);
+		attributeDescriptions.push_back(attributeDescription);
+	}
+
+	return attributeDescriptions;
+}

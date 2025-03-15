@@ -17,6 +17,14 @@ const VkFramebuffer Vk::FrameBuffer::Value() const
 	return frameBuffer;
 }
 
+const std::shared_ptr<Vk::Image> Vk::FrameBuffer::GetImage(const std::string& imageName) const
+{
+	if (images.find(imageName) == images.end())
+		return nullptr;
+
+	return images.at(imageName).image;
+}
+
 void Vk::FrameBuffer::AttachImage(const std::string& imageName, uint32_t index, const ImageSpecification& specification)
 {
 	images[imageName].index = index;
