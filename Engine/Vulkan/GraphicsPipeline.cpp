@@ -68,7 +68,6 @@ VkGraphicsPipelineCreateInfo Vk::GraphicsPipeline::BuildGraphicsPipelineInfo(std
 	pipelineInfo.pViewportState = &viewportStateInfo;
 	pipelineInfo.pRasterizationState = &rasterizationInfo;
 	pipelineInfo.pMultisampleState = &multisamplingInfo;
-	pipelineInfo.pDepthStencilState = &depthStencilInfo;
 	pipelineInfo.pColorBlendState = &colorBlendInfo;
 	pipelineInfo.pDynamicState = &dynamicStateInfo;
 	pipelineInfo.layout = pipelineLayout;
@@ -76,6 +75,7 @@ VkGraphicsPipelineCreateInfo Vk::GraphicsPipeline::BuildGraphicsPipelineInfo(std
 	pipelineInfo.subpass = subpassIndex;
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 	pipelineInfo.basePipelineIndex = -1;
+	pipelineInfo.pDepthStencilState = &depthStencilInfo;
 
 	return pipelineInfo;
 }
@@ -167,7 +167,7 @@ void Vk::GraphicsPipelineBuilder::SetRasterizationOptions(VkPolygonMode polygonM
 
 void Vk::GraphicsPipelineBuilder::DefaultRasterizationInfo()
 {
-	SetRasterizationOptions(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE, 1.f);
+	SetRasterizationOptions(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_CLOCKWISE, 1.f);
 }
 
 void Vk::GraphicsPipelineBuilder::SetPushConstantRange(uint32_t offset, uint32_t size, VkShaderStageFlags shaderStages)

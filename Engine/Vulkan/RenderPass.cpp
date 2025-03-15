@@ -115,7 +115,7 @@ std::shared_ptr<Vk::RenderPass> Vk::RenderPassBuilder::BuildRenderPass()
 	std::vector<VkSubpassDependency> subpassDependencies(subpassReferences.size());
 	for (auto& [subpassName, subpassData] : subpassReferences)
 	{
-		subpassDescriptions[subpassData.index] = BuildSubpassDescription(subpassData.colorRefences, &subpassData.depthReference, subpassData.inputRefences);
+		subpassDescriptions[subpassData.index] = BuildSubpassDescription(subpassData.colorRefences, subpassData.depthReference.attachment == VK_IMAGE_LAYOUT_UNDEFINED ? nullptr : &subpassData.depthReference, subpassData.inputRefences);
 		subpassDependencies[subpassData.index] = BuildSubpassDependeny(subpassData.dependencySrc, subpassData.dependencyDst);
 	}
 

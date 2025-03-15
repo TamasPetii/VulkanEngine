@@ -36,6 +36,16 @@ VkFormat Vk::SwapChain::GetImageFormat() const
 	return swapChainImageFormat;
 }
 
+const std::vector<VkImage> Vk::SwapChain::GetImages() const
+{
+	return swapChainImages;
+}
+
+const std::vector<VkImageView> Vk::SwapChain::GetImageViews() const
+{
+	return swapChainImageViews;
+}
+
 void Vk::SwapChain::Init()
 {
 	swapChainSupportDetails = QuerySwapChainSupportDetails();

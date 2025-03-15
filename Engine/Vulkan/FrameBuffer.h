@@ -26,14 +26,14 @@ namespace Vk
 		void Resize(uint32_t width, uint32_t height);
 		const VkFramebuffer Value() const;
 		const std::shared_ptr<Image> GetImage(const std::string& imageName) const;
+		const VkExtent2D GetSize() const;
 	private:
 		void Init();
 		void Destroy();
 		void AttachImage(const std::string& imageName, uint32_t index, const ImageSpecification& specification);
 		VkFramebufferCreateInfo BuildFramebufferInfo(std::span<VkImageView> imageViewAttachments);
 	private:
-		uint32_t width;
-		uint32_t height;
+		VkExtent2D size;
 		VkFramebuffer frameBuffer = VK_NULL_HANDLE;
 		std::shared_ptr<RenderPass> renderPass;
 		std::unordered_map<std::string, ImageData> images;

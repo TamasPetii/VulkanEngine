@@ -28,7 +28,7 @@ namespace Vk
 	{
 	public:
 		void SetDefaultInfos();
-		
+
 		//Shader Stages (Vertex, Fragment, ...)
 		void SetShaderStage(std::shared_ptr<ShaderModule> shaderModule);
 		

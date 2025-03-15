@@ -25,6 +25,8 @@ namespace Vk
 		VkSwapchainKHR Value() const;
 		VkExtent2D GetExtent() const;
 		VkFormat GetImageFormat() const;
+		const std::vector<VkImage> GetImages() const;
+		const std::vector<VkImageView> GetImageViews() const;
 	private:
 		void Init();
 		void Destroy();

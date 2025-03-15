@@ -28,7 +28,10 @@ namespace Vk
 		~Image();
 		void Init();
 		void Destroy();
-		const VkImageView Value() const;
+		const VkImage Value() const;
+		const VkImageView GetImageView() const;
+		static void TransitionImageLayout(VkCommandBuffer commandBuffer, VkImage image, VkImageLayout srcLayout, VkPipelineStageFlags srcStageFlags, VkAccessFlags srcAccessMask, VkImageLayout dstLayout, VkPipelineStageFlags dstStageFlags, VkAccessFlags dstAccessMask);
+		static void CopyImageToImage(VkCommandBuffer commandBuffer, VkImage srcImage, VkExtent2D srcSize, VkImage dstImage, VkExtent2D dstSize);
 	private:
 		VkImageCreateInfo BuildImageInfo();
 		VkImageViewCreateInfo BuildImageViewInfo();

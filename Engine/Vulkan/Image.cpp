@@ -12,9 +12,66 @@ Vk::Image::~Image()
 	Destroy();
 }
 
-const VkImageView Vk::Image::Value() const
+const VkImage Vk::Image::Value() const
+{
+	return image;
+}
+
+const VkImageView Vk::Image::GetImageView() const
 {
 	return imageView;
+}
+
+void Vk::Image::TransitionImageLayout(VkCommandBuffer commandBuffer, VkImage image, VkImageLayout srcLayout, VkPipelineStageFlags srcStageFlags, VkAccessFlags srcAccessMask, VkImageLayout dstLayout, VkPipelineStageFlags dstStageFlags, VkAccessFlags dstAccessMask)
+{
+	VkImageMemoryBarrier barrier{};
+	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	barrier.oldLayout = srcLayout;
+	barrier.newLayout = dstLayout;
+	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier.image = image;
+
+	barrier.subresourceRange.aspectMask = (dstLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT);
+	barrier.subresourceRange.baseMipLevel = 0;
+	barrier.subresourceRange.levelCount = 1;
+	barrier.subresourceRange.baseArrayLayer = 0;
+	barrier.subresourceRange.layerCount = 1;
+
+	barrier.srcAccessMask = srcAccessMask;
+	barrier.dstAccessMask = dstAccessMask;
+
+	VkPipelineStageFlags sourceStage = srcStageFlags;
+	VkPipelineStageFlags destinationStage = dstStageFlags;
+
+	vkCmdPipelineBarrier(
+		commandBuffer,
+		sourceStage, destinationStage,
+		0,
+		0, nullptr,
+		0, nullptr,
+		1, &barrier
+	);
+}
+
+void Vk::Image::CopyImageToImage(VkCommandBuffer commandBuffer, VkImage srcImage, VkExtent2D srcSize, VkImage dstImage, VkExtent2D dstSize)
+{
+	VkImageBlit imageBitInfo{};
+	imageBitInfo.srcOffsets[0] = { 0, 0, 0 };
+	imageBitInfo.srcOffsets[1] = { (int32_t)srcSize.width, (int32_t)srcSize.height, 1 };
+	imageBitInfo.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	imageBitInfo.srcSubresource.mipLevel = 0;
+	imageBitInfo.srcSubresource.baseArrayLayer = 0;
+	imageBitInfo.srcSubresource.layerCount = 1;
+
+	imageBitInfo.dstOffsets[0] = { 0, 0, 0 };
+	imageBitInfo.dstOffsets[1] = { (int32_t)dstSize.width, (int32_t)dstSize.height, 1 };
+	imageBitInfo.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	imageBitInfo.dstSubresource.mipLevel = 0;
+	imageBitInfo.dstSubresource.baseArrayLayer = 0;
+	imageBitInfo.dstSubresource.layerCount = 1;
+
+	vkCmdBlitImage(commandBuffer, srcImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dstImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageBitInfo, VK_FILTER_LINEAR);
 }
 
 void Vk::Image::Init()

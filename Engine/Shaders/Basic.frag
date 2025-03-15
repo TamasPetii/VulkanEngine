@@ -1,4 +1,4 @@
-#version 460 core
+#version 460
 
 //shader input
 layout (location = 0) in vec3 inColor;

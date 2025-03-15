@@ -2,16 +2,11 @@
 #include "EngineApi.h"
 #include "../Engine/Logger/Checker.h"
 #include "Timer/FrameTimer.h"
-
-#include "Vulkan/VulkanContext.h"
-#include "Vulkan/ShaderModule.h"
-#include "Vulkan/RenderPass.h"
-#include "Vulkan/Image.h"
-#include "Vulkan/FrameBuffer.h"
-#include "Vulkan/GraphicsPipeline.h"
-#include "Render/Vertex.h"
-
 #include "Registry/Registry.h"
+#include "Render/Renderer.h"
+#include <span>
+#include <functional>
+
 
 class ENGINE_API Engine
 {
@@ -31,5 +26,6 @@ private:
 private:
 	bool isWindowResized;
 	std::shared_ptr<Registry> registry;
-	std::unique_ptr<FrameTimer> frameTimer;
+	std::shared_ptr<Renderer> renderer;
+	std::shared_ptr<FrameTimer> frameTimer;
 };

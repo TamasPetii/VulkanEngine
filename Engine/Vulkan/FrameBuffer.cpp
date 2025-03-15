@@ -1,10 +1,9 @@
 #include "FrameBuffer.h"
 
 Vk::FrameBuffer::FrameBuffer(uint32_t width, uint32_t height, std::shared_ptr<RenderPass> renderPass) :
-	width(width),
-	height(height),
 	renderPass(renderPass)
 {
+	size = VkExtent2D(width, height);
 }
 
 Vk::FrameBuffer::~FrameBuffer()
@@ -25,6 +24,11 @@ const std::shared_ptr<Vk::Image> Vk::FrameBuffer::GetImage(const std::string& im
 	return images.at(imageName).image;
 }
 
+const VkExtent2D Vk::FrameBuffer::GetSize() const
+{
+	return size;
+}
+
 void Vk::FrameBuffer::AttachImage(const std::string& imageName, uint32_t index, const ImageSpecification& specification)
 {
 	images[imageName].index = index;
@@ -39,10 +43,10 @@ void Vk::FrameBuffer::Init()
 	
 	for (auto& [imageName, imageData] : images)
 	{
-		imageData.specification.width = width;
-		imageData.specification.height = height;
+		imageData.specification.width = size.width;
+		imageData.specification.height = size.height;
 		imageData.image = std::make_shared<Image>(imageData.specification);
-		imageViewAttachments[imageData.index] = imageData.image->Value();
+		imageViewAttachments[imageData.index] = imageData.image->GetImageView();
 	}
 
 	auto framebufferInfo = BuildFramebufferInfo(imageViewAttachments);
@@ -51,11 +55,11 @@ void Vk::FrameBuffer::Init()
 
 void Vk::FrameBuffer::Resize(uint32_t width, uint32_t height)
 {
-	if (this->width == width && this->height == height)
+	if (size.width == width && size.height == height)
 		return;
 
-	this->width = width;
-	this->height = height;
+	size.width = width;
+	size.height = height;
 	Destroy();
 	Init();
 }
@@ -80,8 +84,8 @@ VkFramebufferCreateInfo Vk::FrameBuffer::BuildFramebufferInfo(std::span<VkImageV
 	framebufferInfo.renderPass = renderPass->Value();
 	framebufferInfo.attachmentCount = static_cast<uint32_t>(imageViewAttachments.size());
 	framebufferInfo.pAttachments = imageViewAttachments.data();
-	framebufferInfo.width = width;
-	framebufferInfo.height = height;
+	framebufferInfo.width = size.width;
+	framebufferInfo.height = size.height;
 	framebufferInfo.layers = 1;
 
 	return framebufferInfo;
