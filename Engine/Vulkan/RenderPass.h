@@ -20,14 +20,13 @@ namespace Vk
 	{
 	public:
 		~RenderPass();
+		RenderPass(std::span<VkAttachmentDescription> attachmentDescriptions, std::span<VkSubpassDescription> subpassDescriptions, std::span<VkSubpassDependency> subpassDependencies);
 		const VkRenderPass Value() const;
 	private:
-		RenderPass(std::span<VkAttachmentDescription> attachmentDescriptions, std::span<VkSubpassDescription> subpassDescriptions, std::span<VkSubpassDependency> subpassDependencies);
 		void Init(std::span<VkAttachmentDescription> attachmentDescriptions, std::span<VkSubpassDescription> subpassDescriptions, std::span<VkSubpassDependency> subpassDependencies);
 		void Destroy();
 	private:
-		VkRenderPass renderPass;
-
+		VkRenderPass renderPass = VK_NULL_HANDLE;
 		friend class RenderPassBuilder;
 	};
 

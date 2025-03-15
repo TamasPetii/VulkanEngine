@@ -23,5 +23,8 @@ void Vk::Surface::Init(const std::function<void(const Vk::Instance* const, VkSur
 
 void Vk::Surface::Destroy()
 {
-	vkDestroySurfaceKHR(instance->Value(), surface, nullptr);
+	if(surface != VK_NULL_HANDLE)
+		vkDestroySurfaceKHR(instance->Value(), surface, nullptr);
+
+	surface = VK_NULL_HANDLE;
 }

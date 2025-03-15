@@ -37,9 +37,18 @@ void Vk::Image::Destroy()
 {
 	auto device = VulkanContext::GetContext()->GetDevice();
 
-	vkDestroyImageView(device->Value(), imageView, nullptr);
-	vkDestroyImage(device->Value(), image, nullptr);
-	vkFreeMemory(device->Value(), imageMemory, nullptr);
+	if(imageView != VK_NULL_HANDLE)
+		vkDestroyImageView(device->Value(), imageView, nullptr);
+	
+	if(image != VK_NULL_HANDLE)
+		vkDestroyImage(device->Value(), image, nullptr);
+	
+	if(imageMemory != VK_NULL_HANDLE)
+		vkFreeMemory(device->Value(), imageMemory, nullptr);
+
+	image = VK_NULL_HANDLE;
+	imageView = VK_NULL_HANDLE;
+	imageMemory = VK_NULL_HANDLE;
 }
 
 VkImageCreateInfo Vk::Image::BuildImageInfo()

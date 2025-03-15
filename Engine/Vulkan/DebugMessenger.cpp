@@ -56,8 +56,10 @@ void Vk::DebugMessenger::Init()
 
 void Vk::DebugMessenger::Destroy()
 {
-	if (Vk::ValidationLayer::ValidationLayerEnabled())
+	if (Vk::ValidationLayer::ValidationLayerEnabled() && debugMessenger != VK_NULL_HANDLE)
 		DestroyDebugUtilsMessengerEXT(instance->Value(), debugMessenger, nullptr);
+
+	debugMessenger = VK_NULL_HANDLE;
 }
 
 void Vk::DebugMessenger::CreateDebugMessengerInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)

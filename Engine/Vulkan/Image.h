@@ -33,9 +33,9 @@ namespace Vk
 		VkImageCreateInfo BuildImageInfo();
 		VkImageViewCreateInfo BuildImageViewInfo();
 	private:
-		VkImage image;
-		VkImageView imageView;
-		VkDeviceMemory imageMemory;
+		VkImage image = VK_NULL_HANDLE;
+		VkImageView imageView = VK_NULL_HANDLE;
+		VkDeviceMemory imageMemory = VK_NULL_HANDLE;
 		ImageSpecification specification;
 
 		friend class Memory;

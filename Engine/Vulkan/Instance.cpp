@@ -55,5 +55,8 @@ void Vk::Instance::Init(std::span<const char*> requiredExtensions)
 
 void Vk::Instance::Destroy()
 {
-	vkDestroyInstance(instance, nullptr);
+	if(instance != VK_NULL_HANDLE)
+		vkDestroyInstance(instance, nullptr);
+
+	instance = VK_NULL_HANDLE;
 }

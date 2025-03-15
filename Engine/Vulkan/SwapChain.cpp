@@ -111,15 +111,18 @@ void Vk::SwapChain::Init()
 
 void Vk::SwapChain::Destroy()
 {
-	//Legacy Vulkan 1.0
-	//Destroy depthbuffer
-	//Destroy framebuffers
-
 	for (auto imageView : swapChainImageViews) {
-		vkDestroyImageView(device->Value(), imageView, nullptr);
+
+		if(imageView != VK_NULL_HANDLE)
+			vkDestroyImageView(device->Value(), imageView, nullptr);
+
+		imageView = VK_NULL_HANDLE;
 	}
 
-	vkDestroySwapchainKHR(device->Value(), swapChain, nullptr);
+	if(swapChain != VK_NULL_HANDLE)
+		vkDestroySwapchainKHR(device->Value(), swapChain, nullptr);
+
+	swapChain = VK_NULL_HANDLE;
 }
 
 Vk::SwapChainSupportDetails Vk::SwapChain::QuerySwapChainSupportDetails()

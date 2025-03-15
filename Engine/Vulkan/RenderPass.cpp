@@ -160,5 +160,9 @@ void Vk::RenderPass::Init(std::span<VkAttachmentDescription> attachmentDescripti
 void Vk::RenderPass::Destroy()
 {
 	auto device = Vk::VulkanContext::GetContext()->GetDevice();
-	vkDestroyRenderPass(device->Value(), renderPass, nullptr);
+
+	if(renderPass != VK_NULL_HANDLE)
+		vkDestroyRenderPass(device->Value(), renderPass, nullptr);
+
+	renderPass = VK_NULL_HANDLE;
 }

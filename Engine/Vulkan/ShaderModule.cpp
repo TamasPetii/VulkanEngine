@@ -41,7 +41,11 @@ void Vk::ShaderModule::Init(VkShaderStageFlagBits shaderStage)
 void Vk::ShaderModule::Destroy()
 {
     auto device = VulkanContext::GetContext()->GetDevice();
-    vkDestroyShaderModule(device->Value(), shaderModule, nullptr);
+
+    if(shaderModule != VK_NULL_HANDLE)
+        vkDestroyShaderModule(device->Value(), shaderModule, nullptr);
+
+    shaderModule = VK_NULL_HANDLE;
 }
 
 shaderc_shader_kind Vk::ShaderModule::ConvertShaderFlagToShaderc(VkShaderStageFlagBits shaderStage)

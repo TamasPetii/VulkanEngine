@@ -55,6 +55,7 @@ void Engine::Init()
 	auto renderPass = renderPassBuilder.BuildRenderPass();
 
 	Vk::FrameBufferBuilder frameBufferBuilder;
+	frameBufferBuilder.SetInitialSize(500, 500);
 	frameBufferBuilder.AttachImageSpec("colorImage", 0, colorImageSpec);
 	frameBufferBuilder.AttachDepthSpec(1, depthImageSpec);
 	auto frameBuffer = frameBufferBuilder.BuildFrameBuffer(renderPass);

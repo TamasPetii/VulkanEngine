@@ -19,7 +19,7 @@ namespace Vk
 	private:
 		std::string shaderFilePath;
 		std::string mainFunctionName;
-		VkShaderModule shaderModule;
+		VkShaderModule shaderModule = VK_NULL_HANDLE;
 		VkPipelineShaderStageCreateInfo shaderStageInfo;
 	};
 }

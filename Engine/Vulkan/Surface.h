@@ -17,7 +17,7 @@ namespace Vk
 		void Init(const std::function<void(const Vk::Instance* const, VkSurfaceKHR* surface)>& creationFunction);
 		void Destroy();
 	private:
-		VkSurfaceKHR surface;
+		VkSurfaceKHR surface = VK_NULL_HANDLE;
 		const Vk::Instance* const instance;
 	};
 }

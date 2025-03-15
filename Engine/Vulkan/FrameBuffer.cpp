@@ -19,9 +19,6 @@ const VkFramebuffer Vk::FrameBuffer::Value() const
 
 void Vk::FrameBuffer::AttachImage(const std::string& imageName, uint32_t index, const ImageSpecification& specification)
 {
-	if (images.find(imageName) != images.end())
-		return;
-
 	images[imageName].index = index;
 	images[imageName].specification = specification;
 }
@@ -31,11 +28,12 @@ void Vk::FrameBuffer::Init()
 	auto device = VulkanContext::GetContext()->GetDevice();
 
 	std::vector<VkImageView> imageViewAttachments(images.size());
+	
 	for (auto& [imageName, imageData] : images)
 	{
 		imageData.specification.width = width;
 		imageData.specification.height = height;
-		imageData.image = std::make_unique<Image>(imageData.specification);
+		imageData.image = std::make_shared<Image>(imageData.specification);
 		imageViewAttachments[imageData.index] = imageData.image->Value();
 	}
 
@@ -45,6 +43,9 @@ void Vk::FrameBuffer::Init()
 
 void Vk::FrameBuffer::Resize(uint32_t width, uint32_t height)
 {
+	if (this->width == width && this->height == height)
+		return;
+
 	this->width = width;
 	this->height = height;
 	Destroy();
@@ -54,12 +55,14 @@ void Vk::FrameBuffer::Resize(uint32_t width, uint32_t height)
 void Vk::FrameBuffer::Destroy()
 {
 	auto device = VulkanContext::GetContext()->GetDevice();
-	vkDestroyFramebuffer(device->Value(), frameBuffer, nullptr);
 
 	for (auto& [imageName, imageData] : images)
-	{
 		imageData.image->Destroy();
-	}
+
+	if(frameBuffer != VK_NULL_HANDLE)
+		vkDestroyFramebuffer(device->Value(), frameBuffer, nullptr);
+
+	frameBuffer = VK_NULL_HANDLE;
 }
 
 VkFramebufferCreateInfo Vk::FrameBuffer::BuildFramebufferInfo(std::span<VkImageView> imageViewAttachments)

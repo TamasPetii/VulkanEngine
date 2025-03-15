@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <span>
+#include <unordered_map>
 
 namespace Vk
 {
@@ -16,15 +17,15 @@ namespace Vk
 		struct ImageData
 		{
 			uint32_t index;
-			std::unique_ptr<Image> image;
+			std::shared_ptr<Image> image;
 			ImageSpecification specification;
 		};
 	public:
+		FrameBuffer(uint32_t width, uint32_t height, std::shared_ptr<RenderPass> renderPass);
 		~FrameBuffer();
 		const VkFramebuffer Value() const;
 		void Resize(uint32_t width, uint32_t height);
 	private:
-		FrameBuffer(uint32_t width, uint32_t height, std::shared_ptr<RenderPass> renderPass);
 		void Init();
 		void Destroy();
 		void AttachImage(const std::string& imageName, uint32_t index, const ImageSpecification& specification);
@@ -32,7 +33,7 @@ namespace Vk
 	private:
 		uint32_t width;
 		uint32_t height;
-		VkFramebuffer frameBuffer;
+		VkFramebuffer frameBuffer = VK_NULL_HANDLE;
 		std::shared_ptr<RenderPass> renderPass;
 		std::unordered_map<std::string, ImageData> images;
 

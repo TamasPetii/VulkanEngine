@@ -95,5 +95,8 @@ void Vk::Device::Init(std::span<const char*> deviceExtensions)
 
 void Vk::Device::Destroy()
 {
-	vkDestroyDevice(device, nullptr);
+	if(device != VK_NULL_HANDLE)
+		vkDestroyDevice(device, nullptr);
+
+	device = VK_NULL_HANDLE;
 }
