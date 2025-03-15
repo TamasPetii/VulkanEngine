@@ -160,6 +160,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h" />
+    <ClInclude Include="Vulkan\Memory.h" />
+    <ClInclude Include="Vulkan\Image.h" />
+    <ClInclude Include="Vulkan\FrameBuffer.h" />
     <ClInclude Include="Vulkan\RenderPass.h" />
     <ClInclude Include="Vulkan\GraphicsPipeline.h" />
     <ClInclude Include="Registry\Entity.h" />
@@ -185,6 +188,9 @@
     <ClInclude Include="Timer\Timer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Vulkan\Memory.cpp" />
+    <ClCompile Include="Vulkan\Image.cpp" />
+    <ClCompile Include="Vulkan\FrameBuffer.cpp" />
     <ClCompile Include="Vulkan\RenderPass.cpp" />
     <ClCompile Include="Vulkan\GraphicsPipeline.cpp" />
     <ClCompile Include="Registry\Registry.cpp" />

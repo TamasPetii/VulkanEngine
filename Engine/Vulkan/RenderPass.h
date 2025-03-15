@@ -8,23 +8,27 @@
 
 namespace Vk
 {
-	class ENGINE_API RenderPass
-	{
-	public:
-		RenderPass(std::span<VkAttachmentDescription> attachmentDescriptions, std::span<VkSubpassDescription> subpassDescriptions, std::span<VkSubpassDependency> subpassDependencies);
-		~RenderPass();
-		const VkRenderPass Value() const;
-	private:
-		void Init(std::span<VkAttachmentDescription> attachmentDescriptions, std::span<VkSubpassDescription> subpassDescriptions, std::span<VkSubpassDependency> subpassDependencies);
-		void Destroy();
-	private:
-		VkRenderPass renderPass;
-	};
+	class RenderPassBuilder;
 
 	enum class ENGINE_API DependencyStage
 	{
 		SRC,
 		DST
+	};
+
+	class ENGINE_API RenderPass
+	{
+	public:
+		~RenderPass();
+		const VkRenderPass Value() const;
+	private:
+		RenderPass(std::span<VkAttachmentDescription> attachmentDescriptions, std::span<VkSubpassDescription> subpassDescriptions, std::span<VkSubpassDependency> subpassDependencies);
+		void Init(std::span<VkAttachmentDescription> attachmentDescriptions, std::span<VkSubpassDescription> subpassDescriptions, std::span<VkSubpassDependency> subpassDependencies);
+		void Destroy();
+	private:
+		VkRenderPass renderPass;
+
+		friend class RenderPassBuilder;
 	};
 
 	class ENGINE_API RenderPassBuilder
@@ -38,12 +42,6 @@ namespace Vk
 			VkAccessFlags accessMask;
 		};
 
-		struct ImageData
-		{
-			uint32_t index;
-			VkAttachmentDescription description;
-		};
-
 		struct SubpassData
 		{
 			uint32_t index;
@@ -53,6 +51,13 @@ namespace Vk
 			std::vector<VkAttachmentReference> inputRefences;
 			VkAttachmentReference depthReference;
 		};
+
+		struct ImageData
+		{
+			uint32_t index;
+			VkAttachmentDescription description;
+		};
+
 	public:
 		void Reset();
 		void RegisterSubpass(const std::string& name, uint32_t index);
@@ -62,7 +67,7 @@ namespace Vk
 		void AttachInputReferenceToSubpass(const std::string& subpassName, const std::string& imageName, VkImageLayout layout);
 		void AttachDepthReferenceToSubpass(const std::string& subpassName, VkImageLayout layout);
 		void AttachSubpassDependency(const std::string& subpassName, DependencyStage type, uint32_t subpassIndex, VkPipelineStageFlags stageMask, VkAccessFlags accessMask);
-		std::shared_ptr<Vk::RenderPass> BuildPipeline();
+		std::shared_ptr<RenderPass> BuildRenderPass();
 	private:
 		VkAttachmentDescription BuildAttachmentDescription(VkFormat format, VkImageLayout initialLayout, VkImageLayout finalLayout);
 		VkAttachmentReference BuildAttachmentReference(uint32_t attachment, VkImageLayout layout);

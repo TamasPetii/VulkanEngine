@@ -6,6 +6,8 @@
 #include "Vulkan/VulkanContext.h"
 #include "Vulkan/ShaderModule.h"
 #include "Vulkan/RenderPass.h"
+#include "Vulkan/Image.h"
+#include "Vulkan/FrameBuffer.h"
 
 #include "Registry/Registry.h"
 

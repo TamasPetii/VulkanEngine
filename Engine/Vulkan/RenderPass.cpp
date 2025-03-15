@@ -109,7 +109,7 @@ void Vk::RenderPassBuilder::AttachSubpassDependency(const std::string& subpassNa
 		subpassReferences[subpassName].dependencyDst = SubpassDependencyData(subpassIndex, stageMask, accessMask);
 }
 
-std::shared_ptr<Vk::RenderPass> Vk::RenderPassBuilder::BuildPipeline()
+std::shared_ptr<Vk::RenderPass> Vk::RenderPassBuilder::BuildRenderPass()
 {
 	std::vector<VkSubpassDescription> subpassDescriptions(subpassReferences.size());
 	std::vector<VkSubpassDependency> subpassDependencies(subpassReferences.size());

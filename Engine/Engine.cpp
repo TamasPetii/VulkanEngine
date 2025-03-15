@@ -26,15 +26,38 @@ void Engine::Init()
 	std::shared_ptr<Vk::ShaderModule> vertexShader = std::make_shared<Vk::ShaderModule>("../VulkanEngine/Shaders/Shader.vert", VK_SHADER_STAGE_VERTEX_BIT);
 	std::shared_ptr<Vk::ShaderModule> fragmentShader = std::make_shared<Vk::ShaderModule>("../VulkanEngine/Shaders/Shader.frag", VK_SHADER_STAGE_FRAGMENT_BIT);
 
+	Vk::ImageSpecification colorImageSpec;
+	colorImageSpec.type = VK_IMAGE_TYPE_2D;
+	colorImageSpec.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	colorImageSpec.format = VK_FORMAT_R16G16B16A16_SFLOAT;
+	colorImageSpec.tiling = VK_IMAGE_TILING_OPTIMAL;
+	colorImageSpec.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+	colorImageSpec.aspectFlag = VK_IMAGE_ASPECT_COLOR_BIT;
+	colorImageSpec.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
+	Vk::ImageSpecification depthImageSpec;
+	depthImageSpec.type = VK_IMAGE_TYPE_2D;
+	depthImageSpec.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	depthImageSpec.format = VK_FORMAT_D32_SFLOAT;
+	depthImageSpec.tiling = VK_IMAGE_TILING_OPTIMAL;
+	depthImageSpec.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+	depthImageSpec.aspectFlag = VK_IMAGE_ASPECT_DEPTH_BIT;
+	depthImageSpec.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
 	Vk::RenderPassBuilder renderPassBuilder;
 	renderPassBuilder.RegisterSubpass("mainSubpass", 0);
-	renderPassBuilder.AttachImageDescription("colorImage", 0, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-	renderPassBuilder.AttachDepthDescription(1, VK_FORMAT_D32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+	renderPassBuilder.AttachImageDescription("colorImage", 0, colorImageSpec.format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+	renderPassBuilder.AttachDepthDescription(1, depthImageSpec.format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 	renderPassBuilder.AttachImageReferenceToSubpass("mainSubpass", "colorImage", VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 	renderPassBuilder.AttachDepthReferenceToSubpass("mainSubpass", VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 	renderPassBuilder.AttachSubpassDependency("mainSubpass", Vk::DependencyStage::SRC, VK_SUBPASS_EXTERNAL, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT, VK_ACCESS_NONE);
 	renderPassBuilder.AttachSubpassDependency("mainSubpass", Vk::DependencyStage::DST, 0, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
-	auto renderPass = renderPassBuilder.BuildPipeline();
+	auto renderPass = renderPassBuilder.BuildRenderPass();
+
+	Vk::FrameBufferBuilder frameBufferBuilder;
+	frameBufferBuilder.AttachImageSpec("colorImage", 0, colorImageSpec);
+	frameBufferBuilder.AttachDepthSpec(1, depthImageSpec);
+	auto frameBuffer = frameBufferBuilder.BuildFrameBuffer(renderPass);
 }
 
 void Engine::Clean()

@@ -26,10 +26,10 @@ namespace Vk
 	public:
 		Image(const ImageSpecification& specification);
 		~Image();
-		const VkImageView Value() const;
-	private:
 		void Init();
 		void Destroy();
+		const VkImageView Value() const;
+	private:
 		VkImageCreateInfo BuildImageInfo();
 		VkImageViewCreateInfo BuildImageViewInfo();
 	private:
