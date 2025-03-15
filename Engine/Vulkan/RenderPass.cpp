@@ -2,26 +2,26 @@
 
 VkAttachmentDescription Vk::RenderPassBuilder::BuildAttachmentDescription(VkFormat format, VkImageLayout initialLayout, VkImageLayout finalLayout)
 {
-	VkAttachmentDescription colorAttachment{};
-	colorAttachment.format = format;
-	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	colorAttachment.initialLayout = initialLayout;
-	colorAttachment.finalLayout = finalLayout;
+	VkAttachmentDescription imageAttachment{};
+	imageAttachment.format = format;
+	imageAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+	imageAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	imageAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	imageAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	imageAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	imageAttachment.initialLayout = initialLayout;
+	imageAttachment.finalLayout = finalLayout;
 
-	return colorAttachment;
+	return imageAttachment;
 }
 
 VkAttachmentReference Vk::RenderPassBuilder::BuildAttachmentReference(uint32_t attachment, VkImageLayout layout)
 {
-	VkAttachmentReference colorAttachmentRef{};
-	colorAttachmentRef.attachment = attachment;
-	colorAttachmentRef.layout = layout;
+	VkAttachmentReference imageAttachmentRef{};
+	imageAttachmentRef.attachment = attachment;
+	imageAttachmentRef.layout = layout;
 
-	return colorAttachmentRef;
+	return imageAttachmentRef;
 }
 
 VkSubpassDescription Vk::RenderPassBuilder::BuildSubpassDescription(std::span<VkAttachmentReference> colorReferences, VkAttachmentReference* depthReference, std::span<VkAttachmentReference> inputReferences)
@@ -48,6 +48,83 @@ VkSubpassDependency Vk::RenderPassBuilder::BuildSubpassDependeny(const SubpassDe
 	dependency.dstAccessMask = dst.accessMask;
 
 	return dependency;
+}
+
+bool Vk::RenderPassBuilder::ValidImageName(const std::string& imageName)
+{
+	return attachmentDescriptions.find(imageName) != attachmentDescriptions.end();
+}
+
+bool Vk::RenderPassBuilder::ValidSubpassName(const std::string& subpassName)
+{
+	return subpassReferences.find(subpassName) != subpassReferences.end();
+}
+
+void Vk::RenderPassBuilder::Reset()
+{
+	attachmentDescriptions.clear();
+	subpassReferences.clear();
+}
+
+void Vk::RenderPassBuilder::RegisterSubpass(const std::string& subpassName, uint32_t index)
+{
+	subpassReferences[subpassName].index = index;
+}
+
+void Vk::RenderPassBuilder::AttachDepthDescription(uint32_t index, VkFormat format, VkImageLayout initialLayout, VkImageLayout finalLayout)
+{
+	AttachImageDescription("depth", index, format, initialLayout, finalLayout);
+}
+
+void Vk::RenderPassBuilder::AttachImageDescription(const std::string& imageName, uint32_t index, VkFormat format, VkImageLayout initialLayout, VkImageLayout finalLayout)
+{
+	auto imageDesciption = BuildAttachmentDescription(format, initialLayout, finalLayout);
+	attachmentDescriptions[imageName].index = index;
+	attachmentDescriptions[imageName].description = imageDesciption;
+}
+
+void Vk::RenderPassBuilder::AttachImageReferenceToSubpass(const std::string& subpassName, const std::string& imageName, VkImageLayout layout)
+{
+	auto imageReference = BuildAttachmentReference(attachmentDescriptions[imageName].index, layout);
+	subpassReferences[subpassName].colorRefences.push_back(imageReference);
+}
+
+void Vk::RenderPassBuilder::AttachInputReferenceToSubpass(const std::string& subpassName, const std::string& imageName, VkImageLayout layout)
+{
+	auto imageReference = BuildAttachmentReference(attachmentDescriptions[imageName].index, layout);
+	subpassReferences[subpassName].inputRefences.push_back(imageReference);
+}
+
+void Vk::RenderPassBuilder::AttachDepthReferenceToSubpass(const std::string& subpassName, VkImageLayout layout)
+{
+	auto imageReference = BuildAttachmentReference(attachmentDescriptions["depth"].index, layout);
+	subpassReferences[subpassName].depthReference = imageReference;
+}
+
+void Vk::RenderPassBuilder::AttachSubpassDependency(const std::string& subpassName, DependencyStage type, uint32_t subpassIndex, VkPipelineStageFlags stageMask, VkAccessFlags accessMask)
+{
+	if (type == DependencyStage::SRC)
+		subpassReferences[subpassName].dependencySrc = SubpassDependencyData(subpassIndex, stageMask, accessMask);
+	else
+		subpassReferences[subpassName].dependencyDst = SubpassDependencyData(subpassIndex, stageMask, accessMask);
+}
+
+std::shared_ptr<Vk::RenderPass> Vk::RenderPassBuilder::BuildPipeline()
+{
+	std::vector<VkSubpassDescription> subpassDescriptions(subpassReferences.size());
+	std::vector<VkSubpassDependency> subpassDependencies(subpassReferences.size());
+	for (auto& [subpassName, subpassData] : subpassReferences)
+	{
+		subpassDescriptions[subpassData.index] = BuildSubpassDescription(subpassData.colorRefences, &subpassData.depthReference, subpassData.inputRefences);
+		subpassDependencies[subpassData.index] = BuildSubpassDependeny(subpassData.dependencySrc, subpassData.dependencyDst);
+	}
+
+	std::vector<VkAttachmentDescription> imageDescriptions(attachmentDescriptions.size());
+	for (auto& [imageName, imageData] : attachmentDescriptions)
+		imageDescriptions[imageData.index] = imageData.description;
+
+	std::shared_ptr<Vk::RenderPass> renderPass = std::make_shared<Vk::RenderPass>(imageDescriptions, subpassDescriptions, subpassDependencies);
+	return renderPass;
 }
 
 Vk::RenderPass::RenderPass(std::span<VkAttachmentDescription> attachmentDescriptions, std::span<VkSubpassDescription> subpassDescriptions, std::span<VkSubpassDependency> subpassDependencies)
