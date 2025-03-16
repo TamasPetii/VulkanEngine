@@ -20,9 +20,9 @@ void Engine::Init()
 	vulkanContext->SetRequiredDeviceExtension(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME);
 	vulkanContext->Init();
 
+	renderer = std::make_shared<Renderer>();
 	registry = std::make_shared<Registry>();
 	frameTimer = std::make_shared<FrameTimer>();
-	renderer = std::make_shared<Renderer>();
 }
 
 void Engine::Clean()
@@ -47,6 +47,12 @@ void Engine::SetWindowExtentFunction(const std::function<std::pair<int, int>()>&
 {
 	auto vulkanContext = Vk::VulkanContext::GetContext();
 	vulkanContext->SetWindowExtentFunction(function);
+}
+
+void Engine::SetGuiRenderFunction(const std::function<void(VkCommandBuffer commandBuffer)>& function)
+{
+	if (renderer)
+		renderer->SetGuiRenderFunction(function);
 }
 
 void Engine::Update()

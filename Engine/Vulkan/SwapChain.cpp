@@ -26,12 +26,12 @@ VkSwapchainKHR Vk::SwapChain::Value() const
 	return swapChain;
 }
 
-VkExtent2D Vk::SwapChain::GetExtent() const
+const VkExtent2D& Vk::SwapChain::GetExtent() const
 {
 	return swapChainExtent;
 }
 
-VkFormat Vk::SwapChain::GetImageFormat() const
+const VkFormat& Vk::SwapChain::GetImageFormat() const
 {
 	return swapChainImageFormat;
 }

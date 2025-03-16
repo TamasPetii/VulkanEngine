@@ -10,12 +10,18 @@ Renderer::~Renderer()
 	Destroy();
 }
 
+void Renderer::SetGuiRenderFunction(const std::function<void(VkCommandBuffer commandBuffer)>& function)
+{
+	guiRenderFunction = function;
+}
+
 void Renderer::Render()
 {
 	auto device = Vk::VulkanContext::GetContext()->GetDevice();
 	auto swapChain = Vk::VulkanContext::GetContext()->GetSwapChain();
 	auto graphicsQueue = device->GetQueue(Vk::QueueType::GRAPHICS);
 	auto presentQueue = device->GetQueue(Vk::QueueType::PRESENTATION);
+	auto renderContext = RenderContext::GetContext();
 
 	VkSemaphore imageAvailableSemaphore = imageAvailableSemaphores[framesInFlightIndex];
 	VkSemaphore renderFinishedSemaphore = renderFinishedSemaphores[framesInFlightIndex];
@@ -28,7 +34,6 @@ void Renderer::Render()
 
 	vkResetFences(device->Value(), 1, &inFlightFence);
 
-	auto frameBuffer = frameBuffers[framesInFlightIndex];
 	VkCommandBuffer commandBuffer = commandBuffers[framesInFlightIndex];
 
 	vkResetCommandBuffer(commandBuffer, 0);
@@ -40,13 +45,11 @@ void Renderer::Render()
 
 	VK_CHECK_MESSAGE(vkBeginCommandBuffer(commandBuffer, &beginInfo), "Failed to begin recording command buffer!");
 
+	auto frameBuffer = renderContext->GetFrameBuffer("main", framesInFlightIndex);
+	
 	std::array<VkClearValue, 2> clearValues{};
 	clearValues[0].color = { {1.0f, 1.0f, 0.0f, 1.0f} };
 	clearValues[1].depthStencil = { 1.0f, 0 };
-
-	VkRenderingAttachmentInfo colorAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(frameBuffer->GetImage("main")->GetImageView(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, &clearValues[0]);
-	VkRenderingAttachmentInfo depthAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(frameBuffer->GetImage("depth")->GetImageView(), VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, &clearValues[1]);
-	VkRenderingInfo renderingInfo = Vk::DynamicRendering::BuildRenderingInfo(frameBuffer->GetSize(), &colorAttachment, &depthAttachment);
 
 	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, frameBuffer->GetImage("main")->Value(),
 		VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, VK_ACCESS_2_NONE,
@@ -55,10 +58,14 @@ void Renderer::Render()
 	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, frameBuffer->GetImage("depth")->Value(),
 		VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, VK_ACCESS_2_NONE,
 		VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT, VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
+	
+	VkRenderingAttachmentInfo colorAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(frameBuffer->GetImage("main")->GetImageView(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, &clearValues[0]);
+	VkRenderingAttachmentInfo depthAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(frameBuffer->GetImage("depth")->GetImageView(), VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, &clearValues[1]);
+	VkRenderingInfo renderingInfo = Vk::DynamicRendering::BuildRenderingInfo(frameBuffer->GetSize(), &colorAttachment, &depthAttachment);
 
 	vkCmdBeginRendering(commandBuffer, &renderingInfo);
 
-	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline->GetPipeline());
+	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderContext->GetGraphicsPipeline("main")->GetPipeline());
 
 	VkViewport viewport{};
 	viewport.x = 0.0f;
@@ -90,6 +97,20 @@ void Renderer::Render()
 
 	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, swapChain->GetImages()[imageIndex],
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT,
+		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT);
+
+	VkRenderingAttachmentInfo guiColorAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(swapChain->GetImageViews()[imageIndex], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, nullptr);
+	VkRenderingInfo guiRenderingInfo = Vk::DynamicRendering::BuildRenderingInfo(swapChain->GetExtent(), &guiColorAttachment, nullptr);
+
+	vkCmdBeginRendering(commandBuffer, &guiRenderingInfo);
+
+	if (guiRenderFunction)
+		guiRenderFunction(commandBuffer);
+
+	vkCmdEndRendering(commandBuffer);	
+
+	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, swapChain->GetImages()[imageIndex],
+		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
 		VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT, VK_ACCESS_2_NONE);
 
 	VK_CHECK_MESSAGE(vkEndCommandBuffer(commandBuffer), "Failed to record command buffer!");
@@ -145,17 +166,14 @@ void Renderer::Render()
 
 void Renderer::Init()
 {
+	RenderContext::GetContext()->Init();
+
 	commandPools.resize(FRAMES_IN_FLIGHT);
 	commandBuffers.resize(FRAMES_IN_FLIGHT);
 	imageAvailableSemaphores.resize(FRAMES_IN_FLIGHT);
 	renderFinishedSemaphores.resize(FRAMES_IN_FLIGHT);
 	inFlightFences.resize(FRAMES_IN_FLIGHT);
-	frameBuffers.resize(FRAMES_IN_FLIGHT);
 
-	LoadShaders();
-	InitRenderPass();
-	InitFrameBuffers();
-	InitGraphicsPipeline();
 	InitCommandPool();
 	InitCommandBuffer();
 	InitSyncronization();
@@ -164,7 +182,6 @@ void Renderer::Init()
 void Renderer::Destroy()
 {
 	auto device = Vk::VulkanContext::GetContext()->GetDevice();
-
 	vkDeviceWaitIdle(device->Value());
 
 	for (uint32_t i = 0; i < FRAMES_IN_FLIGHT; i++)
@@ -180,13 +197,10 @@ void Renderer::Destroy()
 	imageAvailableSemaphores.clear();
 	renderFinishedSemaphores.clear();
 	inFlightFences.clear();
+
+	RenderContext::DestroyContext();;
 }
 
-void Renderer::LoadShaders()
-{
-	shaderModuls["BasicVert"] = std::make_shared<Vk::ShaderModule>("../Engine/Shaders/Basic.vert", VK_SHADER_STAGE_VERTEX_BIT);
-	shaderModuls["BasicFrag"] = std::make_shared<Vk::ShaderModule>("../Engine/Shaders/Basic.frag", VK_SHADER_STAGE_FRAGMENT_BIT);
-}
 
 void Renderer::InitCommandPool()
 {
@@ -235,71 +249,4 @@ void Renderer::InitSyncronization()
 		VK_CHECK_MESSAGE(vkCreateSemaphore(device->Value(), &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]), "Failed to create render finished semaphore!");
 		VK_CHECK_MESSAGE(vkCreateFence(device->Value(), &fenceInfo, nullptr, &inFlightFences[i]), "Failed to create in-flight fence!");
 	}
-}
-
-void Renderer::InitRenderPass()
-{
-	Vk::RenderPassBuilder renderPassBuilder;
-	renderPassBuilder.RegisterSubpass("mainSubpass", 0);
-	renderPassBuilder.AttachImageDescription("main", 0, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-	renderPassBuilder.AttachImageReferenceToSubpass("mainSubpass", "main", VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-	renderPassBuilder.AttachDepthDescription(1, VK_FORMAT_D32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
-	renderPassBuilder.AttachDepthReferenceToSubpass("mainSubpass", VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
-	renderPassBuilder.AttachSubpassDependency("mainSubpass", Vk::DependencyStage::SRC, VK_SUBPASS_EXTERNAL, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT, VK_ACCESS_NONE);
-	renderPassBuilder.AttachSubpassDependency("mainSubpass", Vk::DependencyStage::DST, 0, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
-	renderPass = renderPassBuilder.BuildRenderPass();
-}
-
-void Renderer::InitFrameBuffers()
-{
-	auto swapChainExtent = Vk::VulkanContext::GetContext()->GetSwapChain()->GetExtent();
-
-	Vk::ImageSpecification mainImageSpec;
-	mainImageSpec.type = VK_IMAGE_TYPE_2D;
-	mainImageSpec.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	mainImageSpec.format = VK_FORMAT_R16G16B16A16_SFLOAT;
-	mainImageSpec.tiling = VK_IMAGE_TILING_OPTIMAL;
-	mainImageSpec.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-	mainImageSpec.aspectFlag = VK_IMAGE_ASPECT_COLOR_BIT;
-	mainImageSpec.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-
-	Vk::ImageSpecification depthImageSpec;
-	depthImageSpec.type = VK_IMAGE_TYPE_2D;
-	depthImageSpec.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	depthImageSpec.format = VK_FORMAT_D32_SFLOAT;
-	depthImageSpec.tiling = VK_IMAGE_TILING_OPTIMAL;
-	depthImageSpec.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-	depthImageSpec.aspectFlag = VK_IMAGE_ASPECT_DEPTH_BIT;
-	depthImageSpec.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-
-	Vk::FrameBufferBuilder frameBufferBuilder;
-	frameBufferBuilder.SetSize(swapChainExtent.width, swapChainExtent.height)
-					  .AddImageSpecification("main", 0, mainImageSpec)
-					  .AddDepthSpecification(1, depthImageSpec);
-
-	for (uint32_t i = 0; i < FRAMES_IN_FLIGHT; ++i)
-		frameBuffers[i] = frameBufferBuilder.BuildDynamic();
-}
-
-void Renderer::InitGraphicsPipeline()
-{
-	std::vector<VkVertexInputBindingDescription> vertexBindingDescirption = { Vertex::GetBindingDescription() };
-	std::vector<VkVertexInputAttributeDescription> vertexAttributeDescription = Vertex::GetAttributeDescriptions();
-
-	Vk::GraphicsPipelineBuilder pipelineBuilder;
-	graphicsPipeline = pipelineBuilder
-					.AddShaderStage(shaderModuls["BasicVert"])
-					.AddShaderStage(shaderModuls["BasicFrag"])
-					.AddDynamicState(VK_DYNAMIC_STATE_VIEWPORT)
-					.AddDynamicState(VK_DYNAMIC_STATE_SCISSOR)
-					.SetVertexInput({}, {})
-					.SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
-					.SetRasterization(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_CLOCKWISE)
-					.SetMultisampling(VK_SAMPLE_COUNT_1_BIT)
-					.SetDepthStencil(VK_TRUE, VK_TRUE, VK_COMPARE_OP_LESS)
-					.SetColorBlend(VK_FALSE)
-					.AddColorBlendAttachment(VK_FALSE)
-					.SetColorAttachmentFormats(VK_FORMAT_R16G16B16A16_SFLOAT, 0)
-					.SetDepthAttachmentFormat(VK_FORMAT_D32_SFLOAT)
-					.BuildDynamic();
 }

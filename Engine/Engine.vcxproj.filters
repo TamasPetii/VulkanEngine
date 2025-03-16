@@ -105,6 +105,9 @@
     <ClInclude Include="Vulkan\DynamicRendering.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Render\RenderContext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -189,6 +192,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Render\Examples\DynamicRendererExample.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\RenderContext.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -21,6 +21,7 @@ public:
 	void SetRequiredWindowExtensions(std::span<const char*> extensionNames);
 	void SetSurfaceCreationFunction(const std::function<void(const Vk::Instance* const, VkSurfaceKHR* surface)>& function);
 	void SetWindowExtentFunction(const std::function<std::pair<int, int>()>& function);
+	void SetGuiRenderFunction(const std::function<void(VkCommandBuffer commandBuffer)>& function);
 private:
 	void Clean();
 private:

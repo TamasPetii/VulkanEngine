@@ -23,8 +23,8 @@ namespace Vk
 
 		void ReCreate();
 		VkSwapchainKHR Value() const;
-		VkExtent2D GetExtent() const;
-		VkFormat GetImageFormat() const;
+		const VkExtent2D& GetExtent() const;
+		const VkFormat& GetImageFormat() const;
 		const std::vector<VkImage> GetImages() const;
 		const std::vector<VkImageView> GetImageViews() const;
 	private:
