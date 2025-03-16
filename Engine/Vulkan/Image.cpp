@@ -54,24 +54,101 @@ void Vk::Image::TransitionImageLayout(VkCommandBuffer commandBuffer, VkImage ima
 	);
 }
 
+void Vk::Image::CopyImageToImageDynamic(VkCommandBuffer commandBuffer, VkImage srcImage, VkExtent2D srcSize, VkImage dstImage, VkExtent2D dstSize)
+{
+	VkImageBlit2 imageBlitInfo{};
+	imageBlitInfo.sType = VK_STRUCTURE_TYPE_IMAGE_BLIT_2;
+	imageBlitInfo.srcOffsets[0] = { 0, 0, 0 };
+	imageBlitInfo.srcOffsets[1] = { (int32_t)srcSize.width, (int32_t)srcSize.height, 1 };
+	imageBlitInfo.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	imageBlitInfo.srcSubresource.mipLevel = 0;
+	imageBlitInfo.srcSubresource.baseArrayLayer = 0;
+	imageBlitInfo.srcSubresource.layerCount = 1;
+
+	imageBlitInfo.dstOffsets[0] = { 0, 0, 0 };
+	imageBlitInfo.dstOffsets[1] = { (int32_t)dstSize.width, (int32_t)dstSize.height, 1 };
+	imageBlitInfo.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	imageBlitInfo.dstSubresource.mipLevel = 0;
+	imageBlitInfo.dstSubresource.baseArrayLayer = 0;
+	imageBlitInfo.dstSubresource.layerCount = 1;
+
+	VkBlitImageInfo2 blitInfo{};
+	blitInfo.sType = VK_STRUCTURE_TYPE_BLIT_IMAGE_INFO_2;
+	blitInfo.srcImage = srcImage;
+	blitInfo.srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+	blitInfo.dstImage = dstImage;
+	blitInfo.dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	blitInfo.filter = VK_FILTER_LINEAR;
+	blitInfo.regionCount = 1;
+	blitInfo.pRegions = &imageBlitInfo;
+
+	vkCmdBlitImage2(commandBuffer, &blitInfo);
+}
+
+void Vk::Image::TransitionImageLayoutDynamic(VkCommandBuffer commandBuffer, VkImage image, VkImageLayout srcLayout, VkPipelineStageFlags2 srcStageFlags, VkAccessFlags2 srcAccessMask, VkImageLayout dstLayout, VkPipelineStageFlags2 dstStageFlags, VkAccessFlags2 dstAccessMask)
+{
+	VkImageMemoryBarrier2 imageBarrier{};
+	imageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
+	imageBarrier.oldLayout = srcLayout;
+	imageBarrier.newLayout = dstLayout;
+	imageBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	imageBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	imageBarrier.image = image;
+
+	imageBarrier.subresourceRange.aspectMask = (dstLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT);
+	imageBarrier.subresourceRange.baseMipLevel = 0;
+	imageBarrier.subresourceRange.levelCount = 1;
+	imageBarrier.subresourceRange.baseArrayLayer = 0;
+	imageBarrier.subresourceRange.layerCount = 1;
+
+	imageBarrier.srcStageMask = srcStageFlags;
+	imageBarrier.srcAccessMask = srcAccessMask;
+	imageBarrier.dstStageMask = dstStageFlags;
+	imageBarrier.dstAccessMask = dstAccessMask;
+
+	VkDependencyInfo dependencyInfo{};
+	dependencyInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+	dependencyInfo.dependencyFlags = 0;
+	dependencyInfo.imageMemoryBarrierCount = 1;
+	dependencyInfo.pImageMemoryBarriers = &imageBarrier;
+
+	vkCmdPipelineBarrier2(commandBuffer, &dependencyInfo);
+}
+
+bool Vk::Image::IsDepthFormat(VkFormat format)
+{
+	switch (format)
+	{
+	case VK_FORMAT_D16_UNORM:
+	case VK_FORMAT_D32_SFLOAT:
+	case VK_FORMAT_X8_D24_UNORM_PACK32:
+	case VK_FORMAT_D16_UNORM_S8_UINT:
+	case VK_FORMAT_D24_UNORM_S8_UINT:
+	case VK_FORMAT_D32_SFLOAT_S8_UINT:
+		return true;
+	default:
+		return false;
+	}
+}
+
 void Vk::Image::CopyImageToImage(VkCommandBuffer commandBuffer, VkImage srcImage, VkExtent2D srcSize, VkImage dstImage, VkExtent2D dstSize)
 {
-	VkImageBlit imageBitInfo{};
-	imageBitInfo.srcOffsets[0] = { 0, 0, 0 };
-	imageBitInfo.srcOffsets[1] = { (int32_t)srcSize.width, (int32_t)srcSize.height, 1 };
-	imageBitInfo.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	imageBitInfo.srcSubresource.mipLevel = 0;
-	imageBitInfo.srcSubresource.baseArrayLayer = 0;
-	imageBitInfo.srcSubresource.layerCount = 1;
+	VkImageBlit imageBlitInfo{};
+	imageBlitInfo.srcOffsets[0] = { 0, 0, 0 };
+	imageBlitInfo.srcOffsets[1] = { (int32_t)srcSize.width, (int32_t)srcSize.height, 1 };
+	imageBlitInfo.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	imageBlitInfo.srcSubresource.mipLevel = 0;
+	imageBlitInfo.srcSubresource.baseArrayLayer = 0;
+	imageBlitInfo.srcSubresource.layerCount = 1;
 
-	imageBitInfo.dstOffsets[0] = { 0, 0, 0 };
-	imageBitInfo.dstOffsets[1] = { (int32_t)dstSize.width, (int32_t)dstSize.height, 1 };
-	imageBitInfo.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	imageBitInfo.dstSubresource.mipLevel = 0;
-	imageBitInfo.dstSubresource.baseArrayLayer = 0;
-	imageBitInfo.dstSubresource.layerCount = 1;
+	imageBlitInfo.dstOffsets[0] = { 0, 0, 0 };
+	imageBlitInfo.dstOffsets[1] = { (int32_t)dstSize.width, (int32_t)dstSize.height, 1 };
+	imageBlitInfo.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	imageBlitInfo.dstSubresource.mipLevel = 0;
+	imageBlitInfo.dstSubresource.baseArrayLayer = 0;
+	imageBlitInfo.dstSubresource.layerCount = 1;
 
-	vkCmdBlitImage(commandBuffer, srcImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dstImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageBitInfo, VK_FILTER_LINEAR);
+	vkCmdBlitImage(commandBuffer, srcImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dstImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageBlitInfo, VK_FILTER_LINEAR);
 }
 
 void Vk::Image::Init()

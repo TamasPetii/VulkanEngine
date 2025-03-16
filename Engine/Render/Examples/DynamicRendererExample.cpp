@@ -1,4 +1,4 @@
-#include "Renderer.h"
+/*
 
 Renderer::Renderer()
 {
@@ -132,7 +132,7 @@ void Renderer::Render()
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 	presentInfo.waitSemaphoreCount = 1;
 	presentInfo.pWaitSemaphores = &renderFinishedSemaphore;
-	VkSwapchainKHR swapChains[] = { swapChain->Value()};
+	VkSwapchainKHR swapChains[] = { swapChain->Value() };
 	presentInfo.swapchainCount = 1;
 	presentInfo.pSwapchains = swapChains;
 	presentInfo.pImageIndices = &imageIndex;
@@ -198,7 +198,7 @@ void Renderer::InitCommandPool()
 	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 	poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
 
-	for(uint32_t i = 0; i < FRAMES_IN_FLIGHT; ++i)
+	for (uint32_t i = 0; i < FRAMES_IN_FLIGHT; ++i)
 		VK_CHECK_MESSAGE(vkCreateCommandPool(device->Value(), &poolInfo, nullptr, &commandPools[i]), "Failed to create command pool!");
 }
 
@@ -237,19 +237,6 @@ void Renderer::InitSyncronization()
 	}
 }
 
-void Renderer::InitRenderPass()
-{
-	Vk::RenderPassBuilder renderPassBuilder;
-	renderPassBuilder.RegisterSubpass("mainSubpass", 0);
-	renderPassBuilder.AttachImageDescription("colorImage", 0, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-	renderPassBuilder.AttachImageReferenceToSubpass("mainSubpass", "colorImage", VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-	renderPassBuilder.AttachDepthDescription(1, VK_FORMAT_D32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
-	renderPassBuilder.AttachDepthReferenceToSubpass("mainSubpass", VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
-	renderPassBuilder.AttachSubpassDependency("mainSubpass", Vk::DependencyStage::SRC, VK_SUBPASS_EXTERNAL, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT, VK_ACCESS_NONE);
-	renderPassBuilder.AttachSubpassDependency("mainSubpass", Vk::DependencyStage::DST, 0, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
-	renderPass = renderPassBuilder.BuildRenderPass();
-}
-
 void Renderer::InitFrameBuffers()
 {
 	auto swapChainExtent = Vk::VulkanContext::GetContext()->GetSwapChain()->GetExtent();
@@ -277,11 +264,6 @@ void Renderer::InitFrameBuffers()
 	frameBufferBuilder.AttachImageSpec("colorImage", 0, colorImageSpec);
 	frameBufferBuilder.AttachDepthSpec(1, depthImageSpec);
 
-	/*
-	for(uint32_t i = 0; i < FRAMES_IN_FLIGHT; ++i)
-		frameBuffers[i] = frameBufferBuilder.BuildFrameBuffer(renderPass);
-	*/
-
 	for (uint32_t i = 0; i < FRAMES_IN_FLIGHT; ++i)
 		frameBuffers[i] = frameBufferBuilder.BuildDynamicFrameBuffer();
 }
@@ -303,10 +285,11 @@ void Renderer::InitGraphicsPipeline()
 	//pipelineBuilder.SetVertexInputInfo();
 	//pipelineBuilder.SetPushConstantRange();
 	//pipelineBuilder.SetDescriptorSetLayout();
-	//graphicsPipeline = pipelineBuilder.BuildPipeline(renderPass, 0);
 
 	auto imageFormats = frameBuffers[0]->GetAllImageFormats();
 	pipelineBuilder.SetColorAttachmentFormats(imageFormats.first);
 	pipelineBuilder.SetDepthAttachmentFormat(imageFormats.second);
 	graphicsPipeline = pipelineBuilder.BuildDynamicPipeline();
 }
+
+*/

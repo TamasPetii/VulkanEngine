@@ -24,6 +24,22 @@ const std::shared_ptr<Vk::Image> Vk::FrameBuffer::GetImage(const std::string& im
 	return images.at(imageName).image;
 }
 
+const std::pair<std::vector<VkFormat>, VkFormat> Vk::FrameBuffer::GetAllImageFormats() const
+{
+	std::vector<VkFormat> imageFormats;
+	VkFormat depthFormat = VK_FORMAT_UNDEFINED;
+
+	for (auto& [imageName, imageData] : images)
+	{
+		if (!Image::IsDepthFormat(imageData.specification.format))
+			imageFormats.push_back(imageData.specification.format);
+		else
+			depthFormat = imageData.specification.format;
+	}
+
+	return {imageFormats, depthFormat};
+}
+
 const VkExtent2D Vk::FrameBuffer::GetSize() const
 {
 	return size;
@@ -49,8 +65,12 @@ void Vk::FrameBuffer::Init()
 		imageViewAttachments[imageData.index] = imageData.image->GetImageView();
 	}
 
-	auto framebufferInfo = BuildFramebufferInfo(imageViewAttachments);
-	VK_CHECK_MESSAGE(vkCreateFramebuffer(device->Value(), &framebufferInfo, nullptr, &frameBuffer), "Failed to create framebuffer!");
+	//Dynamic rendering, still uses framebuffers to manage images, but not creating the legacy vulkan framebuffer
+	if (renderPass != nullptr)
+	{
+		auto framebufferInfo = BuildFramebufferInfo(imageViewAttachments);
+		VK_CHECK_MESSAGE(vkCreateFramebuffer(device->Value(), &framebufferInfo, nullptr, &frameBuffer), "Failed to create framebuffer!");
+	}
 }
 
 void Vk::FrameBuffer::Resize(uint32_t width, uint32_t height)
@@ -71,10 +91,14 @@ void Vk::FrameBuffer::Destroy()
 	for (auto& [imageName, imageData] : images)
 		imageData.image->Destroy();
 
-	if(frameBuffer != VK_NULL_HANDLE)
-		vkDestroyFramebuffer(device->Value(), frameBuffer, nullptr);
+	//Dynamic rendering, still uses framebuffers to manage images, but not creating the legacy vulkan framebuffer
+	if (renderPass != nullptr)
+	{
+		if(frameBuffer != VK_NULL_HANDLE)
+			vkDestroyFramebuffer(device->Value(), frameBuffer, nullptr);
 
-	frameBuffer = VK_NULL_HANDLE;
+		frameBuffer = VK_NULL_HANDLE;
+	}
 }
 
 VkFramebufferCreateInfo Vk::FrameBuffer::BuildFramebufferInfo(std::span<VkImageView> imageViewAttachments)
@@ -125,4 +149,9 @@ std::shared_ptr<Vk::FrameBuffer> Vk::FrameBufferBuilder::BuildFrameBuffer(std::s
 	frameBuffer->Init();
 
 	return frameBuffer;
+}
+
+std::shared_ptr<Vk::FrameBuffer> Vk::FrameBufferBuilder::BuildDynamicFrameBuffer()
+{
+	return BuildFrameBuffer(nullptr);
 }

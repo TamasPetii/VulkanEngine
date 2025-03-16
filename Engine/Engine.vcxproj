@@ -159,6 +159,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Vulkan\DynamicRendering.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="Render\Renderer.h" />
     <ClInclude Include="Render\Vertex.h" />
@@ -190,6 +191,9 @@
     <ClInclude Include="Timer\Timer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Render\Examples\DynamicRendererExample.cpp" />
+    <ClCompile Include="Render\Examples\RendererExample.cpp" />
+    <ClCompile Include="Vulkan\DynamicRendering.cpp" />
     <ClCompile Include="Render\Renderer.cpp" />
     <ClCompile Include="Render\Vertex.cpp" />
     <ClCompile Include="Vulkan\Memory.cpp" />
