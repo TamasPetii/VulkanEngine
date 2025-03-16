@@ -9,57 +9,47 @@
 
 namespace Vk
 {
-	class FrameBufferBuilder;
-
-	class ENGINE_API FrameBuffer
+	struct FrameBufferConfig
 	{
-	private:
-		struct ImageData
-		{
-			uint32_t index;
-			std::shared_ptr<Image> image;
-			ImageSpecification specification;
-		};
-	public:
-		FrameBuffer(uint32_t width, uint32_t height, std::shared_ptr<RenderPass> renderPass);
-		~FrameBuffer();
-		void Resize(uint32_t width, uint32_t height);
-		const VkFramebuffer Value() const;
-		const VkExtent2D GetSize() const;
-		const std::shared_ptr<Image> GetImage(const std::string& imageName) const;
-		const std::pair<std::vector<VkFormat>, VkFormat> GetAllImageFormats() const;
-	private:
-		void Init();
-		void Destroy();
-		void AttachImage(const std::string& imageName, uint32_t index, const ImageSpecification& specification);
-		VkFramebufferCreateInfo BuildFramebufferInfo(std::span<VkImageView> imageViewAttachments);
-	private:
-		VkExtent2D size;
-		VkFramebuffer frameBuffer = VK_NULL_HANDLE;
-		std::shared_ptr<RenderPass> renderPass = nullptr;
-		std::unordered_map<std::string, ImageData> images;
-
-		friend class FrameBufferBuilder;
+		uint32_t width{};
+		uint32_t height{};
+		std::optional<VkRenderPass> renderPass{};
+		std::unordered_map<std::string, std::pair<uint32_t, ImageSpecification>> imageSpecifications{};
 	};
 
-	class FrameBufferBuilder 
+	class FrameBuffer
 	{
-	private:
-		struct ImageData
-		{
-			uint32_t index;
-			ImageSpecification specification;
-		};
 	public:
-		void Reset();
-		void SetInitialSize(uint32_t width, uint32_t height);
-		void AttachImageSpec(const std::string& imageName, uint32_t index, const ImageSpecification& specification);
-		void AttachDepthSpec(uint32_t index, const ImageSpecification& specification);
-		std::shared_ptr<FrameBuffer> BuildFrameBuffer(std::shared_ptr<RenderPass> renderPass);
-		std::shared_ptr<FrameBuffer> BuildDynamicFrameBuffer();
+		FrameBuffer(FrameBufferConfig& config);
+		~FrameBuffer();
+
+		void Resize(uint32_t width, uint32_t height);
+		VkFramebuffer GetFrameBuffer() const;
+		VkExtent2D GetSize() const;
+		std::shared_ptr<Image> GetImage(const std::string& imageName) const;
 	private:
-		uint32_t width;
-		uint32_t height;
-		std::unordered_map<std::string, ImageData> imageSpecifications;
+		bool Initialize();
+		void Cleanup();
+
+		FrameBufferConfig config;
+		std::vector<std::shared_ptr<Image>> images;
+		VkFramebuffer frameBuffer = VK_NULL_HANDLE;
+	};
+
+	class FrameBufferBuilder
+	{
+	public:
+		FrameBufferBuilder();
+		void ResetToDefault();
+
+		FrameBufferBuilder& SetSize(uint32_t width, uint32_t height);
+		FrameBufferBuilder& AddImageSpecification(const std::string& imageName, uint32_t index, const ImageSpecification& specification);
+		FrameBufferBuilder& AddDepthSpecification(uint32_t index, const ImageSpecification& specification);
+
+		std::shared_ptr<FrameBuffer> Build(VkRenderPass renderPass);
+		std::shared_ptr<FrameBuffer> BuildDynamic();
+
+	private:
+		FrameBufferConfig config;
 	};
 }

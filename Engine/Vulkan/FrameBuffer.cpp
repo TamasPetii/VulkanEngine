@@ -1,157 +1,121 @@
 #include "FrameBuffer.h"
 
-Vk::FrameBuffer::FrameBuffer(uint32_t width, uint32_t height, std::shared_ptr<RenderPass> renderPass) :
-	renderPass(renderPass)
+Vk::FrameBuffer::FrameBuffer(FrameBufferConfig& config) :
+	config(config)
 {
-	size = VkExtent2D(width, height);
+	Initialize();
 }
 
 Vk::FrameBuffer::~FrameBuffer()
 {
-	Destroy();
-}
-
-const VkFramebuffer Vk::FrameBuffer::Value() const
-{
-	return frameBuffer;
-}
-
-const std::shared_ptr<Vk::Image> Vk::FrameBuffer::GetImage(const std::string& imageName) const
-{
-	if (images.find(imageName) == images.end())
-		return nullptr;
-
-	return images.at(imageName).image;
-}
-
-const std::pair<std::vector<VkFormat>, VkFormat> Vk::FrameBuffer::GetAllImageFormats() const
-{
-	std::vector<VkFormat> imageFormats;
-	VkFormat depthFormat = VK_FORMAT_UNDEFINED;
-
-	for (auto& [imageName, imageData] : images)
-	{
-		if (!Image::IsDepthFormat(imageData.specification.format))
-			imageFormats.push_back(imageData.specification.format);
-		else
-			depthFormat = imageData.specification.format;
-	}
-
-	return {imageFormats, depthFormat};
-}
-
-const VkExtent2D Vk::FrameBuffer::GetSize() const
-{
-	return size;
-}
-
-void Vk::FrameBuffer::AttachImage(const std::string& imageName, uint32_t index, const ImageSpecification& specification)
-{
-	images[imageName].index = index;
-	images[imageName].specification = specification;
-}
-
-void Vk::FrameBuffer::Init()
-{
-	auto device = VulkanContext::GetContext()->GetDevice();
-
-	std::vector<VkImageView> imageViewAttachments(images.size());
-	
-	for (auto& [imageName, imageData] : images)
-	{
-		imageData.specification.width = size.width;
-		imageData.specification.height = size.height;
-		imageData.image = std::make_shared<Image>(imageData.specification);
-		imageViewAttachments[imageData.index] = imageData.image->GetImageView();
-	}
-
-	//Dynamic rendering, still uses framebuffers to manage images, but not creating the legacy vulkan framebuffer
-	if (renderPass != nullptr)
-	{
-		auto framebufferInfo = BuildFramebufferInfo(imageViewAttachments);
-		VK_CHECK_MESSAGE(vkCreateFramebuffer(device->Value(), &framebufferInfo, nullptr, &frameBuffer), "Failed to create framebuffer!");
-	}
+	Cleanup();
 }
 
 void Vk::FrameBuffer::Resize(uint32_t width, uint32_t height)
 {
-	if (size.width == width && size.height == height)
-		return;
-
-	size.width = width;
-	size.height = height;
-	Destroy();
-	Init();
+	config.width = width;
+	config.height = height;
+	Cleanup();
+	Initialize();
 }
 
-void Vk::FrameBuffer::Destroy()
+VkFramebuffer Vk::FrameBuffer::GetFrameBuffer() const
+{
+	return frameBuffer;
+}
+
+VkExtent2D Vk::FrameBuffer::GetSize() const
+{
+	return VkExtent2D(config.width, config.height);
+}
+
+std::shared_ptr<Vk::Image> Vk::FrameBuffer::GetImage(const std::string& imageName) const
+{
+	auto& imageData = config.imageSpecifications.at(imageName);
+	return images[imageData.first];
+}
+
+bool Vk::FrameBuffer::Initialize()
 {
 	auto device = VulkanContext::GetContext()->GetDevice();
 
-	for (auto& [imageName, imageData] : images)
-		imageData.image->Destroy();
+	std::vector<VkImageView> imageViews(config.imageSpecifications.size());
+	images.resize(config.imageSpecifications.size());
 
-	//Dynamic rendering, still uses framebuffers to manage images, but not creating the legacy vulkan framebuffer
-	if (renderPass != nullptr)
+	for (auto& [imageName, imageData] : config.imageSpecifications)
 	{
-		if(frameBuffer != VK_NULL_HANDLE)
-			vkDestroyFramebuffer(device->Value(), frameBuffer, nullptr);
+		imageData.second.width = config.width;
+		imageData.second.height = config.height;
+		images[imageData.first] = std::make_shared<Image>(imageData.second);
+		imageViews[imageData.first] = images[imageData.first]->GetImageView();
+	}
 
+	if (config.renderPass.has_value())
+	{
+		VkFramebufferCreateInfo framebufferInfo{};
+		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		framebufferInfo.renderPass = config.renderPass.value();
+		framebufferInfo.attachmentCount = static_cast<uint32_t>(imageViews.size());
+		framebufferInfo.pAttachments = imageViews.data();
+		framebufferInfo.width = config.width;
+		framebufferInfo.height = config.height;
+		framebufferInfo.layers = 1;
+
+		VK_CHECK_MESSAGE(vkCreateFramebuffer(device->Value(), &framebufferInfo, nullptr, &frameBuffer), "Failed to create framebuffer!");
+	}
+
+	return true;
+}
+
+void Vk::FrameBuffer::Cleanup()
+{
+	auto device = VulkanContext::GetContext()->GetDevice();
+
+	images.clear();
+
+	if (frameBuffer != VK_NULL_HANDLE)
+	{
+		vkDestroyFramebuffer(device->Value(), frameBuffer, nullptr);
 		frameBuffer = VK_NULL_HANDLE;
 	}
 }
 
-VkFramebufferCreateInfo Vk::FrameBuffer::BuildFramebufferInfo(std::span<VkImageView> imageViewAttachments)
-{
-	VkFramebufferCreateInfo framebufferInfo{};
-	framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-	framebufferInfo.renderPass = renderPass->Value();
-	framebufferInfo.attachmentCount = static_cast<uint32_t>(imageViewAttachments.size());
-	framebufferInfo.pAttachments = imageViewAttachments.data();
-	framebufferInfo.width = size.width;
-	framebufferInfo.height = size.height;
-	framebufferInfo.layers = 1;
 
-	return framebufferInfo;
+Vk::FrameBufferBuilder::FrameBufferBuilder()
+{
+	ResetToDefault();
 }
 
-void Vk::FrameBufferBuilder::Reset()
+void Vk::FrameBufferBuilder::ResetToDefault()
 {
-	width = 0;
-	height = 0;
-	imageSpecifications.clear();
+	config = FrameBufferConfig{};
 }
 
-void Vk::FrameBufferBuilder::SetInitialSize(uint32_t width, uint32_t height)
+Vk::FrameBufferBuilder& Vk::FrameBufferBuilder::SetSize(uint32_t width, uint32_t height)
 {
-	this->width = width;
-	this->height = height;
+	config.width = width;
+	config.height = height;
+	return *this;
 }
 
-void Vk::FrameBufferBuilder::AttachImageSpec(const std::string& imageName, uint32_t index, const ImageSpecification& specification)
+Vk::FrameBufferBuilder& Vk::FrameBufferBuilder::AddImageSpecification(const std::string& imageName,	uint32_t index,	const ImageSpecification& specification)
 {
-	imageSpecifications[imageName].index = index;
-	imageSpecifications[imageName].specification = specification;
+	config.imageSpecifications[imageName] = { index, specification };
+	return *this;
 }
 
-void Vk::FrameBufferBuilder::AttachDepthSpec(uint32_t index, const ImageSpecification& specification)
+Vk::FrameBufferBuilder& Vk::FrameBufferBuilder::AddDepthSpecification(uint32_t index, const ImageSpecification& specification)
 {
-	AttachImageSpec("depth", index, specification);
+	return AddImageSpecification("depth", index, specification);
 }
 
-std::shared_ptr<Vk::FrameBuffer> Vk::FrameBufferBuilder::BuildFrameBuffer(std::shared_ptr<RenderPass> renderPass)
+std::shared_ptr<Vk::FrameBuffer> Vk::FrameBufferBuilder::Build(VkRenderPass renderPass)
 {
-	std::shared_ptr<FrameBuffer> frameBuffer = std::make_shared<FrameBuffer>(width, height, renderPass);
-
-	for (auto& [imageName, imageData] : imageSpecifications)
-		frameBuffer->AttachImage(imageName, imageData.index, imageData.specification);
-
-	frameBuffer->Init();
-
-	return frameBuffer;
+	config.renderPass = renderPass;
+	return std::make_shared<FrameBuffer>(config);
 }
 
-std::shared_ptr<Vk::FrameBuffer> Vk::FrameBufferBuilder::BuildDynamicFrameBuffer()
+std::shared_ptr<Vk::FrameBuffer> Vk::FrameBufferBuilder::BuildDynamic()
 {
-	return BuildFrameBuffer(nullptr);
+	return std::make_shared<FrameBuffer>(config);
 }

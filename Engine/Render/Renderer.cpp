@@ -44,11 +44,11 @@ void Renderer::Render()
 	clearValues[0].color = { {1.0f, 1.0f, 0.0f, 1.0f} };
 	clearValues[1].depthStencil = { 1.0f, 0 };
 
-	VkRenderingAttachmentInfo colorAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(frameBuffer->GetImage("colorImage")->GetImageView(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, &clearValues[0]);
+	VkRenderingAttachmentInfo colorAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(frameBuffer->GetImage("main")->GetImageView(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, &clearValues[0]);
 	VkRenderingAttachmentInfo depthAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(frameBuffer->GetImage("depth")->GetImageView(), VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, &clearValues[1]);
 	VkRenderingInfo renderingInfo = Vk::DynamicRendering::BuildRenderingInfo(frameBuffer->GetSize(), &colorAttachment, &depthAttachment);
 
-	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, frameBuffer->GetImage("colorImage")->Value(),
+	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, frameBuffer->GetImage("main")->Value(),
 		VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, VK_ACCESS_2_NONE,
 		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT);
 
@@ -78,7 +78,7 @@ void Renderer::Render()
 
 	vkCmdEndRendering(commandBuffer);
 
-	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, frameBuffer->GetImage("colorImage")->Value(),
+	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, frameBuffer->GetImage("main")->Value(),
 		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
 		VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_READ_BIT);
 
@@ -86,7 +86,7 @@ void Renderer::Render()
 		VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, VK_ACCESS_2_NONE,
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT);
 
-	Vk::Image::CopyImageToImageDynamic(commandBuffer, frameBuffer->GetImage("colorImage")->Value(), frameBuffer->GetSize(), swapChain->GetImages()[imageIndex], swapChain->GetExtent());
+	Vk::Image::CopyImageToImageDynamic(commandBuffer, frameBuffer->GetImage("main")->Value(), frameBuffer->GetSize(), swapChain->GetImages()[imageIndex], swapChain->GetExtent());
 
 	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, swapChain->GetImages()[imageIndex],
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT,
@@ -241,8 +241,8 @@ void Renderer::InitRenderPass()
 {
 	Vk::RenderPassBuilder renderPassBuilder;
 	renderPassBuilder.RegisterSubpass("mainSubpass", 0);
-	renderPassBuilder.AttachImageDescription("colorImage", 0, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-	renderPassBuilder.AttachImageReferenceToSubpass("mainSubpass", "colorImage", VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+	renderPassBuilder.AttachImageDescription("main", 0, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+	renderPassBuilder.AttachImageReferenceToSubpass("mainSubpass", "main", VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 	renderPassBuilder.AttachDepthDescription(1, VK_FORMAT_D32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 	renderPassBuilder.AttachDepthReferenceToSubpass("mainSubpass", VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 	renderPassBuilder.AttachSubpassDependency("mainSubpass", Vk::DependencyStage::SRC, VK_SUBPASS_EXTERNAL, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT, VK_ACCESS_NONE);
@@ -254,14 +254,14 @@ void Renderer::InitFrameBuffers()
 {
 	auto swapChainExtent = Vk::VulkanContext::GetContext()->GetSwapChain()->GetExtent();
 
-	Vk::ImageSpecification colorImageSpec;
-	colorImageSpec.type = VK_IMAGE_TYPE_2D;
-	colorImageSpec.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	colorImageSpec.format = VK_FORMAT_R16G16B16A16_SFLOAT;
-	colorImageSpec.tiling = VK_IMAGE_TILING_OPTIMAL;
-	colorImageSpec.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-	colorImageSpec.aspectFlag = VK_IMAGE_ASPECT_COLOR_BIT;
-	colorImageSpec.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+	Vk::ImageSpecification mainImageSpec;
+	mainImageSpec.type = VK_IMAGE_TYPE_2D;
+	mainImageSpec.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	mainImageSpec.format = VK_FORMAT_R16G16B16A16_SFLOAT;
+	mainImageSpec.tiling = VK_IMAGE_TILING_OPTIMAL;
+	mainImageSpec.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	mainImageSpec.aspectFlag = VK_IMAGE_ASPECT_COLOR_BIT;
+	mainImageSpec.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
 	Vk::ImageSpecification depthImageSpec;
 	depthImageSpec.type = VK_IMAGE_TYPE_2D;
@@ -273,17 +273,12 @@ void Renderer::InitFrameBuffers()
 	depthImageSpec.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
 	Vk::FrameBufferBuilder frameBufferBuilder;
-	frameBufferBuilder.SetInitialSize(swapChainExtent.width, swapChainExtent.height);
-	frameBufferBuilder.AttachImageSpec("colorImage", 0, colorImageSpec);
-	frameBufferBuilder.AttachDepthSpec(1, depthImageSpec);
-
-	/*
-	for(uint32_t i = 0; i < FRAMES_IN_FLIGHT; ++i)
-		frameBuffers[i] = frameBufferBuilder.BuildFrameBuffer(renderPass);
-	*/
+	frameBufferBuilder.SetSize(swapChainExtent.width, swapChainExtent.height)
+					  .AddImageSpecification("main", 0, mainImageSpec)
+					  .AddDepthSpecification(1, depthImageSpec);
 
 	for (uint32_t i = 0; i < FRAMES_IN_FLIGHT; ++i)
-		frameBuffers[i] = frameBufferBuilder.BuildDynamicFrameBuffer();
+		frameBuffers[i] = frameBufferBuilder.BuildDynamic();
 }
 
 void Renderer::InitGraphicsPipeline()
