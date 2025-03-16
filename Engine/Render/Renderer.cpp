@@ -58,7 +58,7 @@ void Renderer::Render()
 
 	vkCmdBeginRendering(commandBuffer, &renderingInfo);
 
-	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline->Value());
+	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline->GetPipeline());
 
 	VkViewport viewport{};
 	viewport.x = 0.0f;
@@ -292,21 +292,19 @@ void Renderer::InitGraphicsPipeline()
 	std::vector<VkVertexInputAttributeDescription> vertexAttributeDescription = Vertex::GetAttributeDescriptions();
 
 	Vk::GraphicsPipelineBuilder pipelineBuilder;
-	pipelineBuilder.SetDefaultInfos();
-	pipelineBuilder.SetShaderStage(shaderModuls["BasicVert"]);
-	pipelineBuilder.SetShaderStage(shaderModuls["BasicFrag"]);
-	pipelineBuilder.SetInputAssemblyTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-	pipelineBuilder.DefaultDynamicStates();
-	pipelineBuilder.DefaultRasterizationInfo();
-	pipelineBuilder.DefaultColorBlendOptions();
-	pipelineBuilder.SetDepthStencilOptions(VK_TRUE, VK_TRUE, VK_COMPARE_OP_LESS);
-	//pipelineBuilder.SetVertexInputInfo();
-	//pipelineBuilder.SetPushConstantRange();
-	//pipelineBuilder.SetDescriptorSetLayout();
-	//graphicsPipeline = pipelineBuilder.BuildPipeline(renderPass, 0);
-
-	auto imageFormats = frameBuffers[0]->GetAllImageFormats();
-	pipelineBuilder.SetColorAttachmentFormats(imageFormats.first);
-	pipelineBuilder.SetDepthAttachmentFormat(imageFormats.second);
-	graphicsPipeline = pipelineBuilder.BuildDynamicPipeline();
+	graphicsPipeline = pipelineBuilder
+					.AddShaderStage(shaderModuls["BasicVert"])
+					.AddShaderStage(shaderModuls["BasicFrag"])
+					.AddDynamicState(VK_DYNAMIC_STATE_VIEWPORT)
+					.AddDynamicState(VK_DYNAMIC_STATE_SCISSOR)
+					.SetVertexInput({}, {})
+					.SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
+					.SetRasterization(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_CLOCKWISE)
+					.SetMultisampling(VK_SAMPLE_COUNT_1_BIT)
+					.SetDepthStencil(VK_TRUE, VK_TRUE, VK_COMPARE_OP_LESS)
+					.SetColorBlend(VK_FALSE)
+					.AddColorBlendAttachment(VK_FALSE)
+					.SetColorAttachmentFormats(VK_FORMAT_R16G16B16A16_SFLOAT, 0)
+					.SetDepthAttachmentFormat(VK_FORMAT_D32_SFLOAT)
+					.BuildDynamic();
 }
