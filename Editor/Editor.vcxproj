@@ -161,10 +161,25 @@
   <ItemGroup>
     <ClInclude Include="App.h" />
     <ClInclude Include="Gui\Gui.h" />
+    <ClInclude Include="Gui\ImGui\imconfig.h" />
+    <ClInclude Include="Gui\ImGui\imgui.h" />
+    <ClInclude Include="Gui\ImGui\imgui_impl_glfw.h" />
+    <ClInclude Include="Gui\ImGui\imgui_impl_vulkan.h" />
+    <ClInclude Include="Gui\ImGui\imgui_internal.h" />
+    <ClInclude Include="Gui\ImGui\imstb_rectpack.h" />
+    <ClInclude Include="Gui\ImGui\imstb_textedit.h" />
+    <ClInclude Include="Gui\ImGui\imstb_truetype.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp" />
     <ClCompile Include="Gui\Gui.cpp" />
+    <ClCompile Include="Gui\ImGui\imgui.cpp" />
+    <ClCompile Include="Gui\ImGui\imgui_demo.cpp" />
+    <ClCompile Include="Gui\ImGui\imgui_draw.cpp" />
+    <ClCompile Include="Gui\ImGui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="Gui\ImGui\imgui_impl_vulkan.cpp" />
+    <ClCompile Include="Gui\ImGui\imgui_tables.cpp" />
+    <ClCompile Include="Gui\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>

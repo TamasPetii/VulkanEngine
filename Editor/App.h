@@ -1,6 +1,6 @@
 #pragma once
 #include "../Engine/Engine.h"
-
+#include "Gui/Gui.h"
 #include <memory>
 
 struct GLFWwindow;
@@ -18,8 +18,10 @@ private:
 private:
 	void InitWindow();
 	void InitEngine();
+	void InitGui();
 private:
 	GLFWwindow* window;
+	std::shared_ptr<Gui> gui;
 	std::shared_ptr<Engine> engine;
 };
 

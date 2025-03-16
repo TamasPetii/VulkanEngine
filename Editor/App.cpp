@@ -39,10 +39,13 @@ void App::Init()
 {
 	InitWindow();
 	InitEngine();
+	InitGui();
 }
 
 void App::Clear()
 {
+	gui.reset();
+	engine.reset();
 	glfwDestroyWindow(window);
 	glfwTerminate();
 }
@@ -118,4 +121,15 @@ void App::InitEngine()
 	);
 
 	engine->Init();
+}
+
+void App::InitGui()
+{
+	gui = std::make_shared<Gui>(window);
+
+	engine->SetGuiRenderFunction(
+		[&](VkCommandBuffer commandBuffer) -> void {
+			gui->Render(commandBuffer);
+		}
+	);
 }
