@@ -19,6 +19,8 @@ void Vk::SwapChain::ReCreate()
 	vkDeviceWaitIdle(device->Value());
 	Destroy();
 	Init();
+
+	std::cout << std::format("Resized swapchain {} {}", swapChainExtent.width, swapChainExtent.width) << std::endl;
 }
 
 VkSwapchainKHR Vk::SwapChain::Value() const
@@ -123,16 +125,18 @@ void Vk::SwapChain::Destroy()
 {
 	for (auto imageView : swapChainImageViews) {
 
-		if(imageView != VK_NULL_HANDLE)
+		if (imageView != VK_NULL_HANDLE)
+		{
 			vkDestroyImageView(device->Value(), imageView, nullptr);
-
-		imageView = VK_NULL_HANDLE;
+			imageView = VK_NULL_HANDLE;
+		}
 	}
 
-	if(swapChain != VK_NULL_HANDLE)
+	if (swapChain != VK_NULL_HANDLE)
+	{
 		vkDestroySwapchainKHR(device->Value(), swapChain, nullptr);
-
-	swapChain = VK_NULL_HANDLE;
+		swapChain = VK_NULL_HANDLE;
+	}
 }
 
 Vk::SwapChainSupportDetails Vk::SwapChain::QuerySwapChainSupportDetails()
@@ -190,7 +194,8 @@ VkPresentModeKHR Vk::SwapChain::ChooseSwapPresentMode()
 
 VkExtent2D Vk::SwapChain::ChooseSwapExtent()
 {
-	if (swapChainSupportDetails.capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
+	if (swapChainSupportDetails.capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) 
+	{
 		return swapChainSupportDetails.capabilities.currentExtent;
 	}
 	else {

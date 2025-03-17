@@ -80,8 +80,6 @@ void Engine::Render()
 
 void Engine::WindowResizeEvent()
 {
-	isWindowResized = true;
-	Vk::VulkanContext::GetContext()->GetSwapChain()->ReCreate();
-	isWindowResized = false;
+	renderer->RecreateSwapChain();
 }
 

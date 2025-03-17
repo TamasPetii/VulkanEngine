@@ -1,4 +1,5 @@
 #pragma once
+#include "../EngineApi.h"
 #include "VulkanContext.h"
 #include "ShaderCompiler.h"
 #include <string>
@@ -6,7 +7,7 @@
 
 namespace Vk
 {
-	class ShaderModule
+	class ENGINE_API ShaderModule
 	{
 	public:
 		ShaderModule(const std::string& filePath, VkShaderStageFlagBits shaderStage, const std::string& functionName = "main");

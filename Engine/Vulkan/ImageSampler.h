@@ -1,4 +1,5 @@
 #pragma once
+#include "../EngineApi.h"
 #include "VulkanContext.h"
 
 namespace Vk

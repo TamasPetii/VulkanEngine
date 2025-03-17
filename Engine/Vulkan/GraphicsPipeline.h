@@ -1,4 +1,5 @@
 #pragma once
+#include "../EngineApi.h"
 #include "VulkanContext.h"
 #include "ShaderModule.h"
 #include "RenderPass.h"
@@ -8,7 +9,7 @@
 
 namespace Vk 
 {
-	struct GraphicsPipelineConfig
+	struct ENGINE_API GraphicsPipelineConfig
 	{
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 		VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo{};
@@ -29,7 +30,7 @@ namespace Vk
 		std::optional<std::pair<std::vector<VkFormat>, VkFormat>> dynamicImageFormats{};
 	};
 
-	class GraphicsPipeline
+	class ENGINE_API GraphicsPipeline
 	{
 	public:
 		GraphicsPipeline(GraphicsPipelineConfig& config);
@@ -45,7 +46,7 @@ namespace Vk
 		VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
 	};
 
-	class GraphicsPipelineBuilder
+	class ENGINE_API GraphicsPipelineBuilder
 	{
 	public:
 		GraphicsPipelineBuilder();

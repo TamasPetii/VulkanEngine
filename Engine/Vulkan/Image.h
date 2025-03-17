@@ -1,4 +1,5 @@
 #pragma once
+#include "../EngineApi.h"
 #include "VulkanContext.h"
 #include <string>
 #include <vector>
@@ -29,7 +30,7 @@ namespace Vk
 		void Init();
 		void Destroy();
 		const VkImage Value() const;
-		const VkImageView GetImageView() const;
+		const VkImageView& GetImageView() const;
 		static bool IsDepthFormat(VkFormat format);
 		static void CopyImageToImage(VkCommandBuffer commandBuffer, VkImage srcImage, VkExtent2D srcSize, VkImage dstImage, VkExtent2D dstSize);
 		static void CopyImageToImageDynamic(VkCommandBuffer commandBuffer, VkImage srcImage, VkExtent2D srcSize, VkImage dstImage, VkExtent2D dstSize);

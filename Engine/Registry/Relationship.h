@@ -1,8 +1,9 @@
 #pragma once
+#include "../EngineApi.h"
 #include "Entity.h"
 #include <vector>
 
-struct Relationship
+struct ENGINE_API Relationship
 {
 	Relationship();
 

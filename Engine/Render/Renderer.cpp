@@ -23,11 +23,19 @@ void Renderer::Render()
 	auto presentQueue = device->GetQueue(Vk::QueueType::PRESENTATION);
 	auto renderContext = RenderContext::GetContext();
 
+	uint32_t framesInFlightIndex = RenderContext::GetContext()->GetFramesInFlightIndex();
+
 	VkSemaphore imageAvailableSemaphore = imageAvailableSemaphores[framesInFlightIndex];
 	VkSemaphore renderFinishedSemaphore = renderFinishedSemaphores[framesInFlightIndex];
 	VkFence inFlightFence = inFlightFences[framesInFlightIndex];
 
 	vkWaitForFences(device->Value(), 1, &inFlightFence, VK_TRUE, UINT64_MAX);
+
+	if (renderContext->ShouldViewportResize())
+	{
+		renderContext->ResizeViewportResources();
+		renderContext->ResetViewportResize();
+	}
 
 	uint32_t imageIndex;
 	VkResult result = vkAcquireNextImageKHR(device->Value(), swapChain->Value(), UINT64_MAX, imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
@@ -88,26 +96,20 @@ void Renderer::Render()
 
 	vkCmdEndRendering(commandBuffer);
 
-	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, frameBuffer->GetImage("main")->Value(),
-		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
-		VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_READ_BIT);
-
 	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, swapChain->GetImages()[imageIndex],
 		VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, VK_ACCESS_2_NONE,
-		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT);
-
-	Vk::Image::CopyImageToImageDynamic(commandBuffer, frameBuffer->GetImage("main")->Value(), frameBuffer->GetSize(), swapChain->GetImages()[imageIndex], swapChain->GetExtent());
-
-	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, swapChain->GetImages()[imageIndex],
-		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT,
 		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT);
+
+	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, frameBuffer->GetImage("main")->Value(),
+		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
+		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, VK_ACCESS_2_SHADER_READ_BIT);
 
 	VkRenderingAttachmentInfo guiColorAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(swapChain->GetImageViews()[imageIndex], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, nullptr);
 	VkRenderingInfo guiRenderingInfo = Vk::DynamicRendering::BuildRenderingInfo(swapChain->GetExtent(), &guiColorAttachment, nullptr);
 
 	vkCmdBeginRendering(commandBuffer, &guiRenderingInfo);
 
-	if (false && guiRenderFunction)
+	if (guiRenderFunction)
 		guiRenderFunction(commandBuffer);
 
 	vkCmdEndRendering(commandBuffer);	
@@ -164,7 +166,7 @@ void Renderer::Render()
 
 	result = vkQueuePresentKHR(presentQueue, &presentInfo);
 
-	framesInFlightIndex = (framesInFlightIndex + 1) % FRAMES_IN_FLIGHT;
+	RenderContext::GetContext()->UpdateFramesInFlightIndex();
 }
 
 void Renderer::Init()
@@ -196,6 +198,8 @@ void Renderer::Destroy()
 		vkDestroyFence(device->Value(), inFlightFences[i], nullptr);
 	}
 
+	vkDestroyCommandPool(device->Value(), immediatePool, nullptr);
+	
 	commandPools.clear();
 	commandBuffers.clear();
 	imageAvailableSemaphores.clear();
@@ -323,4 +327,9 @@ void Renderer::InitBuffers()
 		Vk::Buffer::CopyBufferToBuffer(commandBuffer, stagingBuffer.Value(), indexBuffer->Value(), bufferSize);
 		Vk::CommandBuffer::EndSingleTimeCommandBuffer(commandBuffer, immediatePool, device->GetQueue(Vk::QueueType::GRAPHICS));
 	}
+}
+
+void Renderer::RecreateSwapChain()
+{
+	Vk::VulkanContext::GetContext()->GetSwapChain()->ReCreate();
 }

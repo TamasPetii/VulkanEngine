@@ -93,14 +93,25 @@ void Gui::Render(VkCommandBuffer commandBuffer)
 
 	ImGui::ShowDemoWindow();
 
-	if (ImGui::Begin("Main"))
+	if (ImGui::Begin("Main", nullptr))
 	{
 		auto renderContext = RenderContext::GetContext();
 
-		/*
-		VkDescriptorSet imageDescriptorSet = ImGui_ImplVulkan_AddTexture(sampler, imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
-		ImGui::Image(imageDescriptorSet, ImVec2((float)500, (float)500));
-		*/
+		auto viewPortSize = ImGui::GetContentRegionAvail();
+		if (viewPortSize.x != renderContext->GetViewportSize().first || viewPortSize.y != renderContext->GetViewportSize().second)
+		{
+			renderContext->SetViewPortSize(viewPortSize.x, viewPortSize.y);
+		}
+
+		auto framesInFlightIndex = renderContext->GetFramesInFlightIndex();
+		auto sampler = renderContext->GetSampler("nearest")->Value();
+		auto imageView = renderContext->GetFrameBuffer("main", framesInFlightIndex)->GetImage("main")->GetImageView();
+		
+		
+		//imageDescriptorSet = ImGui_ImplVulkan_AddTexture(sampler, imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		//ImGui::Image((ImTextureID)imageDescriptorSet, ImGui::GetContentRegionAvail());
+	
+		//ImGui_ImplVulkan_AddTexture(sampler, imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	}
 	
 	ImGui::End();

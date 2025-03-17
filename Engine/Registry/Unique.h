@@ -1,9 +1,10 @@
 #pragma once
+#include "../EngineApi.h"
 #include <cstdint>
 
 using UniqueID = uint32_t;
 
-class Unique
+class ENGINE_API Unique
 {
 public:
     template<typename T>

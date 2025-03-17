@@ -1,9 +1,10 @@
 #pragma once
+#include "../EngineApi.h"
 #include <vulkan/vulkan.h>
 
 namespace Vk
 {
-	class DynamicRendering
+	class ENGINE_API DynamicRendering
 	{
 	public:
 		static VkRenderingAttachmentInfo BuildRenderingAttachmentInfo(VkImageView imageView, VkImageLayout imageLayout, VkClearValue* clearValue);

@@ -159,6 +159,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Vulkan\DescriptorPool.h" />
     <ClInclude Include="Vulkan\CommandBuffer.h" />
     <ClInclude Include="Vulkan\Buffer.h" />
     <ClInclude Include="Vulkan\ImageSampler.h" />
@@ -195,6 +196,8 @@
     <ClInclude Include="Timer\Timer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Vulkan\DescriptorPool.cpp" />
+    <ClCompile Include="Render\Examples\BlitImageToSwapchain.cpp" />
     <ClCompile Include="Vulkan\CommandBuffer.cpp" />
     <ClCompile Include="Vulkan\Buffer.cpp" />
     <ClCompile Include="Vulkan\ImageSampler.cpp" />

@@ -5,13 +5,14 @@
 #include "RenderContext.h"
 #include "Vertex.h"
 
-class Renderer
+class ENGINE_API Renderer
 {
 public:
 	Renderer();
 	~Renderer();
 	void Render();
 	void SetGuiRenderFunction(const std::function<void(VkCommandBuffer commandBuffer)>& function);
+	void RecreateSwapChain();
 private:
 	void Init();
 	void Destroy();
@@ -20,8 +21,6 @@ private:
 	void InitSyncronization();
 	void InitBuffers();
 private:
-	uint32_t framesInFlightIndex = 0;
-
 	VkCommandPool immediatePool;
 
 	std::vector<VkFence> inFlightFences;

@@ -1,11 +1,12 @@
 #pragma once
+#include "../EngineApi.h"
 #include "Entity.h"
 #include <memory>
 #include <vector>
 
 constexpr uint32_t PAGE_SIZE = 16;
 
-class PoolBase
+class ENGINE_API PoolBase
 {
 public:
 	virtual ~PoolBase() = default;

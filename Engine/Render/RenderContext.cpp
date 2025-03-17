@@ -61,6 +61,48 @@ std::shared_ptr<Vk::FrameBuffer> RenderContext::GetFrameBuffer(const std::string
 	return frameBuffers.at(name)[index];
 }
 
+void RenderContext::SetViewPortSize(uint32_t width, uint32_t height)
+{
+	if (viewPortWidth != width || viewPortHeight != height)
+	{
+		viewPortResize = true;
+		viewPortWidth = width;
+		viewPortHeight = height;
+	}
+}
+
+void RenderContext::ResizeViewportResources()
+{
+	auto device = Vk::VulkanContext::GetContext()->GetDevice();
+	auto renderContext = RenderContext::GetContext();
+	vkDeviceWaitIdle(device->Value());
+
+	for (int i = 0; i < renderContext->GetFramesInFlightIndex(); i++)
+		renderContext->GetFrameBuffer("main", i)->Resize(viewPortWidth, viewPortHeight);
+
+	std::cout << std::format("Resized framebuffers {} {}", viewPortWidth, viewPortHeight) << std::endl;
+}
+
+bool RenderContext::ShouldViewportResize()
+{
+	return viewPortResize;
+}
+
+void RenderContext::ResetViewportResize()
+{
+	viewPortResize = false;
+}
+
+std::pair<uint32_t, uint32_t> RenderContext::GetViewportSize()
+{
+	return std::pair<uint32_t, uint32_t>(viewPortWidth, viewPortHeight);
+}
+
+uint32_t RenderContext::GetFramesInFlightIndex()
+{
+	return framesInFlightIndex;
+}
+
 std::shared_ptr<Vk::ImageSampler> RenderContext::GetSampler(const std::string& name)
 {
 	if (samplers.find(name) == samplers.end())
@@ -166,6 +208,11 @@ void RenderContext::InitSamplers()
 
 		samplers["nearest"] = std::make_shared<Vk::ImageSampler>(config);
 	}
+}
+
+void RenderContext::UpdateFramesInFlightIndex()
+{
+	framesInFlightIndex = (framesInFlightIndex + 1) % FRAMES_IN_FLIGHT;
 }
 
 void RenderContext::InitFrameBuffers()

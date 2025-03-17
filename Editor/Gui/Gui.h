@@ -16,5 +16,7 @@ private:
 	void Cleanup();
 private:
 	VkDescriptorPool imguiPool;
+	VkDescriptorSet imageDescriptorSet;
+	VkImageView imageView;
 };
 

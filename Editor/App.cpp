@@ -60,7 +60,7 @@ void App::InitWindow()
 	const int32_t height = static_cast<int32_t>(videoMode->height * 0.9f);
 
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 	glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
 
 	window = glfwCreateWindow(width, height, "Vulkan Engine", nullptr, nullptr);

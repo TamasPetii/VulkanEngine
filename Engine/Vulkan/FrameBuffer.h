@@ -1,4 +1,5 @@
 #pragma once
+#include "../EngineApi.h"
 #include "VulkanContext.h"
 #include "RenderPass.h"
 #include "Image.h"
@@ -9,7 +10,7 @@
 
 namespace Vk
 {
-	struct FrameBufferConfig
+	struct ENGINE_API FrameBufferConfig
 	{
 		uint32_t width{};
 		uint32_t height{};
@@ -17,7 +18,7 @@ namespace Vk
 		std::unordered_map<std::string, std::pair<uint32_t, ImageSpecification>> imageSpecifications{};
 	};
 
-	class FrameBuffer
+	class ENGINE_API FrameBuffer
 	{
 	public:
 		FrameBuffer(FrameBufferConfig& config);
@@ -36,7 +37,7 @@ namespace Vk
 		VkFramebuffer frameBuffer = VK_NULL_HANDLE;
 	};
 
-	class FrameBufferBuilder
+	class ENGINE_API FrameBufferBuilder
 	{
 	public:
 		FrameBufferBuilder();

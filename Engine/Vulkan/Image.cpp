@@ -17,7 +17,7 @@ const VkImage Vk::Image::Value() const
 	return image;
 }
 
-const VkImageView Vk::Image::GetImageView() const
+const VkImageView& Vk::Image::GetImageView() const
 {
 	return imageView;
 }

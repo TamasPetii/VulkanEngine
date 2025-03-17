@@ -1,4 +1,5 @@
 #pragma once
+#include "../EngineApi.h"
 #include "Pool.h"
 #include "Unique.h"
 
@@ -10,7 +11,7 @@
 
 constexpr uint32_t MAX_COMPONENTS = 32;
 
-class Registry
+class ENGINE_API Registry
 {
 public:
 	Entity CreateEntity();

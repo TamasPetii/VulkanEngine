@@ -1,11 +1,12 @@
 #pragma once
+#include "../EngineApi.h"
 #include <shaderc/shaderc.hpp>
 #include <string>
 #include <vector>
 
 namespace Vk
 {
-	class ShaderCompiler
+	class ENGINE_API ShaderCompiler
 	{
 	public:
 		static std::vector<uint32_t> Compile(const std::string& shaderFilePath, shaderc_shader_kind kind);
