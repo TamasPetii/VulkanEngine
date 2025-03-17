@@ -159,6 +159,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Vulkan\CommandBuffer.h" />
+    <ClInclude Include="Vulkan\Buffer.h" />
+    <ClInclude Include="Vulkan\ImageSampler.h" />
     <ClInclude Include="Render\RenderContext.h" />
     <ClInclude Include="Vulkan\DynamicRendering.h" />
     <ClInclude Include="Engine.h" />
@@ -192,6 +195,9 @@
     <ClInclude Include="Timer\Timer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Vulkan\CommandBuffer.cpp" />
+    <ClCompile Include="Vulkan\Buffer.cpp" />
+    <ClCompile Include="Vulkan\ImageSampler.cpp" />
     <ClCompile Include="Render\RenderContext.cpp" />
     <ClCompile Include="Render\Examples\DynamicRendererExample.cpp" />
     <ClCompile Include="Render\Examples\RendererExample.cpp" />

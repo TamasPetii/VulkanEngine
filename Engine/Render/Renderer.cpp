@@ -81,7 +81,10 @@ void Renderer::Render()
 	scissor.extent = frameBuffer->GetSize();
 	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-	vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+	vkCmdPushConstants(commandBuffer, renderContext->GetGraphicsPipeline("main")->GetLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(VkDeviceAddress), &vertexBuffer->GetAddress());
+	vkCmdBindIndexBuffer(commandBuffer, indexBuffer->Value(), 0, VK_INDEX_TYPE_UINT32);
+
+	vkCmdDrawIndexed(commandBuffer, 6, 1, 0, 0, 0);
 
 	vkCmdEndRendering(commandBuffer);
 
@@ -104,7 +107,7 @@ void Renderer::Render()
 
 	vkCmdBeginRendering(commandBuffer, &guiRenderingInfo);
 
-	if (guiRenderFunction)
+	if (false && guiRenderFunction)
 		guiRenderFunction(commandBuffer);
 
 	vkCmdEndRendering(commandBuffer);	
@@ -177,6 +180,7 @@ void Renderer::Init()
 	InitCommandPool();
 	InitCommandBuffer();
 	InitSyncronization();
+	InitBuffers();
 }
 
 void Renderer::Destroy()
@@ -214,6 +218,8 @@ void Renderer::InitCommandPool()
 
 	for(uint32_t i = 0; i < FRAMES_IN_FLIGHT; ++i)
 		VK_CHECK_MESSAGE(vkCreateCommandPool(device->Value(), &poolInfo, nullptr, &commandPools[i]), "Failed to create command pool!");
+
+	VK_CHECK_MESSAGE(vkCreateCommandPool(device->Value(), &poolInfo, nullptr, &immediatePool), "Failed to create command pool!");
 }
 
 void Renderer::InitCommandBuffer()
@@ -248,5 +254,73 @@ void Renderer::InitSyncronization()
 		VK_CHECK_MESSAGE(vkCreateSemaphore(device->Value(), &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]), "Failed to create image available semaphore!");
 		VK_CHECK_MESSAGE(vkCreateSemaphore(device->Value(), &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]), "Failed to create render finished semaphore!");
 		VK_CHECK_MESSAGE(vkCreateFence(device->Value(), &fenceInfo, nullptr, &inFlightFences[i]), "Failed to create in-flight fence!");
+	}
+}
+
+void Renderer::InitBuffers()
+{
+	auto device = Vk::VulkanContext::GetContext()->GetDevice();
+
+	{
+		const std::vector<Vertex> vertices = {
+			Vertex({-0.5f, -0.5f, 0.f}, {0.f, 0.f, 0.f}, {1.0f, 0.0f, 0.0f}, {0.f, 0.f}),
+			Vertex({0.5f, -0.5f, 0.f}, {0.f, 0.f, 0.f}, {0.0f, 1.0f, 0.0f}, {0.f, 0.f}),
+			Vertex({0.5f, 0.5f, 0.f}, {0.f, 0.f, 0.f}, {0.0f, 0.0f, 1.0f}, {0.f, 0.f}),
+			Vertex({-0.5f, 0.5f, 0.f}, {0.f, 0.f, 0.f}, {1.0f, 1.0f, 1.0f}, {0.f, 0.f})
+		};
+
+		VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+
+		Vk::BufferConfig stagingConfig;
+		stagingConfig.size = bufferSize;
+		stagingConfig.usage = VK_BUFFER_USAGE_2_TRANSFER_SRC_BIT;
+		stagingConfig.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+		Vk::Buffer stagingBuffer{ stagingConfig };
+
+		void* mappedBuffer = stagingBuffer.MapMemory();
+		memcpy(mappedBuffer, vertices.data(), (size_t)bufferSize);
+		stagingBuffer.UnmapMemory();
+
+		Vk::BufferConfig config;
+		config.size = bufferSize;
+		config.usage = VK_BUFFER_USAGE_2_TRANSFER_DST_BIT | VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT;
+		config.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
+		vertexBuffer = std::make_unique<Vk::Buffer>(config);
+
+		VkCommandBuffer commandBuffer = Vk::CommandBuffer::BeginSingleTimeCommandBuffer(immediatePool);
+		Vk::Buffer::CopyBufferToBuffer(commandBuffer, stagingBuffer.Value(), vertexBuffer->Value(), bufferSize);
+		Vk::CommandBuffer::EndSingleTimeCommandBuffer(commandBuffer, immediatePool, device->GetQueue(Vk::QueueType::GRAPHICS));
+	}
+
+	{
+		const std::vector<uint32_t> indices = {
+			0, 1, 2, 2, 3, 0
+		};
+
+		VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+
+		Vk::BufferConfig stagingConfig;
+		stagingConfig.size = bufferSize;
+		stagingConfig.usage = VK_BUFFER_USAGE_2_TRANSFER_SRC_BIT;
+		stagingConfig.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+		Vk::Buffer stagingBuffer{ stagingConfig };
+
+		void* mappedBuffer = stagingBuffer.MapMemory();
+		memcpy(mappedBuffer, indices.data(), (size_t)bufferSize);
+		stagingBuffer.UnmapMemory();
+
+		Vk::BufferConfig config;
+		config.size = bufferSize;
+		config.usage = VK_BUFFER_USAGE_2_TRANSFER_DST_BIT | VK_BUFFER_USAGE_2_INDEX_BUFFER_BIT;
+		config.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
+		indexBuffer = std::make_unique<Vk::Buffer>(config);
+
+		VkCommandBuffer commandBuffer = Vk::CommandBuffer::BeginSingleTimeCommandBuffer(immediatePool);
+		Vk::Buffer::CopyBufferToBuffer(commandBuffer, stagingBuffer.Value(), indexBuffer->Value(), bufferSize);
+		Vk::CommandBuffer::EndSingleTimeCommandBuffer(commandBuffer, immediatePool, device->GetQueue(Vk::QueueType::GRAPHICS));
 	}
 }

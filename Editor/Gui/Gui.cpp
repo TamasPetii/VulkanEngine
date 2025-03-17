@@ -1,6 +1,7 @@
 #include "Gui.h"
 #include <GLFW/glfw3.h>
 #include "../../Engine/Vulkan/VulkanContext.h"
+#include "../../Engine/Render/RenderContext.h"
 
 Gui::Gui(GLFWwindow* window)
 {
@@ -94,8 +95,12 @@ void Gui::Render(VkCommandBuffer commandBuffer)
 
 	if (ImGui::Begin("Main"))
 	{
-		//VkDescriptorSet imageDescriptorSet = ImGui_ImplVulkan_AddTexture(sampler, imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
-		//ImGui::Image(imageDescriptorSet, ImVec2((float)500, (float)500));
+		auto renderContext = RenderContext::GetContext();
+
+		/*
+		VkDescriptorSet imageDescriptorSet = ImGui_ImplVulkan_AddTexture(sampler, imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
+		ImGui::Image(imageDescriptorSet, ImVec2((float)500, (float)500));
+		*/
 	}
 	
 	ImGui::End();

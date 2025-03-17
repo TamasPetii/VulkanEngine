@@ -1,5 +1,15 @@
 #include "Vertex.h"
 
+
+Vertex::Vertex(const glm::vec3& position, const glm::vec3& normal, const glm::vec3& color, const glm::vec2& uv) :
+	position(position),
+	normal(normal),
+	color(color)
+{
+	uv_x = uv.x;
+	uv_y = uv.y;
+}
+
 VkVertexInputBindingDescription Vertex::GetBindingDescription() {
 	VkVertexInputBindingDescription bindingDescription{};
 	bindingDescription.binding = 0;
@@ -11,6 +21,7 @@ VkVertexInputBindingDescription Vertex::GetBindingDescription() {
 std::vector<VkVertexInputAttributeDescription> Vertex::GetAttributeDescriptions() {
 	std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
 
+	/*
 	{
 		VkVertexInputAttributeDescription attributeDescription = {};
 		attributeDescription.binding = 0;
@@ -37,6 +48,7 @@ std::vector<VkVertexInputAttributeDescription> Vertex::GetAttributeDescriptions(
 		attributeDescription.offset = offsetof(Vertex, texCoord);
 		attributeDescriptions.push_back(attributeDescription);
 	}
+	*/
 
 	return attributeDescriptions;
 }

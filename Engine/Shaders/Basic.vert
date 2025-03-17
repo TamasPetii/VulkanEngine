@@ -1,25 +1,40 @@
 #version 460
 #extension GL_KHR_vulkan_glsl : enable
+#extension GL_EXT_buffer_reference : require
+#extension GL_GOOGLE_include_directive : require
 
-layout (location = 0) out vec3 outColor;
+layout (location = 0) out vec3 vs_out_pos;
+layout (location = 1) out vec3 vs_out_normal;
+layout (location = 2) out vec3 vs_out_color;
+layout (location = 3) out vec2 vs_out_tex;
+
+struct Vertex {
+
+	vec3 position;
+	float uv_x;
+	vec3 normal;
+	float uv_y;
+	vec3 color;
+	float padding;
+}; 
+
+layout(buffer_reference, std430) readonly buffer VertexBuffer { 
+	Vertex vertices[];
+};
+
+layout( push_constant ) uniform constants
+{	
+	VertexBuffer vertexBuffer;
+} PushConstants;
 
 void main() 
 {
-	//const array of positions for the triangle
-	const vec3 positions[3] = vec3[3](
-		vec3(1.f,1.f, 0.0f),
-		vec3(-1.f,1.f, 0.0f),
-		vec3(0.f,-1.f, 0.0f)
-	);
+	Vertex v = PushConstants.vertexBuffer.vertices[gl_VertexIndex];
 
-	//const array of colors for the triangle
-	const vec3 colors[3] = vec3[3](
-		vec3(1.0f, 0.0f, 0.0f), //red
-		vec3(0.0f, 1.0f, 0.0f), //green
-		vec3(0.f, 0.0f, 1.0f)  //blue
-	);
+	gl_Position = vec4(v.position, 1.0f);
 
-	//output the position of each vertex
-	gl_Position = vec4(positions[gl_VertexIndex], 1.0f);
-	outColor = colors[gl_VertexIndex];
+	vs_out_pos = v.position;
+	vs_out_normal = v.normal;
+	vs_out_color = v.color;
+	vs_out_tex = vec2(v.uv_x, v.uv_y);
 }
