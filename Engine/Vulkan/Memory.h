@@ -12,7 +12,7 @@ namespace Vk
 	{
 	public:
 		static VkMemoryAllocateInfo GetImageMemoryAllocInfo(const Image* const image);
-		static VkMemoryAllocateInfo GetBufferMemoryAllocInfo();
+		static VkMemoryAllocateInfo GetBufferMemoryAllocInfo(VkBuffer buffer, VkMemoryPropertyFlags memoryProperties);
 	private:
 		static uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 	};

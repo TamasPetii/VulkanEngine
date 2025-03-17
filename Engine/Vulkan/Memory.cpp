@@ -16,9 +16,19 @@ VkMemoryAllocateInfo Vk::Memory::GetImageMemoryAllocInfo(const Image* const imag
 	return allocInfo;
 }
 
-VkMemoryAllocateInfo Vk::Memory::GetBufferMemoryAllocInfo()
+VkMemoryAllocateInfo Vk::Memory::GetBufferMemoryAllocInfo(VkBuffer buffer, VkMemoryPropertyFlags memoryProperties)
 {
-	return VkMemoryAllocateInfo();
+	auto device = VulkanContext::GetContext()->GetDevice();
+
+	VkMemoryRequirements memRequirements;
+	vkGetBufferMemoryRequirements(device->Value(), buffer, &memRequirements);
+
+	VkMemoryAllocateInfo allocInfo{};
+	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocInfo.allocationSize = memRequirements.size;
+	allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, memoryProperties);
+
+	return allocInfo;
 }
 
 uint32_t Vk::Memory::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
