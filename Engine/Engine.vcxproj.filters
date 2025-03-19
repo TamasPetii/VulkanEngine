@@ -120,6 +120,12 @@
     <ClInclude Include="Vulkan\DescriptorPool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Vulkan\Fence.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Vulkan\Semaphore.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -222,6 +228,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Vulkan\DescriptorPool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Vulkan\Fence.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Vulkan\Semaphore.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

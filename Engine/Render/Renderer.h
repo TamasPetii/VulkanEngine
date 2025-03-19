@@ -2,6 +2,8 @@
 #include "../Vulkan/VulkanContext.h"
 #include "../Vulkan/Buffer.h"
 #include "../Vulkan/CommandBuffer.h"
+#include "../Vulkan/Fence.h"
+#include "../Vulkan/Semaphore.h"
 #include "RenderContext.h"
 #include "Vertex.h"
 
@@ -23,11 +25,11 @@ private:
 private:
 	VkCommandPool immediatePool;
 
-	std::vector<VkFence> inFlightFences;
 	std::vector<VkCommandPool> commandPools;
 	std::vector<VkCommandBuffer> commandBuffers;
-	std::vector<VkSemaphore> imageAvailableSemaphores;
-	std::vector<VkSemaphore> renderFinishedSemaphores;
+	std::vector<std::shared_ptr<Vk::Fence>> inFlightFences;
+	std::vector<std::shared_ptr<Vk::Semaphore>> imageAvailableSemaphores;
+	std::vector<std::shared_ptr<Vk::Semaphore>> renderFinishedSemaphores;
 
 	std::unique_ptr<Vk::Buffer> indexBuffer;
 	std::unique_ptr<Vk::Buffer> vertexBuffer;
