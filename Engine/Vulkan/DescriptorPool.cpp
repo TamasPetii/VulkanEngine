@@ -25,6 +25,7 @@ void Vk::DescriptorPool::Initialize(std::span<VkDescriptorPoolSize> poolSizes, u
 	poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
 	poolInfo.pPoolSizes = poolSizes.data();
 	poolInfo.maxSets = setSize;
+	poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 
 	VK_CHECK_MESSAGE(vkCreateDescriptorPool(device->Value(), &poolInfo, nullptr, &descriptorPool), "Failed to create descriptor pool!");
 }
@@ -32,7 +33,12 @@ void Vk::DescriptorPool::Initialize(std::span<VkDescriptorPoolSize> poolSizes, u
 void Vk::DescriptorPool::Cleanup()
 {
 	auto device = VulkanContext::GetContext()->GetDevice();
-	vkDestroyDescriptorPool(device->Value(), descriptorPool, nullptr);
+
+	if (descriptorPool != VK_NULL_HANDLE)
+	{
+		vkDestroyDescriptorPool(device->Value(), descriptorPool, nullptr);
+		descriptorPool = VK_NULL_HANDLE;
+	}
 }
 
 Vk::DescriptorPoolBuilder::~DescriptorPoolBuilder()
@@ -44,16 +50,22 @@ Vk::DescriptorPoolBuilder& Vk::DescriptorPoolBuilder::Reset()
 {
 	setSize = 0;
 	poolSizes.clear();
+
+	return *this;
 }
 
 Vk::DescriptorPoolBuilder& Vk::DescriptorPoolBuilder::SetPoolSize(VkDescriptorType type, uint32_t size)
 {
 	poolSizes[type] = size;
+
+	return *this;
 }
 
 Vk::DescriptorPoolBuilder& Vk::DescriptorPoolBuilder::SetSetSize(uint32_t size)
 {
 	setSize = size;
+
+	return *this;
 }
 
 std::shared_ptr<Vk::DescriptorPool> Vk::DescriptorPoolBuilder::BuildDescriptorPool()

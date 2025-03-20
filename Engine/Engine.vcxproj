@@ -159,6 +159,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Vulkan\DescriptorSet.h" />
     <ClInclude Include="Vulkan\Semaphore.h" />
     <ClInclude Include="Vulkan\Fence.h" />
     <ClInclude Include="Vulkan\DescriptorPool.h" />
@@ -198,6 +199,7 @@
     <ClInclude Include="Timer\Timer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Vulkan\DescriptorSet.cpp" />
     <ClCompile Include="Vulkan\Semaphore.cpp" />
     <ClCompile Include="Vulkan\Fence.cpp" />
     <ClCompile Include="Vulkan\DescriptorPool.cpp" />

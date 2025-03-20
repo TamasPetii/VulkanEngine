@@ -77,10 +77,18 @@ void RenderContext::ResizeViewportResources()
 	auto renderContext = RenderContext::GetContext();
 	vkDeviceWaitIdle(device->Value());
 
-	for (int i = 0; i < renderContext->GetFramesInFlightIndex(); i++)
+	for (int i = 0; i < FRAMES_IN_FLIGHT; i++)
+	{
 		renderContext->GetFrameBuffer("main", i)->Resize(viewPortWidth, viewPortHeight);
+		
+		Vk::DescriptorSetBuilder setBuilder;
+		descriptorSets[i]->Free(descriptorPool->Value());
+		descriptorSets[i] = setBuilder
+			.AddDescriptorLayoutImage(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, GetFrameBuffer("main", i)->GetImage("main")->GetImageView(), GetSampler("nearest")->Value(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+			.BuildDescriptorSet(descriptorPool->Value());
+	}
 
-	std::cout << std::format("Resized framebuffers {} {}", viewPortWidth, viewPortHeight) << std::endl;
+	//std::cout << std::format("Resized framebuffers {} {}", viewPortWidth, viewPortHeight) << std::endl;
 }
 
 bool RenderContext::ShouldViewportResize()
@@ -121,6 +129,7 @@ void RenderContext::Init()
 	InitGraphicsPipelines();
 	InitFrameBuffers();
 	InitSamplers();
+	InitDescriptors();
 
 	initialized = true;
 }
@@ -245,4 +254,24 @@ void RenderContext::InitFrameBuffers()
 	frameBuffers["main"].resize(FRAMES_IN_FLIGHT);
 	for (uint32_t i = 0; i < FRAMES_IN_FLIGHT; ++i)
 		frameBuffers["main"][i] = frameBufferBuilder.BuildDynamic();
+}
+
+void RenderContext::InitDescriptors()
+{
+	descriptorSets.resize(FRAMES_IN_FLIGHT);
+
+	Vk::DescriptorPoolBuilder poolBuilder;
+	descriptorPool = poolBuilder
+		.SetSetSize(10)
+		.SetPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 10)
+		.SetPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 10)
+		.BuildDescriptorPool();
+
+	for (uint32_t i = 0; i < FRAMES_IN_FLIGHT; ++i)
+	{
+		Vk::DescriptorSetBuilder setBuilder;
+		descriptorSets[i] = setBuilder
+			.AddDescriptorLayoutImage(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, GetFrameBuffer("main", i)->GetImage("main")->GetImageView(), GetSampler("nearest")->Value(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+			.BuildDescriptorSet(descriptorPool->Value());
+	}
 }

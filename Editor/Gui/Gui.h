@@ -14,6 +14,7 @@ public:
 private:
 	void Initialize(GLFWwindow* window);
 	void Cleanup();
+	void SetStyle();
 private:
 	VkDescriptorPool imguiPool;
 	VkDescriptorSet imageDescriptorSet;

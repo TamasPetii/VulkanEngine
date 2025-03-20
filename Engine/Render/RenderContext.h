@@ -7,8 +7,10 @@
 #include "../Vulkan/GraphicsPipeline.h"
 #include "../Vulkan/DynamicRendering.h"
 #include "../Vulkan/ImageSampler.h"
+#include "../Vulkan/DescriptorSet.h"
+#include "../Vulkan/DescriptorPool.h"
 
-constexpr uint32_t FRAMES_IN_FLIGHT = 2;
+constexpr uint32_t FRAMES_IN_FLIGHT = 1;
 
 class Renderer;
 
@@ -29,6 +31,9 @@ public:
 	bool ShouldViewportResize();
 	void ResetViewportResize();
 	std::pair<uint32_t, uint32_t> GetViewportSize();
+
+	std::shared_ptr<Vk::DescriptorPool> descriptorPool;
+	std::vector<std::shared_ptr<Vk::DescriptorSet>> descriptorSets;
 private:
 	RenderContext() = default;
 	void Init();
@@ -42,6 +47,7 @@ private:
 	void InitGraphicsPipelines();
 	void InitSamplers();
 	void UpdateFramesInFlightIndex();
+	void InitDescriptors();
 private:
 	bool viewPortResize;
 	uint32_t viewPortWidth;
@@ -52,5 +58,6 @@ private:
 	std::unordered_map<std::string, std::shared_ptr<Vk::ShaderModule>> shaderModuls;
 	std::unordered_map<std::string, std::shared_ptr<Vk::GraphicsPipeline>> graphicsPipelines;
 	std::unordered_map<std::string, std::vector<std::shared_ptr<Vk::FrameBuffer>>> frameBuffers;
+
 	friend class Renderer;
 };
