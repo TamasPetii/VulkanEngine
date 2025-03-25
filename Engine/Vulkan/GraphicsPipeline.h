@@ -50,7 +50,7 @@ namespace Vk
 	{
 	public:
 		GraphicsPipelineBuilder();
-		void ResetToDefault();
+		Vk::GraphicsPipelineBuilder& ResetToDefault();
 
 		// Core pipeline stages
 		GraphicsPipelineBuilder& AddShaderStage(std::shared_ptr<ShaderModule> shader);

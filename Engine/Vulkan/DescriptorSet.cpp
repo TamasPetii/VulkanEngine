@@ -41,6 +41,11 @@ const VkDescriptorSet& Vk::DescriptorSet::Value() const
 	return descriptorSet;
 }
 
+const VkDescriptorSetLayout& Vk::DescriptorSet::Layout() const
+{
+	return descriptorlayout;
+}
+
 void Vk::DescriptorSet::Initialize(VkDescriptorPool pool, std::span<DescriptorLayoutBuffer> bufferLayouts, std::span<DescriptorLayoutImage> imageLayouts)
 {
 	auto device = VulkanContext::GetContext()->GetDevice();

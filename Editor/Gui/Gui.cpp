@@ -87,6 +87,10 @@ void Gui::Cleanup()
 
 void Gui::Render(VkCommandBuffer commandBuffer)
 {
+	for (VkDescriptorSet descriptorSet : imguiDescriptorSets)
+		ImGui_ImplVulkan_RemoveTexture(descriptorSet);
+	imguiDescriptorSets.clear();
+
 	ImGui_ImplVulkan_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
@@ -110,9 +114,10 @@ void Gui::Render(VkCommandBuffer commandBuffer)
 		auto sampler = renderContext->GetSampler("nearest")->Value();
 		auto imageView = renderContext->GetFrameBuffer("main", framesInFlightIndex)->GetImage("main")->GetImageView();
 		
-		
-		auto imageDescriptorSet = renderContext->descriptorSets[framesInFlightIndex];
-		ImGui::Image((ImTextureID)imageDescriptorSet->Value(), ImGui::GetContentRegionAvail());
+		VkDescriptorSet image = ImGui_ImplVulkan_AddTexture(sampler, imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		imguiDescriptorSets.insert(image);
+
+		ImGui::Image((ImTextureID)image, viewPortSize);
 	}
 	ImGui::End();
 	ImGui::PopStyleVar();

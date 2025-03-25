@@ -2,6 +2,7 @@
 #include "Imgui/imgui.h"
 #include "Imgui/imgui_impl_glfw.h"
 #include "Imgui/imgui_impl_vulkan.h"
+#include <set>
 
 struct GLFWwindow;
 
@@ -17,7 +18,7 @@ private:
 	void SetStyle();
 private:
 	VkDescriptorPool imguiPool;
-	VkDescriptorSet imageDescriptorSet;
 	VkImageView imageView;
+	std::set<VkDescriptorSet> imguiDescriptorSets;
 };
 

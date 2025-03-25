@@ -54,59 +54,23 @@ void Renderer::Render()
 
 	VK_CHECK_MESSAGE(vkBeginCommandBuffer(commandBuffer, &beginInfo), "Failed to begin recording command buffer!");
 
+	GeometryRenderer::Render(commandBuffer, vertexBuffer, indexBuffer);
+	DeferredRenderer::Render(commandBuffer);
+
+
 	auto frameBuffer = renderContext->GetFrameBuffer("main", framesInFlightIndex);
-	
-	std::array<VkClearValue, 2> clearValues{};
-	clearValues[0].color = { {1.0f, 1.0f, 0.0f, 1.0f} };
-	clearValues[1].depthStencil = { 1.0f, 0 };
-
-	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, frameBuffer->GetImage("main")->Value(),
-		VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, VK_ACCESS_2_NONE,
-		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT);
-
-	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, frameBuffer->GetImage("depth")->Value(),
-		VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, VK_ACCESS_2_NONE,
-		VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT, VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
-	
-	VkRenderingAttachmentInfo colorAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(frameBuffer->GetImage("main")->GetImageView(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, &clearValues[0]);
-	VkRenderingAttachmentInfo depthAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(frameBuffer->GetImage("depth")->GetImageView(), VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, &clearValues[1]);
-	VkRenderingInfo renderingInfo = Vk::DynamicRendering::BuildRenderingInfo(frameBuffer->GetSize(), &colorAttachment, &depthAttachment);
-
-	vkCmdBeginRendering(commandBuffer, &renderingInfo);
-
-	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderContext->GetGraphicsPipeline("main")->GetPipeline());
-
-	VkViewport viewport{};
-	viewport.x = 0.0f;
-	viewport.y = 0.0f;
-	viewport.width = (float)frameBuffer->GetSize().width;
-	viewport.height = (float)frameBuffer->GetSize().height;
-	viewport.minDepth = 0.0f;
-	viewport.maxDepth = 1.0f;
-	vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-
-	VkRect2D scissor{};
-	scissor.offset = { 0, 0 };
-	scissor.extent = frameBuffer->GetSize();
-	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-	vkCmdPushConstants(commandBuffer, renderContext->GetGraphicsPipeline("main")->GetLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(VkDeviceAddress), &vertexBuffer->GetAddress());
-	vkCmdBindIndexBuffer(commandBuffer, indexBuffer->Value(), 0, VK_INDEX_TYPE_UINT32);
-
-	vkCmdDrawIndexed(commandBuffer, 6, 1, 0, 0, 0);
-
-	vkCmdEndRendering(commandBuffer);
 
 	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, swapChain->GetImages()[imageIndex],
 		VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, VK_ACCESS_2_NONE,
 		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT);
 
 	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, frameBuffer->GetImage("main")->Value(),
-		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
+		VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, VK_ACCESS_2_NONE,
 		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, VK_ACCESS_2_SHADER_READ_BIT);
 
 	VkRenderingAttachmentInfo guiColorAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(swapChain->GetImageViews()[imageIndex], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, nullptr);
-	VkRenderingInfo guiRenderingInfo = Vk::DynamicRendering::BuildRenderingInfo(swapChain->GetExtent(), &guiColorAttachment, nullptr);
+	std::vector<VkRenderingAttachmentInfo> renderTargetAttachments2 = { guiColorAttachment };
+	VkRenderingInfo guiRenderingInfo = Vk::DynamicRendering::BuildRenderingInfo(swapChain->GetExtent(), renderTargetAttachments2, nullptr);
 
 	vkCmdBeginRendering(commandBuffer, &guiRenderingInfo);
 
@@ -256,10 +220,10 @@ void Renderer::InitBuffers()
 
 	{
 		const std::vector<Vertex> vertices = {
-			Vertex({-0.5f, -0.5f, 0.f}, {0.f, 0.f, 0.f}, {1.0f, 0.0f, 0.0f}, {0.f, 0.f}),
-			Vertex({0.5f, -0.5f, 0.f}, {0.f, 0.f, 0.f}, {0.0f, 1.0f, 0.0f}, {0.f, 0.f}),
-			Vertex({0.5f, 0.5f, 0.f}, {0.f, 0.f, 0.f}, {0.0f, 0.0f, 1.0f}, {0.f, 0.f}),
-			Vertex({-0.5f, 0.5f, 0.f}, {0.f, 0.f, 0.f}, {1.0f, 1.0f, 1.0f}, {0.f, 0.f})
+			Vertex(glm::vec3(-1.f, -1.f, 0.f), {1.f, 0.f, 1.f}, {0.f, 0.f}),
+			Vertex(glm::vec3(1.f, -1.f, 0.f), {1.f, 0.f, 1.f}, {0.f, 0.f}),
+			Vertex(glm::vec3(1.f, 1.f, 0.f), {1.f, 0.f, 1.f}, {0.f, 0.f}),
+			Vertex(glm::vec3(-1.f, 1.f, 0.f), {1.f, 0.f, 1.f}, {0.f, 0.f})
 		};
 
 		VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
@@ -280,11 +244,13 @@ void Renderer::InitBuffers()
 		config.usage = VK_BUFFER_USAGE_2_TRANSFER_DST_BIT | VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT;
 		config.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
-		vertexBuffer = std::make_unique<Vk::Buffer>(config);
+		vertexBuffer = std::make_shared<Vk::Buffer>(config);
 
-		VkCommandBuffer commandBuffer = Vk::CommandBuffer::BeginSingleTimeCommandBuffer(immediatePool);
-		Vk::Buffer::CopyBufferToBuffer(commandBuffer, stagingBuffer.Value(), vertexBuffer->Value(), bufferSize);
-		Vk::CommandBuffer::EndSingleTimeCommandBuffer(commandBuffer, immediatePool, device->GetQueue(Vk::QueueType::GRAPHICS));
+		Vk::VulkanContext::GetContext()->GetImmediateQueue()->Submit(
+			[&](VkCommandBuffer commandBuffer) -> void {
+				Vk::Buffer::CopyBufferToBuffer(commandBuffer, stagingBuffer.Value(), vertexBuffer->Value(), bufferSize);
+			}
+		);
 	}
 
 	{
@@ -310,7 +276,7 @@ void Renderer::InitBuffers()
 		config.usage = VK_BUFFER_USAGE_2_TRANSFER_DST_BIT | VK_BUFFER_USAGE_2_INDEX_BUFFER_BIT;
 		config.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
-		indexBuffer = std::make_unique<Vk::Buffer>(config);
+		indexBuffer = std::make_shared<Vk::Buffer>(config);
 
 		VkCommandBuffer commandBuffer = Vk::CommandBuffer::BeginSingleTimeCommandBuffer(immediatePool);
 		Vk::Buffer::CopyBufferToBuffer(commandBuffer, stagingBuffer.Value(), indexBuffer->Value(), bufferSize);

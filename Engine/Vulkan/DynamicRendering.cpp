@@ -16,7 +16,7 @@ VkRenderingAttachmentInfo Vk::DynamicRendering::BuildRenderingAttachmentInfo(VkI
 	return attachmentInfo;
 }
 
-VkRenderingInfo Vk::DynamicRendering::BuildRenderingInfo(VkExtent2D renderArea, VkRenderingAttachmentInfo* colorAttachments, VkRenderingAttachmentInfo* depthAttachment)
+VkRenderingInfo Vk::DynamicRendering::BuildRenderingInfo(VkExtent2D renderArea, std::span<VkRenderingAttachmentInfo> colorAttachments, VkRenderingAttachmentInfo* depthAttachment)
 {
 	VkRenderingInfoKHR renderInfo{};
 	renderInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR;
@@ -25,8 +25,8 @@ VkRenderingInfo Vk::DynamicRendering::BuildRenderingInfo(VkExtent2D renderArea, 
 	renderInfo.renderArea.extent = renderArea;
 	renderInfo.layerCount = 1;
 	renderInfo.viewMask = 0;
-	renderInfo.colorAttachmentCount = 1;
-	renderInfo.pColorAttachments = colorAttachments;
+	renderInfo.colorAttachmentCount = static_cast<uint32_t>(colorAttachments.size());
+	renderInfo.pColorAttachments = colorAttachments.data();
 	renderInfo.pDepthAttachment = depthAttachment;
 	renderInfo.pStencilAttachment = nullptr;
 

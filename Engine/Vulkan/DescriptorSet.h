@@ -38,6 +38,7 @@ namespace Vk
 		~DescriptorSet();
 		void Free(VkDescriptorPool pool);
 		const VkDescriptorSet& Value() const;
+		const VkDescriptorSetLayout& Layout() const;
 	private:
 		void Initialize(VkDescriptorPool pool, std::span<DescriptorLayoutBuffer> bufferLayouts, std::span<DescriptorLayoutImage> imageLayouts);
 		void Cleanup();

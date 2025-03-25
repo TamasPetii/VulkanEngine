@@ -129,6 +129,15 @@
     <ClInclude Include="Vulkan\DescriptorSet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Vulkan\ImmediateQueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\Renderers\DeferredRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\Renderers\GeometryRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -242,6 +251,15 @@
     <ClCompile Include="Vulkan\DescriptorSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Vulkan\ImmediateQueue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\Renderers\DeferredRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\Renderers\GeometryRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Registry\Pool.inl">
@@ -252,5 +270,9 @@
     </None>
     <None Include="Shaders\Basic.vert" />
     <None Include="Shaders\Basic.frag" />
+    <None Include="Shaders\DeferredPre.vert" />
+    <None Include="Shaders\DeferredPre.frag" />
+    <None Include="Shaders\DeferredDir.vert" />
+    <None Include="Shaders\DeferredDir.frag" />
   </ItemGroup>
 </Project>

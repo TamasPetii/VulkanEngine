@@ -7,6 +7,7 @@
 #include "Surface.h"
 #include "SwapChain.h"
 #include "ValidationLayer.h"
+#include "ImmediateQueue.h"
 #include <vector>
 
 class Engine;
@@ -30,6 +31,7 @@ namespace Vk
 		const Vk::Device* const GetDevice();
 		const Vk::Surface* const GetSurface();
 		Vk::SwapChain* GetSwapChain();
+		std::shared_ptr<Vk::ImmediateQueue> GetImmediateQueue();
 	private:
 		VulkanContext() = default;
 		void Init();
@@ -43,6 +45,7 @@ namespace Vk
 		std::unique_ptr<Vk::PhysicalDevice> physicalDevice;
 		std::unique_ptr<Vk::Device> device;
 		std::unique_ptr<Vk::SwapChain> swapChain;
+		std::shared_ptr<Vk::ImmediateQueue> immediateQueue;
 
 		std::vector<const char*> requiredDeviceExtensions;
 		std::vector<const char*> requiredInstanceExtensions;

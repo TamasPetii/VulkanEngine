@@ -101,6 +101,7 @@
       <PreprocessorDefinitions>ENGINE_DLL;_DEBUG;_CONSOLE;_WINDOWS;_UNICODE;UNICODE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -117,6 +118,7 @@
       <PreprocessorDefinitions>ENGINE_DLL;NDEBUG;_CONSOLE;_WINDOWS;_UNICODE;UNICODE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -133,6 +135,7 @@
       <PreprocessorDefinitions>ENGINE_DLL;_DEBUG;_CONSOLE;_WINDOWS;_UNICODE;UNICODE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -149,6 +152,7 @@
       <PreprocessorDefinitions>ENGINE_DLL;NDEBUG;_CONSOLE;_WINDOWS;_UNICODE;UNICODE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -159,6 +163,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Render\Renderers\DeferredRenderer.h" />
+    <ClInclude Include="Render\Renderers\GeometryRenderer.h" />
+    <ClInclude Include="Vulkan\ImmediateQueue.h" />
     <ClInclude Include="Vulkan\DescriptorSet.h" />
     <ClInclude Include="Vulkan\Semaphore.h" />
     <ClInclude Include="Vulkan\Fence.h" />
@@ -199,6 +206,9 @@
     <ClInclude Include="Timer\Timer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Render\Renderers\DeferredRenderer.cpp" />
+    <ClCompile Include="Render\Renderers\GeometryRenderer.cpp" />
+    <ClCompile Include="Vulkan\ImmediateQueue.cpp" />
     <ClCompile Include="Vulkan\DescriptorSet.cpp" />
     <ClCompile Include="Vulkan\Semaphore.cpp" />
     <ClCompile Include="Vulkan\Fence.cpp" />
@@ -242,6 +252,10 @@
     <None Include="Registry\Registry.inl" />
     <None Include="Shaders\Basic.frag" />
     <None Include="Shaders\Basic.vert" />
+    <None Include="Shaders\DeferredDir.frag" />
+    <None Include="Shaders\DeferredDir.vert" />
+    <None Include="Shaders\DeferredPre.frag" />
+    <None Include="Shaders\DeferredPre.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

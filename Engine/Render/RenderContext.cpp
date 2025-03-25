@@ -85,10 +85,12 @@ void RenderContext::ResizeViewportResources()
 		descriptorSets[i]->Free(descriptorPool->Value());
 		descriptorSets[i] = setBuilder
 			.AddDescriptorLayoutImage(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, GetFrameBuffer("main", i)->GetImage("main")->GetImageView(), GetSampler("nearest")->Value(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+			.AddDescriptorLayoutImage(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, GetFrameBuffer("main", i)->GetImage("color")->GetImageView(), GetSampler("nearest")->Value(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+			.AddDescriptorLayoutImage(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, GetFrameBuffer("main", i)->GetImage("normal")->GetImageView(), GetSampler("nearest")->Value(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
 			.BuildDescriptorSet(descriptorPool->Value());
 	}
 
-	//std::cout << std::format("Resized framebuffers {} {}", viewPortWidth, viewPortHeight) << std::endl;
+	std::cout << std::format("Resized framebuffers {} {}", viewPortWidth, viewPortHeight) << std::endl;
 }
 
 bool RenderContext::ShouldViewportResize()
@@ -124,12 +126,12 @@ void RenderContext::Init()
 	if (initialized)
 		return;
 
+	InitSamplers();
 	InitShaderModules();
 	InitRenderPasses();
-	InitGraphicsPipelines();
 	InitFrameBuffers();
-	InitSamplers();
 	InitDescriptors();
+	InitGraphicsPipelines();
 
 	initialized = true;
 }
@@ -150,6 +152,10 @@ void RenderContext::InitShaderModules()
 {
 	shaderModuls["BasicVert"] = std::make_shared<Vk::ShaderModule>("../Engine/Shaders/Basic.vert", VK_SHADER_STAGE_VERTEX_BIT);
 	shaderModuls["BasicFrag"] = std::make_shared<Vk::ShaderModule>("../Engine/Shaders/Basic.frag", VK_SHADER_STAGE_FRAGMENT_BIT);
+	shaderModuls["DeferredPreVert"] = std::make_shared<Vk::ShaderModule>("../Engine/Shaders/DeferredPre.vert", VK_SHADER_STAGE_VERTEX_BIT);
+	shaderModuls["DeferredPreFrag"] = std::make_shared<Vk::ShaderModule>("../Engine/Shaders/DeferredPre.frag", VK_SHADER_STAGE_FRAGMENT_BIT);
+	shaderModuls["DeferredDirVert"] = std::make_shared<Vk::ShaderModule>("../Engine/Shaders/DeferredDir.vert", VK_SHADER_STAGE_VERTEX_BIT);
+	shaderModuls["DeferredDirFrag"] = std::make_shared<Vk::ShaderModule>("../Engine/Shaders/DeferredDir.frag", VK_SHADER_STAGE_FRAGMENT_BIT);
 }
 
 void RenderContext::InitRenderPasses()
@@ -172,24 +178,69 @@ void RenderContext::InitGraphicsPipelines()
 	std::vector<VkVertexInputBindingDescription> vertexBindingDescirption = { Vertex::GetBindingDescription() };
 	std::vector<VkVertexInputAttributeDescription> vertexAttributeDescription = Vertex::GetAttributeDescriptions();
 
-	Vk::GraphicsPipelineBuilder pipelineBuilder;
+	{
+		Vk::GraphicsPipelineBuilder pipelineBuilder;
+		graphicsPipelines["main"] = pipelineBuilder
+			.ResetToDefault()
+			.AddShaderStage(shaderModuls["BasicVert"])
+			.AddShaderStage(shaderModuls["BasicFrag"])
+			.AddDynamicState(VK_DYNAMIC_STATE_VIEWPORT)
+			.AddDynamicState(VK_DYNAMIC_STATE_SCISSOR)
+			.SetVertexInput({}, {})
+			.SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
+			.SetRasterization(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_CLOCKWISE)
+			.SetMultisampling(VK_SAMPLE_COUNT_1_BIT)
+			.SetDepthStencil(VK_TRUE, VK_TRUE, VK_COMPARE_OP_LESS)
+			.SetColorBlend(VK_FALSE)
+			.AddColorBlendAttachment(VK_FALSE)
+			.SetColorAttachmentFormats(VK_FORMAT_R16G16B16A16_SFLOAT, 0)
+			.SetDepthAttachmentFormat(VK_FORMAT_D32_SFLOAT)
+			.AddPushConstant(0, sizeof(VkDeviceAddress), VK_SHADER_STAGE_VERTEX_BIT)
+			.BuildDynamic();
+	}
 
-	graphicsPipelines["main"] = pipelineBuilder
-		.AddShaderStage(shaderModuls["BasicVert"])
-		.AddShaderStage(shaderModuls["BasicFrag"])
-		.AddDynamicState(VK_DYNAMIC_STATE_VIEWPORT)
-		.AddDynamicState(VK_DYNAMIC_STATE_SCISSOR)
-		.SetVertexInput({}, {})
-		.SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
-		.SetRasterization(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_CLOCKWISE)
-		.SetMultisampling(VK_SAMPLE_COUNT_1_BIT)
-		.SetDepthStencil(VK_TRUE, VK_TRUE, VK_COMPARE_OP_LESS)
-		.SetColorBlend(VK_FALSE)
-		.AddColorBlendAttachment(VK_FALSE)
-		.SetColorAttachmentFormats(VK_FORMAT_R16G16B16A16_SFLOAT, 0)
-		.SetDepthAttachmentFormat(VK_FORMAT_D32_SFLOAT)
-		.AddPushConstant(0, sizeof(VkDeviceAddress), VK_SHADER_STAGE_VERTEX_BIT)
-		.BuildDynamic();
+	{
+		Vk::GraphicsPipelineBuilder pipelineBuilder;
+		graphicsPipelines["DeferredPre"] = pipelineBuilder
+			.ResetToDefault()
+			.AddShaderStage(shaderModuls["DeferredPreVert"])
+			.AddShaderStage(shaderModuls["DeferredPreFrag"])
+			.AddDynamicState(VK_DYNAMIC_STATE_VIEWPORT)
+			.AddDynamicState(VK_DYNAMIC_STATE_SCISSOR)
+			.SetVertexInput({}, {})
+			.SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
+			.SetRasterization(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_CLOCKWISE)
+			.SetMultisampling(VK_SAMPLE_COUNT_1_BIT)
+			.SetDepthStencil(VK_TRUE, VK_TRUE, VK_COMPARE_OP_LESS)
+			.SetColorBlend(VK_FALSE)
+			.AddColorBlendAttachment(VK_FALSE)
+			.AddColorBlendAttachment(VK_FALSE)
+			.SetColorAttachmentFormats(VK_FORMAT_R16G16B16A16_SFLOAT, 0)
+			.SetColorAttachmentFormats(VK_FORMAT_R16G16B16A16_SFLOAT, 1)
+			.SetDepthAttachmentFormat(VK_FORMAT_D32_SFLOAT)
+			.AddPushConstant(0, sizeof(VkDeviceAddress), VK_SHADER_STAGE_VERTEX_BIT)
+			.BuildDynamic();
+	}
+	
+	{
+		Vk::GraphicsPipelineBuilder pipelineBuilder;
+		graphicsPipelines["DeferredDir"] = pipelineBuilder
+			.ResetToDefault()
+			.AddShaderStage(shaderModuls["DeferredDirVert"])
+			.AddShaderStage(shaderModuls["DeferredDirFrag"])
+			.AddDynamicState(VK_DYNAMIC_STATE_VIEWPORT)
+			.AddDynamicState(VK_DYNAMIC_STATE_SCISSOR)
+			.SetVertexInput({}, {})
+			.SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP)
+			.SetRasterization(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_CLOCKWISE)
+			.SetMultisampling(VK_SAMPLE_COUNT_1_BIT)
+			.SetDepthStencil(VK_FALSE, VK_FALSE, VK_COMPARE_OP_LESS)
+			.SetColorBlend(VK_FALSE)
+			.AddColorBlendAttachment(VK_FALSE)
+			.SetColorAttachmentFormats(VK_FORMAT_R16G16B16A16_SFLOAT, 0)
+			.AddDescriptorSetLayout(descriptorSets[0]->Layout())
+			.BuildDynamic();
+	}	
 }
 
 void RenderContext::InitSamplers()
@@ -233,9 +284,27 @@ void RenderContext::InitFrameBuffers()
 	mainImageSpec.viewType = VK_IMAGE_VIEW_TYPE_2D;
 	mainImageSpec.format = VK_FORMAT_R16G16B16A16_SFLOAT;
 	mainImageSpec.tiling = VK_IMAGE_TILING_OPTIMAL;
-	mainImageSpec.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	mainImageSpec.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 	mainImageSpec.aspectFlag = VK_IMAGE_ASPECT_COLOR_BIT;
 	mainImageSpec.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
+	Vk::ImageSpecification colorImageSpec;
+	colorImageSpec.type = VK_IMAGE_TYPE_2D;
+	colorImageSpec.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	colorImageSpec.format = VK_FORMAT_R16G16B16A16_SFLOAT;
+	colorImageSpec.tiling = VK_IMAGE_TILING_OPTIMAL;
+	colorImageSpec.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	colorImageSpec.aspectFlag = VK_IMAGE_ASPECT_COLOR_BIT;
+	colorImageSpec.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
+	Vk::ImageSpecification normalImageSpec;
+	normalImageSpec.type = VK_IMAGE_TYPE_2D;
+	normalImageSpec.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	normalImageSpec.format = VK_FORMAT_R16G16B16A16_SFLOAT;
+	normalImageSpec.tiling = VK_IMAGE_TILING_OPTIMAL;
+	normalImageSpec.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	normalImageSpec.aspectFlag = VK_IMAGE_ASPECT_COLOR_BIT;
+	normalImageSpec.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
 	Vk::ImageSpecification depthImageSpec;
 	depthImageSpec.type = VK_IMAGE_TYPE_2D;
@@ -249,7 +318,9 @@ void RenderContext::InitFrameBuffers()
 	Vk::FrameBufferBuilder frameBufferBuilder;
 	frameBufferBuilder.SetSize(swapChainExtent.width, swapChainExtent.height)
 		.AddImageSpecification("main", 0, mainImageSpec)
-		.AddDepthSpecification(1, depthImageSpec);
+		.AddImageSpecification("color", 1, colorImageSpec)
+		.AddImageSpecification("normal", 2, normalImageSpec)
+		.AddDepthSpecification(3, depthImageSpec);
 
 	frameBuffers["main"].resize(FRAMES_IN_FLIGHT);
 	for (uint32_t i = 0; i < FRAMES_IN_FLIGHT; ++i)
@@ -263,8 +334,8 @@ void RenderContext::InitDescriptors()
 	Vk::DescriptorPoolBuilder poolBuilder;
 	descriptorPool = poolBuilder
 		.SetSetSize(10)
-		.SetPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 10)
-		.SetPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 10)
+		.SetPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 100)
+		.SetPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 100)
 		.BuildDescriptorPool();
 
 	for (uint32_t i = 0; i < FRAMES_IN_FLIGHT; ++i)
@@ -272,6 +343,8 @@ void RenderContext::InitDescriptors()
 		Vk::DescriptorSetBuilder setBuilder;
 		descriptorSets[i] = setBuilder
 			.AddDescriptorLayoutImage(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, GetFrameBuffer("main", i)->GetImage("main")->GetImageView(), GetSampler("nearest")->Value(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+			.AddDescriptorLayoutImage(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, GetFrameBuffer("main", i)->GetImage("color")->GetImageView(), GetSampler("nearest")->Value(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+			.AddDescriptorLayoutImage(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, GetFrameBuffer("main", i)->GetImage("normal")->GetImageView(), GetSampler("nearest")->Value(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
 			.BuildDescriptorSet(descriptorPool->Value());
 	}
 }

@@ -63,7 +63,7 @@ void Vk::VulkanContext::Init()
 		physicalDevice = std::make_unique<Vk::PhysicalDevice>(instance.get(), surface.get(), requiredDeviceExtensions);
 		device = std::make_unique<Vk::Device>(physicalDevice.get(), requiredDeviceExtensions);
 		swapChain = std::make_unique<Vk::SwapChain>(physicalDevice.get(), device.get(), surface.get(), windowExtentFunction);
-
+		immediateQueue = std::make_shared<Vk::ImmediateQueue>(physicalDevice.get(), device.get());
 		initialized = true;
 	}
 }
@@ -103,10 +103,16 @@ Vk::SwapChain* Vk::VulkanContext::GetSwapChain()
 	return swapChain.get();
 }
 
+std::shared_ptr<Vk::ImmediateQueue> Vk::VulkanContext::GetImmediateQueue()
+{
+	return immediateQueue;
+}
+
 void Vk::VulkanContext::Destory()
 {
 	vkDeviceWaitIdle(device->Value());
 
+	immediateQueue.reset();
 	swapChain.reset();
 	device.reset();
 	physicalDevice.reset();

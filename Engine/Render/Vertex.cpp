@@ -1,10 +1,9 @@
 #include "Vertex.h"
 
 
-Vertex::Vertex(const glm::vec3& position, const glm::vec3& normal, const glm::vec3& color, const glm::vec2& uv) :
+Vertex::Vertex(const glm::vec3& position, const glm::vec3& normal, const glm::vec2& uv) :
 	position(position),
-	normal(normal),
-	color(color)
+	normal(normal)
 {
 	uv_x = uv.x;
 	uv_y = uv.y;

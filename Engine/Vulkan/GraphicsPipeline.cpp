@@ -94,7 +94,7 @@ Vk::GraphicsPipelineBuilder::GraphicsPipelineBuilder()
 	ResetToDefault();
 }
 
-void Vk::GraphicsPipelineBuilder::ResetToDefault()
+Vk::GraphicsPipelineBuilder& Vk::GraphicsPipelineBuilder::ResetToDefault()
 {
 	config = GraphicsPipelineConfig{};
 	config.vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -107,6 +107,8 @@ void Vk::GraphicsPipelineBuilder::ResetToDefault()
 	config.multisampleInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 	config.multisampleInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 	config.colorBlendInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+
+	return *this;
 }
 
 Vk::GraphicsPipelineBuilder& Vk::GraphicsPipelineBuilder::AddShaderStage(std::shared_ptr<ShaderModule> shader)

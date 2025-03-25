@@ -43,11 +43,11 @@ private:
 private:
 	void InitShaderModules();
 	void InitFrameBuffers();
+	void InitDescriptors();
 	void InitRenderPasses();
-	void InitGraphicsPipelines();
 	void InitSamplers();
 	void UpdateFramesInFlightIndex();
-	void InitDescriptors();
+	void InitGraphicsPipelines();
 private:
 	bool viewPortResize;
 	uint32_t viewPortWidth;

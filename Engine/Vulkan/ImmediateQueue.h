@@ -1,0 +1,25 @@
+#pragma once
+#include "Device.h"
+#include "PhysicalDevice.h"
+#include <memory>
+#include <functional>
+
+namespace Vk
+{
+	class ImmediateQueue
+	{
+	public:
+		ImmediateQueue(const PhysicalDevice* const physicalDevice, const Device* const device);
+		~ImmediateQueue();
+		void Submit(const std::function<void(VkCommandBuffer)>& function);
+	private:
+		void Initialize();
+		void Cleanup();
+	private:
+		const Device* const device;
+		const PhysicalDevice* const physicalDevice;
+		VkFence immediateFence = VK_NULL_HANDLE;
+		VkCommandPool immediatePool = VK_NULL_HANDLE;
+		VkCommandBuffer immediateBuffer = VK_NULL_HANDLE;
+	};
+}

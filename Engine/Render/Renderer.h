@@ -7,6 +7,9 @@
 #include "RenderContext.h"
 #include "Vertex.h"
 
+#include "Renderers/DeferredRenderer.h"
+#include "Renderers/GeometryRenderer.h"
+
 class ENGINE_API Renderer
 {
 public:
@@ -31,8 +34,8 @@ private:
 	std::vector<std::shared_ptr<Vk::Semaphore>> imageAvailableSemaphores;
 	std::vector<std::shared_ptr<Vk::Semaphore>> renderFinishedSemaphores;
 
-	std::unique_ptr<Vk::Buffer> indexBuffer;
-	std::unique_ptr<Vk::Buffer> vertexBuffer;
+	std::shared_ptr<Vk::Buffer> indexBuffer;
+	std::shared_ptr<Vk::Buffer> vertexBuffer;
 
 	std::function<void(VkCommandBuffer commandBuffer)> guiRenderFunction;
 };
