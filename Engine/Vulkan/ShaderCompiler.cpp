@@ -31,6 +31,7 @@ std::vector<uint32_t> Vk::ShaderCompiler::CompileGlslToSpirv(const std::string& 
 {
 	shaderc::Compiler compiler;
 	shaderc::CompileOptions options;
+	options.SetIncluder(std::make_unique<ShaderIncluder>());
 
 	options.SetOptimizationLevel(shaderc_optimization_level_performance);
 	shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(glslSource, kind, shaderFileName.c_str(), options);
@@ -42,4 +43,32 @@ std::vector<uint32_t> Vk::ShaderCompiler::CompileGlslToSpirv(const std::string& 
 	}
 
 	return { result.begin(), result.end() };
+}
+
+shaderc_include_result* Vk::ShaderIncluder::GetInclude(const char* requested_source, shaderc_include_type type, const char* requesting_source, size_t include_depth)
+{
+	std::string filepath = std::string("../Engine/Shaders/Common/") + requested_source;
+
+	std::ifstream file(filepath);
+	if (!file.is_open()) {
+		std::cerr << "Failed to open include file: " << filepath << std::endl;
+		return new shaderc_include_result{ "", 0, "File not found", 13, nullptr };
+	}
+
+	std::string content((std::istreambuf_iterator<char>(file)),	std::istreambuf_iterator<char>());
+	file.close();
+
+	auto* container = new std::pair<std::string, std::string>{requested_source, content };
+	auto* result = new shaderc_include_result{
+		container->first.data(), container->first.size(),
+		container->second.data(), container->second.size(),
+		container };
+
+	return result;
+}
+
+void Vk::ShaderIncluder::ReleaseInclude(shaderc_include_result* data)
+{
+	delete static_cast<std::pair<std::string, std::string>*>(data->user_data);
+	delete data;
 }

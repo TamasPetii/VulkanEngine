@@ -256,6 +256,7 @@
     <None Include="Shaders\DeferredDir.vert" />
     <None Include="Shaders\DeferredPre.frag" />
     <None Include="Shaders\DeferredPre.vert" />
+    <None Include="Shaders\Common\Plane.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

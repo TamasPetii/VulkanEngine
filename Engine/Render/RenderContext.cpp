@@ -90,7 +90,7 @@ void RenderContext::ResizeViewportResources()
 			.BuildDescriptorSet(descriptorPool->Value());
 	}
 
-	std::cout << std::format("Resized framebuffers {} {}", viewPortWidth, viewPortHeight) << std::endl;
+	//std::cout << std::format("Resized framebuffers {} {}", viewPortWidth, viewPortHeight) << std::endl;
 }
 
 bool RenderContext::ShouldViewportResize()
