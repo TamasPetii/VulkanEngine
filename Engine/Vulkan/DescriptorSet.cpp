@@ -80,6 +80,10 @@ void Vk::DescriptorSet::Initialize(VkDescriptorPool pool, std::span<DescriptorLa
 	VK_CHECK_MESSAGE(vkAllocateDescriptorSets(device->Value(), &allocInfo, &descriptorSet), "Failed to allocate descriptor sets!");
 
 	std::vector<VkWriteDescriptorSet> descriptorWrites{};
+	std::vector<VkDescriptorBufferInfo> bufferInfos{};
+	bufferInfos.reserve(bufferLayouts.size());
+	std::vector<VkDescriptorImageInfo> imageInfos{};
+	imageInfos.reserve(imageLayouts.size());
 
 	for (auto& bufferLayout : bufferLayouts)
 	{
@@ -87,6 +91,7 @@ void Vk::DescriptorSet::Initialize(VkDescriptorPool pool, std::span<DescriptorLa
 		bufferInfo.buffer = bufferLayout.buffer;
 		bufferInfo.offset = bufferLayout.offset;
 		bufferInfo.range = bufferLayout.range;
+		bufferInfos.push_back(bufferInfo);
 
 		VkWriteDescriptorSet writeInfo{};
 		writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -95,7 +100,7 @@ void Vk::DescriptorSet::Initialize(VkDescriptorPool pool, std::span<DescriptorLa
 		writeInfo.dstArrayElement = 0;
 		writeInfo.descriptorType = bufferLayout.config.type;
 		writeInfo.descriptorCount = 1;
-		writeInfo.pBufferInfo = &bufferInfo;
+		writeInfo.pBufferInfo = &bufferInfos.back();
 
 		descriptorWrites.push_back(writeInfo);
 	}
@@ -106,6 +111,7 @@ void Vk::DescriptorSet::Initialize(VkDescriptorPool pool, std::span<DescriptorLa
 		imageInfo.imageView = imageLayout.image;
 		imageInfo.sampler = imageLayout.sampler;
 		imageInfo.imageLayout = imageLayout.layout;
+		imageInfos.push_back(imageInfo);
 
 		VkWriteDescriptorSet writeInfo{};
 		writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -114,7 +120,7 @@ void Vk::DescriptorSet::Initialize(VkDescriptorPool pool, std::span<DescriptorLa
 		writeInfo.dstArrayElement = 0;
 		writeInfo.descriptorType = imageLayout.config.type;
 		writeInfo.descriptorCount = 1;
-		writeInfo.pImageInfo = &imageInfo;
+		writeInfo.pImageInfo = &imageInfos.back();
 
 		descriptorWrites.push_back(writeInfo);
 	}
