@@ -10,7 +10,7 @@
 #include "../Vulkan/DescriptorSet.h"
 #include "../Vulkan/DescriptorPool.h"
 
-constexpr uint32_t FRAMES_IN_FLIGHT = 1;
+constexpr uint32_t FRAMES_IN_FLIGHT = 3;
 
 class Renderer;
 
@@ -26,11 +26,11 @@ public:
 	std::shared_ptr<Vk::GraphicsPipeline> GetGraphicsPipeline(const std::string& name);
 	std::shared_ptr<Vk::ImageSampler> GetSampler(const std::string& name);
 	std::shared_ptr<Vk::FrameBuffer> GetFrameBuffer(const std::string& name, uint32_t index);
-	void SetViewPortSize(uint32_t width, uint32_t height);
-	void ResizeViewportResources();
-	bool ShouldViewportResize();
-	void ResetViewportResize();
-	std::pair<uint32_t, uint32_t> GetViewportSize();
+
+	void MarkFrameBufferToResize(const std::string& name, uint32_t index, uint32_t width, uint32_t height);
+	void ResizeMarkedFrameBuffers(uint32_t framesInFlightIndex);
+
+	const auto& GetFrameBuffersToResize() { return frameBuffersToResize; }
 
 	std::shared_ptr<Vk::DescriptorPool> descriptorPool;
 	std::vector<std::shared_ptr<Vk::DescriptorSet>> descriptorSets;
@@ -50,14 +50,13 @@ private:
 	void InitGraphicsPipelines();
 private:
 	bool viewPortResize;
-	uint32_t viewPortWidth;
-	uint32_t viewPortHeight;
 	uint32_t framesInFlightIndex = 0;
 	std::unordered_map<std::string, std::shared_ptr<Vk::ImageSampler>> samplers;
 	std::unordered_map<std::string, std::shared_ptr<Vk::RenderPass>> renderPasses;
 	std::unordered_map<std::string, std::shared_ptr<Vk::ShaderModule>> shaderModuls;
 	std::unordered_map<std::string, std::shared_ptr<Vk::GraphicsPipeline>> graphicsPipelines;
 	std::unordered_map<std::string, std::vector<std::shared_ptr<Vk::FrameBuffer>>> frameBuffers;
+	std::set<std::tuple<std::string, uint32_t, uint32_t, uint32_t>> frameBuffersToResize;
 
 	friend class Renderer;
 };

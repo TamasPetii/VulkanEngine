@@ -61,51 +61,43 @@ std::shared_ptr<Vk::FrameBuffer> RenderContext::GetFrameBuffer(const std::string
 	return frameBuffers.at(name)[index];
 }
 
-void RenderContext::SetViewPortSize(uint32_t width, uint32_t height)
+void RenderContext::MarkFrameBufferToResize(const std::string& name, uint32_t index, uint32_t width, uint32_t height)
 {
-	if (viewPortWidth != width || viewPortHeight != height)
+	frameBuffersToResize.insert(std::make_tuple(name, index, width, height));
+}
+
+void RenderContext::ResizeMarkedFrameBuffers(uint32_t framesInFlightIndex)
+{
+	for (auto it = frameBuffersToResize.begin(); it != frameBuffersToResize.end();)
 	{
-		viewPortResize = true;
-		viewPortWidth = width;
-		viewPortHeight = height;
+		auto& [name, index, width, height] = *it;
+
+		if (index == framesInFlightIndex)
+		{
+			//Resize Framebuffer
+			GetFrameBuffer(name, index)->Resize(width, height);
+
+			//Regenerate descriptor for framebuffers, need some association mechanism between fbo and dsc
+			if (name == "main")
+			{
+				Vk::DescriptorSetBuilder setBuilder;
+				descriptorSets[index]->Free(descriptorPool->Value());
+				descriptorSets[index] = setBuilder
+					.AddDescriptorLayoutImage(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, GetFrameBuffer("main", index)->GetImage("main")->GetImageView(), GetSampler("nearest")->Value(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+					.AddDescriptorLayoutImage(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, GetFrameBuffer("main", index)->GetImage("color")->GetImageView(), GetSampler("nearest")->Value(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+					.AddDescriptorLayoutImage(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, GetFrameBuffer("main", index)->GetImage("normal")->GetImageView(), GetSampler("nearest")->Value(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+					.BuildDescriptorSet(descriptorPool->Value());
+			}
+
+			//std::cout << std::format("Resized framebuffer {} index {}: {} {}", name, height, width, height) << std::endl;
+
+			it = frameBuffersToResize.erase(it);
+		}
+		else
+		{
+			++it;
+		}
 	}
-}
-
-void RenderContext::ResizeViewportResources()
-{
-	auto device = Vk::VulkanContext::GetContext()->GetDevice();
-	auto renderContext = RenderContext::GetContext();
-	vkDeviceWaitIdle(device->Value());
-
-	for (int i = 0; i < FRAMES_IN_FLIGHT; i++)
-	{
-		renderContext->GetFrameBuffer("main", i)->Resize(viewPortWidth, viewPortHeight);
-		
-		Vk::DescriptorSetBuilder setBuilder;
-		descriptorSets[i]->Free(descriptorPool->Value());
-		descriptorSets[i] = setBuilder
-			.AddDescriptorLayoutImage(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, GetFrameBuffer("main", i)->GetImage("main")->GetImageView(), GetSampler("nearest")->Value(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-			.AddDescriptorLayoutImage(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, GetFrameBuffer("main", i)->GetImage("color")->GetImageView(), GetSampler("nearest")->Value(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-			.AddDescriptorLayoutImage(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, GetFrameBuffer("main", i)->GetImage("normal")->GetImageView(), GetSampler("nearest")->Value(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-			.BuildDescriptorSet(descriptorPool->Value());
-	}
-
-	//std::cout << std::format("Resized framebuffers {} {}", viewPortWidth, viewPortHeight) << std::endl;
-}
-
-bool RenderContext::ShouldViewportResize()
-{
-	return viewPortResize;
-}
-
-void RenderContext::ResetViewportResize()
-{
-	viewPortResize = false;
-}
-
-std::pair<uint32_t, uint32_t> RenderContext::GetViewportSize()
-{
-	return std::pair<uint32_t, uint32_t>(viewPortWidth, viewPortHeight);
 }
 
 uint32_t RenderContext::GetFramesInFlightIndex()

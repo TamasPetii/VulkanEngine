@@ -275,5 +275,6 @@
     <None Include="Shaders\DeferredDir.vert" />
     <None Include="Shaders\DeferredDir.frag" />
     <None Include="Shaders\Common\Plane.glsl" />
+    <None Include="Shaders\Common\Vertex.glsl" />
   </ItemGroup>
 </Project>

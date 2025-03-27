@@ -31,12 +31,8 @@ void Renderer::Render()
 
 	vkWaitForFences(device->Value(), 1, &inFlightFence->Value(), VK_TRUE, UINT64_MAX);
 
-	//Only the current frameIndex framebuffer should resize?
-	if (renderContext->ShouldViewportResize())
-	{
-		renderContext->ResizeViewportResources();
-		renderContext->ResetViewportResize();
-	}
+	//Resize framebuffers, only if it maches the current frame index for proper syncronization
+	renderContext->ResizeMarkedFrameBuffers(framesInFlightIndex);
 
 	uint32_t imageIndex;
 	VkResult result = vkAcquireNextImageKHR(device->Value(), swapChain->Value(), UINT64_MAX, imageAvailableSemaphore->Value(), VK_NULL_HANDLE, &imageIndex);
@@ -56,7 +52,6 @@ void Renderer::Render()
 
 	GeometryRenderer::Render(commandBuffer, vertexBuffer, indexBuffer);
 	DeferredRenderer::Render(commandBuffer);
-
 
 	auto frameBuffer = renderContext->GetFrameBuffer("main", framesInFlightIndex);
 
@@ -286,5 +281,7 @@ void Renderer::InitBuffers()
 
 void Renderer::RecreateSwapChain()
 {
+	auto device = Vk::VulkanContext::GetContext()->GetDevice();
+	vkDeviceWaitIdle(device->Value());
 	Vk::VulkanContext::GetContext()->GetSwapChain()->ReCreate();
 }

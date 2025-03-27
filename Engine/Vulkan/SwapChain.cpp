@@ -16,11 +16,8 @@ Vk::SwapChain::~SwapChain()
 
 void Vk::SwapChain::ReCreate()
 {
-	vkDeviceWaitIdle(device->Value());
 	Destroy();
 	Init();
-
-	//std::cout << std::format("Resized swapchain {} {}", swapChainExtent.width, swapChainExtent.width) << std::endl;
 }
 
 VkSwapchainKHR Vk::SwapChain::Value() const

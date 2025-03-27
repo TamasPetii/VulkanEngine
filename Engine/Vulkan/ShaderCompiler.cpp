@@ -47,7 +47,7 @@ std::vector<uint32_t> Vk::ShaderCompiler::CompileGlslToSpirv(const std::string& 
 
 shaderc_include_result* Vk::ShaderIncluder::GetInclude(const char* requested_source, shaderc_include_type type, const char* requesting_source, size_t include_depth)
 {
-	std::string filepath = std::string("../Engine/Shaders/Common/") + requested_source;
+	std::string filepath = std::string("../Engine/Shaders/") + requested_source;
 
 	std::ifstream file(filepath);
 	if (!file.is_open()) {

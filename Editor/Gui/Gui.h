@@ -3,6 +3,7 @@
 #include "Imgui/imgui_impl_glfw.h"
 #include "Imgui/imgui_impl_vulkan.h"
 #include <set>
+#include <vector>
 
 struct GLFWwindow;
 
@@ -19,6 +20,6 @@ private:
 private:
 	VkDescriptorPool imguiPool;
 	VkImageView imageView;
-	std::set<VkDescriptorSet> imguiDescriptorSets;
+	std::vector<std::set<VkDescriptorSet>> imguiDescriptorSets;
 };
 

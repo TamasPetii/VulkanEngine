@@ -74,6 +74,8 @@ void Gui::Initialize(GLFWwindow* window)
 	ImGui_ImplVulkan_CreateFontsTexture();
 
 	SetStyle();
+
+	imguiDescriptorSets.resize(FRAMES_IN_FLIGHT);
 }
 
 void Gui::Cleanup()
@@ -87,9 +89,12 @@ void Gui::Cleanup()
 
 void Gui::Render(VkCommandBuffer commandBuffer)
 {
-	for (VkDescriptorSet descriptorSet : imguiDescriptorSets)
+	auto renderContext = RenderContext::GetContext();
+	auto framesInFlightIndex = renderContext->GetFramesInFlightIndex();
+
+	for (VkDescriptorSet descriptorSet : imguiDescriptorSets[framesInFlightIndex])
 		ImGui_ImplVulkan_RemoveTexture(descriptorSet);
-	imguiDescriptorSets.clear();
+	imguiDescriptorSets[framesInFlightIndex].clear();
 
 	ImGui_ImplVulkan_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
@@ -102,20 +107,15 @@ void Gui::Render(VkCommandBuffer commandBuffer)
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 	if (ImGui::Begin("Main", nullptr, ImGuiWindowFlags_NoTitleBar))
 	{
-		auto renderContext = RenderContext::GetContext();
-
 		auto viewPortSize = ImGui::GetContentRegionAvail();
-		if (viewPortSize.x != renderContext->GetViewportSize().first || viewPortSize.y != renderContext->GetViewportSize().second)
-		{
-			renderContext->SetViewPortSize(viewPortSize.x, viewPortSize.y);
-		}
+		if (viewPortSize.x != renderContext->GetFrameBuffer("main", framesInFlightIndex)->GetSize().width || viewPortSize.y != renderContext->GetFrameBuffer("main", framesInFlightIndex)->GetSize().height)
+			renderContext->MarkFrameBufferToResize("main", framesInFlightIndex, viewPortSize.x, viewPortSize.y);
 
-		auto framesInFlightIndex = renderContext->GetFramesInFlightIndex();
 		auto sampler = renderContext->GetSampler("nearest")->Value();
 		auto imageView = renderContext->GetFrameBuffer("main", framesInFlightIndex)->GetImage("main")->GetImageView();
 		
 		VkDescriptorSet image = ImGui_ImplVulkan_AddTexture(sampler, imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-		imguiDescriptorSets.insert(image);
+		imguiDescriptorSets[framesInFlightIndex].insert(image);
 
 		ImGui::Image((ImTextureID)image, viewPortSize);
 	}

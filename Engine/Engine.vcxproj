@@ -252,6 +252,7 @@
     <None Include="Registry\Registry.inl" />
     <None Include="Shaders\Basic.frag" />
     <None Include="Shaders\Basic.vert" />
+    <None Include="Shaders\Common\Vertex.glsl" />
     <None Include="Shaders\DeferredDir.frag" />
     <None Include="Shaders\DeferredDir.vert" />
     <None Include="Shaders\DeferredPre.frag" />
