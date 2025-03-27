@@ -20,6 +20,8 @@ void Engine::Init()
 	vulkanContext->SetRequiredDeviceExtension(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME);
 	vulkanContext->Init();
 
+	GeometryManager::GetManager();
+
 	renderer = std::make_shared<Renderer>();
 	registry = std::make_shared<Registry>();
 	frameTimer = std::make_shared<FrameTimer>();
@@ -28,6 +30,7 @@ void Engine::Init()
 void Engine::Clean()
 {
 	renderer.reset();
+	GeometryManager::Destroy();
 	Vk::VulkanContext::DestroyContext();
 }
 

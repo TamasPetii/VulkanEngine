@@ -1,7 +1,7 @@
 #include "Cone.h"
 
-Cone::Cone(float radius, float height, uint32_t segments)
-    : radius(radius), height(height), segments(segments)
+Cone::Cone(uint32_t segments, float radius, float height)
+    : segments(segments), radius(radius), height(height)
 {
     Initialize();
 }

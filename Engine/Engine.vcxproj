@@ -163,6 +163,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Managers\GeometryManager.h" />
     <ClInclude Include="Geometry\Cone.h" />
     <ClInclude Include="Geometry\Cylinder.h" />
     <ClInclude Include="Geometry\Cube.h" />
@@ -216,6 +217,7 @@
     <ClInclude Include="Timer\Timer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Managers\GeometryManager.cpp" />
     <ClCompile Include="Geometry\Cone.cpp" />
     <ClCompile Include="Geometry\Cylinder.cpp" />
     <ClCompile Include="Geometry\Cube.cpp" />
