@@ -163,8 +163,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Geometry\Cone.h" />
+    <ClInclude Include="Geometry\Cylinder.h" />
+    <ClInclude Include="Geometry\Cube.h" />
+    <ClInclude Include="Geometry\Capsule.h" />
+    <ClInclude Include="Geometry\Geometries.h" />
+    <ClInclude Include="Geometry\Pyramid.h" />
     <ClInclude Include="Render\Renderers\DeferredRenderer.h" />
     <ClInclude Include="Render\Renderers\GeometryRenderer.h" />
+    <ClInclude Include="Geometry\Shape.h" />
+    <ClInclude Include="Geometry\Sphere.h" />
+    <ClInclude Include="Geometry\Quad.h" />
+    <ClInclude Include="Geometry\Torus.h" />
     <ClInclude Include="Vulkan\ImmediateQueue.h" />
     <ClInclude Include="Vulkan\DescriptorSet.h" />
     <ClInclude Include="Vulkan\Semaphore.h" />
@@ -206,8 +216,17 @@
     <ClInclude Include="Timer\Timer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Geometry\Cone.cpp" />
+    <ClCompile Include="Geometry\Cylinder.cpp" />
+    <ClCompile Include="Geometry\Cube.cpp" />
+    <ClCompile Include="Geometry\Capsule.cpp" />
+    <ClCompile Include="Geometry\Pyramid.cpp" />
     <ClCompile Include="Render\Renderers\DeferredRenderer.cpp" />
     <ClCompile Include="Render\Renderers\GeometryRenderer.cpp" />
+    <ClCompile Include="Geometry\Shape.cpp" />
+    <ClCompile Include="Geometry\Sphere.cpp" />
+    <ClCompile Include="Geometry\Quad.cpp" />
+    <ClCompile Include="Geometry\Torus.cpp" />
     <ClCompile Include="Vulkan\ImmediateQueue.cpp" />
     <ClCompile Include="Vulkan\DescriptorSet.cpp" />
     <ClCompile Include="Vulkan\Semaphore.cpp" />

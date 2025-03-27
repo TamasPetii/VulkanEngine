@@ -1,6 +1,6 @@
 #include "GeometryRenderer.h"
 
-void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Vk::Buffer> vertexBuffer, std::shared_ptr<Vk::Buffer> indexBuffer)
+void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Vk::Buffer> vertexBuffer, std::shared_ptr<Vk::Buffer> indexBuffer, uint32_t indexCount)
 {
 	auto renderContext = RenderContext::GetContext();
 	auto vulkanContext = Vk::VulkanContext::GetContext();
@@ -10,13 +10,15 @@ void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Vk:
 	auto graphicsQueue = device->GetQueue(Vk::QueueType::GRAPHICS);
 	auto frameBuffer = renderContext->GetFrameBuffer("main", framesInFlightIndex);
 
-	VkClearValue clearValue;
-	clearValue.color.float32[0] = 0.f;
-	clearValue.color.float32[1] = 0.f;
-	clearValue.color.float32[2] = 0.f;
-	clearValue.color.float32[3] = 0.f;
-	clearValue.depthStencil.depth = 1.0f;
-	clearValue.depthStencil.stencil = 0.0f;
+	VkClearValue colorClearValue{};
+	colorClearValue.color.float32[0] = 0.f;
+	colorClearValue.color.float32[1] = 0.f;
+	colorClearValue.color.float32[2] = 0.f;
+	colorClearValue.color.float32[3] = 1.f;
+
+	VkClearValue depthClearValue{};
+	depthClearValue.depthStencil.depth = 1.0f;
+	depthClearValue.depthStencil.stencil = 0;
 
 	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, frameBuffer->GetImage("color")->Value(),
 		VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, VK_ACCESS_2_NONE,
@@ -30,9 +32,9 @@ void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Vk:
 		VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, VK_ACCESS_2_NONE,
 		VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT, VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
 
-	VkRenderingAttachmentInfo colorAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(frameBuffer->GetImage("color")->GetImageView(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, &clearValue);
-	VkRenderingAttachmentInfo normalAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(frameBuffer->GetImage("normal")->GetImageView(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, &clearValue);
-	VkRenderingAttachmentInfo depthAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(frameBuffer->GetImage("depth")->GetImageView(), VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, &clearValue);
+	VkRenderingAttachmentInfo colorAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(frameBuffer->GetImage("color")->GetImageView(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, &colorClearValue);
+	VkRenderingAttachmentInfo normalAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(frameBuffer->GetImage("normal")->GetImageView(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, &colorClearValue);
+	VkRenderingAttachmentInfo depthAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(frameBuffer->GetImage("depth")->GetImageView(), VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, &depthClearValue);
 
 	std::vector<VkRenderingAttachmentInfo> renderTargetAttachments = { colorAttachment , normalAttachment };
 	VkRenderingInfo renderingInfo = Vk::DynamicRendering::BuildRenderingInfo(frameBuffer->GetSize(), renderTargetAttachments, &depthAttachment);
@@ -54,10 +56,18 @@ void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Vk:
 	scissor.extent = frameBuffer->GetSize();
 	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-	vkCmdPushConstants(commandBuffer, renderContext->GetGraphicsPipeline("DeferredPre")->GetLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(VkDeviceAddress), &vertexBuffer->GetAddress());
+	glm::mat4 view = glm::lookAt(glm::vec3(-3.0f, 2.0f, -3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	glm::mat4 proj = glm::perspective(glm::radians(60.0f), frameBuffer->GetSize().width / (float)frameBuffer->GetSize().height, 0.01f, 1000.0f);
+	proj[1][1] *= -1;
+
+	std::pair<glm::mat4, VkDeviceAddress> pushConstants;
+	pushConstants.first = proj * view;
+	pushConstants.second = vertexBuffer->GetAddress();
+
+	vkCmdPushConstants(commandBuffer, renderContext->GetGraphicsPipeline("DeferredPre")->GetLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(pushConstants), &pushConstants);
 	vkCmdBindIndexBuffer(commandBuffer, indexBuffer->Value(), 0, VK_INDEX_TYPE_UINT32);
 
-	vkCmdDrawIndexed(commandBuffer, 6, 1, 0, 0, 0);
+	vkCmdDrawIndexed(commandBuffer, indexCount, 4096, 0, 0, 0);
 
 	vkCmdEndRendering(commandBuffer);
 }

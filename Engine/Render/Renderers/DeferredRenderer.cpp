@@ -15,7 +15,7 @@ void DeferredRenderer::Render(VkCommandBuffer commandBuffer)
 	clearValue.color.float32[0] = 0.f;
 	clearValue.color.float32[1] = 0.f;
 	clearValue.color.float32[2] = 0.f;
-	clearValue.color.float32[3] = 0.f;
+	clearValue.color.float32[3] = 1.f;
 
 	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, frameBuffer->GetImage("color")->Value(),
 		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,

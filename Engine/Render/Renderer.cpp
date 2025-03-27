@@ -50,7 +50,7 @@ void Renderer::Render()
 
 	VK_CHECK_MESSAGE(vkBeginCommandBuffer(commandBuffer, &beginInfo), "Failed to begin recording command buffer!");
 
-	GeometryRenderer::Render(commandBuffer, vertexBuffer, indexBuffer);
+	GeometryRenderer::Render(commandBuffer, shapes["cube"]->GetVertexBuffer(), shapes["cube"]->GetIndexBuffer(), shapes["cube"]->GetIndexCount());
 	DeferredRenderer::Render(commandBuffer);
 
 	auto frameBuffer = renderContext->GetFrameBuffer("main", framesInFlightIndex);
@@ -139,10 +139,20 @@ void Renderer::Init()
 	renderFinishedSemaphores.resize(FRAMES_IN_FLIGHT);
 	inFlightFences.resize(FRAMES_IN_FLIGHT);
 
+	shapes["sphere"] = std::make_shared<Sphere>();
+	shapes["quad"] = std::make_shared<Quad>();
+	shapes["capsule"] = std::make_shared<Capsule>();
+	shapes["cube"] = std::make_shared<Cube>();
+	shapes["cylinder"] = std::make_shared<Cylinder>();
+	shapes["cone"] = std::make_shared<Cone>();
+	shapes["pyramid"] = std::make_shared<Pyramid>();
+	shapes["torus"] = std::make_shared<Torus>();
+
 	InitCommandPool();
 	InitCommandBuffer();
 	InitSyncronization();
 	InitBuffers();
+
 }
 
 void Renderer::Destroy()

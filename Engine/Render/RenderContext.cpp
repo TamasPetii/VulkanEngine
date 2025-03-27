@@ -201,7 +201,7 @@ void RenderContext::InitGraphicsPipelines()
 			.AddDynamicState(VK_DYNAMIC_STATE_SCISSOR)
 			.SetVertexInput({}, {})
 			.SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
-			.SetRasterization(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_CLOCKWISE)
+			.SetRasterization(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE)
 			.SetMultisampling(VK_SAMPLE_COUNT_1_BIT)
 			.SetDepthStencil(VK_TRUE, VK_TRUE, VK_COMPARE_OP_LESS)
 			.SetColorBlend(VK_FALSE)
@@ -210,7 +210,7 @@ void RenderContext::InitGraphicsPipelines()
 			.SetColorAttachmentFormats(VK_FORMAT_R16G16B16A16_SFLOAT, 0)
 			.SetColorAttachmentFormats(VK_FORMAT_R16G16B16A16_SFLOAT, 1)
 			.SetDepthAttachmentFormat(VK_FORMAT_D32_SFLOAT)
-			.AddPushConstant(0, sizeof(VkDeviceAddress), VK_SHADER_STAGE_VERTEX_BIT)
+			.AddPushConstant(0, sizeof(std::pair<glm::mat4, VkDeviceAddress>), VK_SHADER_STAGE_VERTEX_BIT)
 			.BuildDynamic();
 	}
 	

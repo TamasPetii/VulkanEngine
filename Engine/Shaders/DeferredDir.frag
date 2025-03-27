@@ -9,5 +9,10 @@ layout(set = 0, binding = 2) uniform sampler2D u_normalTexture;
 
 void main()
 {
-	fs_out_col = vec4(texture(u_colorTexture, fs_in_tex).xyz, 1);
+	vec3 normal = normalize(texture(u_normalTexture, fs_in_tex).xyz);
+
+    vec3 lightDir = vec3(-0.9, -0.8, 0.2);
+	float cosa = clamp(dot(normal, -lightDir), 0, 1);
+
+	fs_out_col = vec4(cosa * vec3(1,1,1), 1);
 }

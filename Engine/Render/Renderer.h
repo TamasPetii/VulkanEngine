@@ -9,6 +9,7 @@
 
 #include "Renderers/DeferredRenderer.h"
 #include "Renderers/GeometryRenderer.h"
+#include "Engine/Geometry/Geometries.h"
 
 class ENGINE_API Renderer
 {
@@ -34,8 +35,11 @@ private:
 	std::vector<std::shared_ptr<Vk::Semaphore>> imageAvailableSemaphores;
 	std::vector<std::shared_ptr<Vk::Semaphore>> renderFinishedSemaphores;
 
+
 	std::shared_ptr<Vk::Buffer> indexBuffer;
 	std::shared_ptr<Vk::Buffer> vertexBuffer;
+
+	std::unordered_map<std::string, std::shared_ptr<Shape>> shapes;
 
 	std::function<void(VkCommandBuffer commandBuffer)> guiRenderFunction;
 };
