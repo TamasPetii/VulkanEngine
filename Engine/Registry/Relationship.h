@@ -5,9 +5,7 @@
 
 struct ENGINE_API Relationship
 {
-	Relationship();
-
-	Parent parent;
+	Parent parent = NULL_ENTITY;
 	std::vector<Child> children;
 };
 

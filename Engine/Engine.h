@@ -26,7 +26,7 @@ private:
 	void Clean();
 private:
 	bool isWindowResized;
-	std::shared_ptr<Registry> registry;
+	std::shared_ptr<Registry<32>> registry;
 	std::shared_ptr<Renderer> renderer;
 	std::shared_ptr<FrameTimer> frameTimer;
 };

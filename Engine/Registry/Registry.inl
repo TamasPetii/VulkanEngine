@@ -1,135 +1,186 @@
 #pragma once
 #include "Registry.h"
+#include "Relationship.h"
+#include "ComponentBitset.h"
 
-template<typename T>
-inline void Registry::SetComponentBit(std::bitset<MAX_COMPONENTS>& bitset)
+template<uint32_t MAX_COMPONENTS>
+Entity Registry<MAX_COMPONENTS>::CreateEntity()
 {
-	bitset.set(Unique::typeID<T>());
+	Entity entity = NULL_ENTITY;
+
+	if (destroyedEntities.empty())
+	{
+		entity = counter++;
+	}
+	else
+	{
+		auto it = destroyedEntities.begin();
+		entity = *it;
+		destroyedEntities.erase(it);
+	}
+
+	//Component bit set must be the first
+	AddComponent<ComponentBitset<MAX_COMPONENTS>>(entity);
+	AddComponent<Relationship>(entity);
+
+	return entity;
 }
 
+template<uint32_t MAX_COMPONENTS>
+void Registry<MAX_COMPONENTS>::DestroyEntity(Entity entity)
+{
+	//Remove the parent-child relations
+
+	//Remove from all the component pools
+	for (auto& pool : pools)
+	{
+		if(pool != nullptr)
+			pool->RemoveEntity(entity);
+	}
+
+	destroyedEntities.insert(entity);
+}
+
+
+template<uint32_t MAX_COMPONENTS>
+template<typename T>
+inline void Registry<MAX_COMPONENTS>::SetComponentBit(std::bitset<MAX_COMPONENTS>& bitset)
+{
+	bitset.set(Unique::typeID<T>(), true);
+}
+
+template<uint32_t MAX_COMPONENTS>
 template <typename T>
-inline bool Registry::HasComponent(Entity entity)
+inline bool Registry<MAX_COMPONENTS>::HasComponent(Entity entity)
 {
-	std::type_index typeID = typeid(T);
-	return pools.find(typeID) != pools.end() && pools[typeID] != nullptr && pools[typeID]->HasComponent(entity);
+	UniqueID type_id = Unique::typeID<T>();
+	return pools[type_id] != nullptr && pools[type_id]->HasComponent(entity); //?? Use Bitset
 }
 
+template<uint32_t MAX_COMPONENTS>
 template<typename T>
-inline T* Registry::GetComponent(Entity entity)
+inline T* Registry<MAX_COMPONENTS>::GetComponent(Entity entity)
 {
 	if (!HasComponent<T>(entity))
 		return nullptr;
 	
-	return std::static_pointer_cast<Pool<T>>(pools[typeid(T)])->GetComponent(entity);
+	UniqueID type_id = Unique::typeID<T>();
+	return std::static_pointer_cast<Pool<T>>(pools[type_id])->GetComponent(entity);
 }
 
+template<uint32_t MAX_COMPONENTS>
 template<typename T>
-inline void Registry::AddComponent(Entity entity)
+inline void Registry<MAX_COMPONENTS>::AddComponent(Entity entity)
 {
-	static_assert(std::is_default_constructible<T>::value, "T must be default constructible.");
-
 	AddComponent<T>(entity, T{});
 }
 
+template<uint32_t MAX_COMPONENTS>
 template<typename T>
-inline void Registry::AddComponent(Entity entity, const T& component)
+inline void Registry<MAX_COMPONENTS>::AddComponent(Entity entity, const T& component)
 {
 	static_assert(std::is_default_constructible<T>::value, "T must be default constructible.");
 
 	if (!HasComponent<T>(entity))
 	{
-		if (pools.find(typeid(T)) == pools.end())
-			pools[typeid(T)] = std::make_shared<Pool<T>>();
+		UniqueID type_id = Unique::typeID<T>();
 
-		std::static_pointer_cast<Pool<T>>(pools[typeid(T)])->AddComponent(entity, component);
-		bitsetComponents[entity].set(Unique::typeID<T>());
+		if (pools[type_id] == nullptr)
+			pools[type_id] = std::make_shared<Pool<T>>();
+
+		std::static_pointer_cast<Pool<T>>(pools[type_id])->AddComponent(entity, component);
+		GetComponent<ComponentBitset<MAX_COMPONENTS>>(entity)->bitset.set(type_id, true);
 	}
 }
 
+template<uint32_t MAX_COMPONENTS>
 template<typename T>
-inline void Registry::RemoveComponent(Entity entity)
+inline void Registry<MAX_COMPONENTS>::RemoveComponent(Entity entity)
 {
 	if (!HasComponent<T>(entity))
 		return;
 
-	pools[typeid(T)]->RemoveComponent(entity);
-	bitsetComponents[entity].set(Unique::typeID<T>(), false);
+	UniqueID type_id = Unique::typeID<T>();
+	pools[type_id]->RemoveComponent(entity);
+	GetComponent<ComponentBitset<MAX_COMPONENTS>>(entity)->bitset.set(type_id, false);
 }
 
+template<uint32_t MAX_COMPONENTS>
 template<typename ...T>
-inline void Registry::RegisterComponentBitset()
+inline void Registry<MAX_COMPONENTS>::RegisterEntitiesWithBitset()
 {
 	auto bitset = GetComponentsBitset<T...>();
-	bitsetEntities[bitset];
+	entitiesWithBitset[bitset];
 }
 
+template<uint32_t MAX_COMPONENTS>
 template<typename ...T>
-inline void Registry::GetComponentsBitset()
+inline std::bitset<MAX_COMPONENTS> Registry<MAX_COMPONENTS>::GetComponentsBitset()
 {
 	std::bitset<MAX_COMPONENTS> bitset;
-
 	(SetComponentBit<T>(bitset), ...);
-
 	return bitset;
 }
 
+template<uint32_t MAX_COMPONENTS>
 template<typename ...T>
-inline const std::set<Entity>& Registry::GetEntitiesWithBitset() const
+inline const std::set<Entity>& Registry<MAX_COMPONENTS>::GetEntitiesWithBitset()
 {
 	auto bitset = GetComponentsBitset<T...>();
-	return bitsetEntities[bitset];
+	return entitiesWithBitset[bitset];
 }
 
+template<uint32_t MAX_COMPONENTS>
 template<typename... T>
-inline bool Registry::HasComponents(Entity entity)
+inline bool Registry<MAX_COMPONENTS>::HasComponents(Entity entity)
 {
 	return (HasComponent<T>(entity) && ...);
 }
 
+template<uint32_t MAX_COMPONENTS>
 template<typename ...T>
-inline std::tuple<T*...> Registry::GetComponents(Entity entity)
+inline std::tuple<T*...> Registry<MAX_COMPONENTS>::GetComponents(Entity entity)
 {
 	return { GetComponent<T>(entity)... };
 }
 
+template<uint32_t MAX_COMPONENTS>
 template<typename ...T>
-inline void Registry::AddComponents(Entity entity)
+inline void Registry<MAX_COMPONENTS>::AddComponents(Entity entity)
 {
-	static_assert((std::is_default_constructible<T>::value && ...), "T must be default constructible.");
-
 	(AddComponent<T>(entity), ...);
 
-	for (auto& [requiredBitset, entities] : bitsetEntities)
+	for (auto& [requiredBitset, entities] : entitiesWithBitset)
 	{
-		if ((requiredBitset & bitsetComponents[entity]) == requiredBitset)
+		if ((requiredBitset & GetComponent<ComponentBitset<MAX_COMPONENTS>>(entity)->bitset) == requiredBitset)
 			entities.insert(entity);
 	}
 }
 
+template<uint32_t MAX_COMPONENTS>
 template<typename ...T>
-inline void Registry::AddComponents(Entity entity, const T & ...component)
+inline void Registry<MAX_COMPONENTS>::AddComponents(Entity entity, const T & ...component)
 {
-	static_assert((std::is_default_constructible<T>::value && ...), "T must be default constructible.");
-
 	(AddComponent<T>(entity, component), ...);
 
-	for (auto& [requiredBitset, entities] : bitsetEntities)
+	for (auto& [requiredBitset, entities] : entitiesWithBitset)
 	{
-		if ((requiredBitset & bitsetComponents[entity]) == requiredBitset)
+		if ((requiredBitset & GetComponent<ComponentBitset<MAX_COMPONENTS>>(entity)->bitset) == requiredBitset)
 			entities.insert(entity);
 	}
 }
 
+template<uint32_t MAX_COMPONENTS>
 template<typename ...T>
-inline void Registry::RemoveComponents(Entity entity)
+inline void Registry<MAX_COMPONENTS>::RemoveComponents(Entity entity)
 {
-	auto prevBitset = bitsetComponents[entity];
+	auto prevBitset = GetComponent<ComponentBitset<MAX_COMPONENTS>>(entity)->bitset;
 
 	(RemoveComponent<T>(entity), ...);
 
-	for (auto& [requiredBitset, entities] : bitsetEntities)
+	for (auto& [requiredBitset, entities] : entitiesWithBitset)
 	{
-		if ((requiredBitset & prevBitset) == requiredBitset && (requiredBitset & bitsetComponents[entity]) != requiredBitset)
+		if ((requiredBitset & prevBitset) == requiredBitset && (requiredBitset & GetComponent<ComponentBitset<MAX_COMPONENTS>>(entity)->bitset) != requiredBitset)
 			entities.erase(entity);
 	}
 }

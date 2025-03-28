@@ -4,23 +4,25 @@
 #include "Unique.h"
 
 #include <set>
-#include <tuple>
 #include <bitset>
-#include <typeindex>
 #include <unordered_map>
 
-constexpr uint32_t MAX_COMPONENTS = 32;
-
-class ENGINE_API Registry
+template<uint32_t MAX_COMPONENTS>
+class Registry
 {
 public:
+	const auto& GetCounter() const { return counter; }
+	const auto& GetActiveEntity() const { return activeEntity; }
+	const auto& GetDestroyedEntities() const { return destroyedEntities; }
+	const auto& GetPools() const { return pools; }
+	const auto& GetEntitiesWithBitset() const { return entitiesWithBitset; }
+
 	Entity CreateEntity();
 	void   DestroyEntity(Entity entity);
-
 	template <typename... T>
-	void RegisterComponentBitset();
+	void RegisterEntitiesWithBitset();
 	template <typename... T>
-	const std::set<Entity>& GetEntitiesWithBitset() const;
+	const std::set<Entity>& GetEntitiesWithBitset();
 	template <typename... T>
 	bool HasComponents(Entity entity);
 	template <typename... T>
@@ -33,7 +35,7 @@ public:
 	void RemoveComponents(Entity entity);
 protected:
 	template <typename... T>
-	void GetComponentsBitset();
+	std::bitset<MAX_COMPONENTS> GetComponentsBitset();
 	template <typename T>
 	void SetComponentBit(std::bitset<MAX_COMPONENTS>& bitset);
 	template <typename T>
@@ -41,18 +43,17 @@ protected:
 	template <typename T>
 	T* GetComponent(Entity entity);
 	template <typename T>
-	void AddComponent(Entity entity);
-	template <typename T>
 	void AddComponent(Entity entity, const T& component);
+	template <typename T>
+	void AddComponent(Entity entity);
 	template <typename T>
 	void RemoveComponent(Entity entity);
 private:
-	Entity counter;
-	Entity activeEntity;
+	Entity counter = 0;
+	Entity activeEntity = NULL_ENTITY;
 	std::set<Entity> destroyedEntities;
-	std::unordered_map<std::type_index, std::shared_ptr<PoolBase>> pools;
-	std::vector<std::bitset<MAX_COMPONENTS>> bitsetComponents;
-	std::unordered_map<std::bitset<MAX_COMPONENTS>, std::set<Entity>> bitsetEntities;
+	std::array<std::shared_ptr<PoolBase>, MAX_COMPONENTS> pools;
+	std::unordered_map<std::bitset<MAX_COMPONENTS>, std::set<Entity>> entitiesWithBitset;
 };
 
 #include "Registry.inl"

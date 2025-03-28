@@ -171,6 +171,9 @@
     <ClInclude Include="Managers\GeometryManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Registry\ComponentBitset.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -207,9 +210,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Vulkan\SwapChain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Registry\Registry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Registry\Relationship.cpp">
@@ -321,6 +321,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Managers\GeometryManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Registry\ComponentBitset.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

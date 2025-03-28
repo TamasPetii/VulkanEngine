@@ -10,6 +10,10 @@ Engine::~Engine()
 	Clean();
 }
 
+class A {};
+class B {};
+class C {};
+
 void Engine::Init()
 {
 	auto vulkanContext = Vk::VulkanContext::GetContext();
@@ -23,8 +27,27 @@ void Engine::Init()
 	GeometryManager::GetManager();
 
 	renderer = std::make_shared<Renderer>();
-	registry = std::make_shared<Registry>();
 	frameTimer = std::make_shared<FrameTimer>();
+
+	registry = std::make_shared<Registry<32>>();
+	registry->RegisterEntitiesWithBitset<A, C>();
+	registry->RegisterEntitiesWithBitset<B>();
+	registry->RegisterEntitiesWithBitset<A, B, C>();
+
+	auto entity1 = registry->CreateEntity();
+	auto entity2 = registry->CreateEntity();
+	auto entity3 = registry->CreateEntity();
+
+	registry->AddComponents<A, B, C>(entity1);
+	registry->AddComponents<A, B>(entity2);
+	registry->AddComponents<B, C>(entity3);
+
+	auto [a1, c1] = registry->GetComponents<A, C>(entity1);
+	auto [a2, b2] = registry->GetComponents<A, B>(entity2);
+	auto [a3, b3, c3] = registry->GetComponents<A, C, B>(entity3);
+
+	registry->RemoveComponents<C>(entity1);
+	registry->DestroyEntity(entity2);
 }
 
 void Engine::Clean()
