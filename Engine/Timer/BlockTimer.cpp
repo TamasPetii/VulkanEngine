@@ -5,6 +5,10 @@ BlockTimer::BlockTimer()
 	startTime = std::chrono::high_resolution_clock::now();
 }
 
+BlockTimer::~BlockTimer()
+{
+}
+
 void BlockTimer::Update()
 {
 

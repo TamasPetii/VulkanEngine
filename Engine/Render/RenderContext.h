@@ -9,8 +9,7 @@
 #include "../Vulkan/ImageSampler.h"
 #include "../Vulkan/DescriptorSet.h"
 #include "../Vulkan/DescriptorPool.h"
-
-constexpr uint32_t FRAMES_IN_FLIGHT = 3;
+#include "Engine/Config.h"
 
 class Renderer;
 

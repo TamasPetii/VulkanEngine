@@ -2,11 +2,15 @@
 #include "EngineApi.h"
 #include "../Engine/Logger/Checker.h"
 #include "Timer/FrameTimer.h"
+#include "Engine/Timer/BlockTimer.h"
 #include "Registry/Registry.h"
 #include "Render/Renderer.h"
 #include <span>
 #include <functional>
 
+#include "Engine/Registry/Components/Components.h"
+#include "Engine/Registry/Systems/Systems.h"
+#include "Engine/Managers/ComponetBufferManager.h"
 
 class ENGINE_API Engine
 {
@@ -26,7 +30,10 @@ private:
 	void Clean();
 private:
 	bool isWindowResized;
-	std::shared_ptr<Registry<32>> registry;
 	std::shared_ptr<Renderer> renderer;
 	std::shared_ptr<FrameTimer> frameTimer;
+	std::shared_ptr<Registry<DEFAULT_MAX_COMPONENTS>> registry;
+	std::unordered_map<std::type_index, std::shared_ptr<System>> systems;
+	std::shared_ptr<ComponetBufferManager> componentBufferManager;
+	void InitRegistry();
 };

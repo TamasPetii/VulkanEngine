@@ -46,14 +46,14 @@ template<uint32_t MAX_COMPONENTS>
 template<typename T>
 inline void Registry<MAX_COMPONENTS>::SetComponentBit(std::bitset<MAX_COMPONENTS>& bitset)
 {
-	bitset.set(Unique::typeID<T>(), true);
+	bitset.set(Unique::typeIndex<T>(), true);
 }
 
 template<uint32_t MAX_COMPONENTS>
 template <typename T>
 inline bool Registry<MAX_COMPONENTS>::HasComponent(Entity entity)
 {
-	UniqueID type_id = Unique::typeID<T>();
+	UniqueID type_id = Unique::typeIndex<T>();
 	return pools[type_id] != nullptr && pools[type_id]->HasComponent(entity); //?? Use Bitset
 }
 
@@ -64,7 +64,7 @@ inline T* Registry<MAX_COMPONENTS>::GetComponent(Entity entity)
 	if (!HasComponent<T>(entity))
 		return nullptr;
 	
-	UniqueID type_id = Unique::typeID<T>();
+	UniqueID type_id = Unique::typeIndex<T>();
 	return std::static_pointer_cast<Pool<T>>(pools[type_id])->GetComponent(entity);
 }
 
@@ -83,7 +83,7 @@ inline void Registry<MAX_COMPONENTS>::AddComponent(Entity entity, const T& compo
 
 	if (!HasComponent<T>(entity))
 	{
-		UniqueID type_id = Unique::typeID<T>();
+		UniqueID type_id = Unique::typeIndex<T>();
 
 		if (pools[type_id] == nullptr)
 			pools[type_id] = std::make_shared<Pool<T>>();
@@ -100,9 +100,28 @@ inline void Registry<MAX_COMPONENTS>::RemoveComponent(Entity entity)
 	if (!HasComponent<T>(entity))
 		return;
 
-	UniqueID type_id = Unique::typeID<T>();
+	UniqueID type_id = Unique::typeIndex<T>();
 	pools[type_id]->RemoveComponent(entity);
 	GetComponent<ComponentBitset<MAX_COMPONENTS>>(entity)->bitset.set(type_id, false);
+}
+
+template<uint32_t MAX_COMPONENTS>
+template<typename T>
+inline std::shared_ptr<Pool<T>> Registry<MAX_COMPONENTS>::GetPool()
+{
+	UniqueID type_id = Unique::typeIndex<T>();
+
+	if (pools[type_id] != nullptr)
+		return std::static_pointer_cast<Pool<T>>(pools[type_id]);
+
+	return nullptr;
+}
+
+template<uint32_t MAX_COMPONENTS>
+template<typename ...T>
+inline std::tuple<std::shared_ptr<Pool<T>>...> Registry<MAX_COMPONENTS>::GetPools()
+{
+	return { GetPool<T>()...};
 }
 
 template<uint32_t MAX_COMPONENTS>

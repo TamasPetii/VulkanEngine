@@ -6,9 +6,13 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "Engine/Registry/Registry.h"
+#include "Engine/Managers/ComponetBufferManager.h"
+#include "Engine/Managers/GeometryManager.h"
+
 class GeometryRenderer
 {
 public:
-	static void Render(VkCommandBuffer commandBuffer, std::shared_ptr<Vk::Buffer> vertexBuffer, std::shared_ptr<Vk::Buffer> indexBuffer, uint32_t indexCount);
+	static void Render(VkCommandBuffer commandBuffer, std::shared_ptr<Registry<DEFAULT_MAX_COMPONENTS>> registry, std::shared_ptr<ComponetBufferManager> componentBufferManager);
 };
 

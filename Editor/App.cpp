@@ -129,7 +129,7 @@ void App::InitGui()
 
 	engine->SetGuiRenderFunction(
 		[&](VkCommandBuffer commandBuffer) -> void {
-			gui->Render(commandBuffer);
+			gui->RenderDrawData(commandBuffer);
 		}
 	);
 }

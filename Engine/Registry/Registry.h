@@ -5,20 +5,21 @@
 
 #include <set>
 #include <bitset>
+#include <memory>
+#include <array>
 #include <unordered_map>
+
+constexpr uint32_t DEFAULT_MAX_COMPONENTS = 32;
 
 template<uint32_t MAX_COMPONENTS>
 class Registry
 {
 public:
-	const auto& GetCounter() const { return counter; }
-	const auto& GetActiveEntity() const { return activeEntity; }
-	const auto& GetDestroyedEntities() const { return destroyedEntities; }
-	const auto& GetPools() const { return pools; }
-	const auto& GetEntitiesWithBitset() const { return entitiesWithBitset; }
-
 	Entity CreateEntity();
 	void   DestroyEntity(Entity entity);
+
+	template <typename... T>
+	std::tuple<std::shared_ptr<Pool<T>>...> GetPools();
 	template <typename... T>
 	void RegisterEntitiesWithBitset();
 	template <typename... T>
@@ -34,6 +35,8 @@ public:
 	template <typename... T>
 	void RemoveComponents(Entity entity);
 protected:
+	template <typename T>
+	std::shared_ptr<Pool<T>> GetPool();
 	template <typename... T>
 	std::bitset<MAX_COMPONENTS> GetComponentsBitset();
 	template <typename T>

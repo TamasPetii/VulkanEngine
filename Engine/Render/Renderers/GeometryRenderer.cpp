@@ -1,6 +1,6 @@
 #include "GeometryRenderer.h"
 
-void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Vk::Buffer> vertexBuffer, std::shared_ptr<Vk::Buffer> indexBuffer, uint32_t indexCount)
+void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Registry<DEFAULT_MAX_COMPONENTS>> registry, std::shared_ptr<ComponetBufferManager> componentBufferManager)
 {
 	auto renderContext = RenderContext::GetContext();
 	auto vulkanContext = Vk::VulkanContext::GetContext();
@@ -32,6 +32,29 @@ void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Vk:
 		VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, VK_ACCESS_2_NONE,
 		VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT, VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
 
+	VkBufferMemoryBarrier2 bufferBarrier = {};
+	bufferBarrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
+	bufferBarrier.srcStageMask = VK_PIPELINE_STAGE_2_HOST_BIT;
+	bufferBarrier.srcAccessMask = VK_ACCESS_2_HOST_WRITE_BIT;
+	bufferBarrier.dstStageMask = VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT;
+	bufferBarrier.dstAccessMask = VK_ACCESS_2_SHADER_READ_BIT;
+	bufferBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	bufferBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	bufferBarrier.buffer = componentBufferManager->GetComponentBuffer("TransformComponentGPU", framesInFlightIndex)->buffer->Value();
+	bufferBarrier.offset = 0;
+	bufferBarrier.size = VK_WHOLE_SIZE;
+
+	VkDependencyInfo dependencyInfo = {};
+	dependencyInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+	dependencyInfo.bufferMemoryBarrierCount = 1;
+	dependencyInfo.pBufferMemoryBarriers = &bufferBarrier;
+	dependencyInfo.memoryBarrierCount = 0;
+	dependencyInfo.pMemoryBarriers = nullptr;
+	dependencyInfo.imageMemoryBarrierCount = 0;
+	dependencyInfo.pImageMemoryBarriers = nullptr;
+
+	vkCmdPipelineBarrier2(commandBuffer, &dependencyInfo);
+
 	VkRenderingAttachmentInfo colorAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(frameBuffer->GetImage("color")->GetImageView(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, &colorClearValue);
 	VkRenderingAttachmentInfo normalAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(frameBuffer->GetImage("normal")->GetImageView(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, &colorClearValue);
 	VkRenderingAttachmentInfo depthAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(frameBuffer->GetImage("depth")->GetImageView(), VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, &depthClearValue);
@@ -60,14 +83,16 @@ void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Vk:
 	glm::mat4 proj = glm::perspective(glm::radians(60.0f), frameBuffer->GetSize().width / (float)frameBuffer->GetSize().height, 0.01f, 1000.0f);
 	proj[1][1] *= -1;
 
-	std::pair<glm::mat4, VkDeviceAddress> pushConstants;
-	pushConstants.first = proj * view;
-	pushConstants.second = vertexBuffer->GetAddress();
+	auto geometry = GeometryManager::GetManager()->GetShape("cube");
 
-	vkCmdPushConstants(commandBuffer, renderContext->GetGraphicsPipeline("DeferredPre")->GetLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(pushConstants), &pushConstants);
-	vkCmdBindIndexBuffer(commandBuffer, indexBuffer->Value(), 0, VK_INDEX_TYPE_UINT32);
+	static std::tuple<VkDeviceAddress, VkDeviceAddress> pushConstants;
+	std::get<0>(pushConstants) = geometry->GetVertexBuffer()->GetAddress();
+	std::get<1>(pushConstants) = componentBufferManager->GetComponentBuffer("TransformComponentGPU", framesInFlightIndex)->buffer->GetAddress();
 
-	vkCmdDrawIndexed(commandBuffer, indexCount, 4096, 0, 0, 0);
+	vkCmdPushConstants(commandBuffer, renderContext->GetGraphicsPipeline("DeferredPre")->GetLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(std::tuple<VkDeviceAddress, VkDeviceAddress>), &pushConstants);
+	vkCmdBindIndexBuffer(commandBuffer, geometry->GetIndexBuffer()->Value(), 0, VK_INDEX_TYPE_UINT32);
+
+	vkCmdDrawIndexed(commandBuffer, geometry->GetIndexCount(), 4096, 0, 0, 0);
 
 	vkCmdEndRendering(commandBuffer);
 }

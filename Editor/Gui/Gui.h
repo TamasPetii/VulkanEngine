@@ -12,7 +12,8 @@ class Gui
 public:
 	Gui(GLFWwindow* window);
 	~Gui();
-	void Render(VkCommandBuffer commandBuffer);
+	void Render();
+	void RenderDrawData(VkCommandBuffer commandBuffer);
 private:
 	void Initialize(GLFWwindow* window);
 	void Cleanup();

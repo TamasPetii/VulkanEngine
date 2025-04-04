@@ -75,7 +75,7 @@ void Gui::Initialize(GLFWwindow* window)
 
 	SetStyle();
 
-	imguiDescriptorSets.resize(FRAMES_IN_FLIGHT);
+	imguiDescriptorSets.resize(3);
 }
 
 void Gui::Cleanup()
@@ -87,7 +87,7 @@ void Gui::Cleanup()
 	vkDestroyDescriptorPool(device->Value(), imguiPool, nullptr);
 }
 
-void Gui::Render(VkCommandBuffer commandBuffer)
+void Gui::Render()
 {
 	auto renderContext = RenderContext::GetContext();
 	auto framesInFlightIndex = renderContext->GetFramesInFlightIndex();
@@ -116,7 +116,6 @@ void Gui::Render(VkCommandBuffer commandBuffer)
 		
 		VkDescriptorSet image = ImGui_ImplVulkan_AddTexture(sampler, imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		imguiDescriptorSets[framesInFlightIndex].insert(image);
-
 		ImGui::Image((ImTextureID)image, viewPortSize);
 	}
 	ImGui::End();
@@ -131,6 +130,12 @@ void Gui::Render(VkCommandBuffer commandBuffer)
 	}
 
 	ImGui::Render();
+}
+
+void Gui::RenderDrawData(VkCommandBuffer commandBuffer)
+{
+	Render();
+
 	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
 
 	if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {

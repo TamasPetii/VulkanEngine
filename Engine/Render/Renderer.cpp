@@ -15,7 +15,7 @@ void Renderer::SetGuiRenderFunction(const std::function<void(VkCommandBuffer com
 	guiRenderFunction = function;
 }
 
-void Renderer::Render()
+void Renderer::Render(std::shared_ptr<Registry<DEFAULT_MAX_COMPONENTS>> registry, std::shared_ptr<ComponetBufferManager> componentBufferManager, std::unordered_map<std::type_index, std::shared_ptr<System>>& systems)
 {
 	auto device = Vk::VulkanContext::GetContext()->GetDevice();
 	auto swapChain = Vk::VulkanContext::GetContext()->GetSwapChain();
@@ -25,23 +25,24 @@ void Renderer::Render()
 
 	uint32_t framesInFlightIndex = RenderContext::GetContext()->GetFramesInFlightIndex();
 
-	auto imageAvailableSemaphore = imageAvailableSemaphores[framesInFlightIndex];
-	auto renderFinishedSemaphore = renderFinishedSemaphores[framesInFlightIndex];
-	auto inFlightFence = inFlightFences[framesInFlightIndex];
+	auto& imageAvailableSemaphore = imageAvailableSemaphores[framesInFlightIndex];
+	auto& renderFinishedSemaphore = renderFinishedSemaphores[framesInFlightIndex];
+	auto& inFlightFence = inFlightFences[framesInFlightIndex];
 
 	vkWaitForFences(device->Value(), 1, &inFlightFence->Value(), VK_TRUE, UINT64_MAX);
-
-	//Resize framebuffers, only if it maches the current frame index for proper syncronization
-	renderContext->ResizeMarkedFrameBuffers(framesInFlightIndex);
+	vkResetFences(device->Value(), 1, &inFlightFence->Value());
 
 	uint32_t imageIndex;
 	VkResult result = vkAcquireNextImageKHR(device->Value(), swapChain->Value(), UINT64_MAX, imageAvailableSemaphore->Value(), VK_NULL_HANDLE, &imageIndex);
 
-	vkResetFences(device->Value(), 1, &inFlightFence->Value());
+	//renderContext->ResizeMarkedFrameBuffers(framesInFlightIndex);
 
 	VkCommandBuffer commandBuffer = commandBuffers[framesInFlightIndex];
 
 	vkResetCommandBuffer(commandBuffer, 0);
+
+	//componentBufferManager->RecreateBuffer<TransformComponentGPU>("TransformComponentGPU", std::get<0>(registry->GetPools<TransformComponent>())->GetDenseSize(), framesInFlightIndex);
+	//systems[Unique::typeID<TransformSystem>()]->OnUpdate(registry, componentBufferManager);
 
 	VkCommandBufferBeginInfo beginInfo{};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -50,8 +51,7 @@ void Renderer::Render()
 
 	VK_CHECK_MESSAGE(vkBeginCommandBuffer(commandBuffer, &beginInfo), "Failed to begin recording command buffer!");
 
-	auto geometry = GeometryManager::GetManager()->GetShape("cube");
-	GeometryRenderer::Render(commandBuffer, geometry->GetVertexBuffer(), geometry->GetIndexBuffer(), geometry->GetIndexCount());
+	GeometryRenderer::Render(commandBuffer, registry, componentBufferManager);
 	DeferredRenderer::Render(commandBuffer);
 
 	auto frameBuffer = renderContext->GetFrameBuffer("main", framesInFlightIndex);
@@ -64,16 +64,18 @@ void Renderer::Render()
 		VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, VK_ACCESS_2_NONE,
 		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, VK_ACCESS_2_SHADER_READ_BIT);
 
-	VkRenderingAttachmentInfo guiColorAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(swapChain->GetImageViews()[imageIndex], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, nullptr);
-	std::vector<VkRenderingAttachmentInfo> renderTargetAttachments2 = { guiColorAttachment };
-	VkRenderingInfo guiRenderingInfo = Vk::DynamicRendering::BuildRenderingInfo(swapChain->GetExtent(), renderTargetAttachments2, nullptr);
-
-	vkCmdBeginRendering(commandBuffer, &guiRenderingInfo);
-
 	if (guiRenderFunction)
+	{
+		VkRenderingAttachmentInfo guiColorAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(swapChain->GetImageViews()[imageIndex], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, nullptr);
+		std::vector<VkRenderingAttachmentInfo> renderTargetAttachments2 = { guiColorAttachment };
+		VkRenderingInfo guiRenderingInfo = Vk::DynamicRendering::BuildRenderingInfo(swapChain->GetExtent(), renderTargetAttachments2, nullptr);
+
+		vkCmdBeginRendering(commandBuffer, &guiRenderingInfo);
+
 		guiRenderFunction(commandBuffer);
 
-	vkCmdEndRendering(commandBuffer);	
+		vkCmdEndRendering(commandBuffer);	
+	}
 
 	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, swapChain->GetImages()[imageIndex],
 		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,

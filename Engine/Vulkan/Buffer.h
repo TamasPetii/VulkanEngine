@@ -26,6 +26,7 @@ namespace Vk
 		void Destroy();
 		const VkBuffer Value() const;
 		const VkDeviceAddress& GetAddress() const;
+		void* GetHandler() { return bufferHandler; }
 		void* MapMemory();
 		void UnmapMemory();
 	private:

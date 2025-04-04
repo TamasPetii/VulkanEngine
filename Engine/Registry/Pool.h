@@ -10,23 +10,22 @@ class ENGINE_API PoolBase
 {
 public:
 	virtual ~PoolBase() = default;
+	virtual uint32_t GetDenseSize() = 0;
 	virtual void AddEntity(Entity entity) = 0;
 	virtual void RemoveEntity(Entity entity) = 0;
 	virtual bool HasComponent(Entity entity) = 0;
 	virtual void RemoveComponent(Entity entity) = 0;
-public:
-	auto GetUniqueIndex() { return uniqueIndex; }
-protected:
-	uint32_t uniqueIndex;
+	virtual Index GetIndex(Entity entity) = 0;
 };
 
 template<typename T>
 class Pool : public PoolBase
 {
 public:
-	Pool();
+	Pool() = default;
 	void AddEntity(Entity entity) override;
 	void RemoveEntity(Entity entity) override;
+	uint32_t GetDenseSize() override { return denseEntities.size(); }
 
 	bool HasComponent(Entity entity) override;
 	T*   GetComponent(Entity entity);
@@ -35,6 +34,7 @@ public:
 	void RemoveComponent(Entity entity) override;
 
 	//Getter
+	virtual Index GetIndex(Entity entity) override;
 	const auto& GetSparseEntityPages() { return sparseEntityPages; }
 	const auto& GetDenseEntities() { return denseEntities; }
 	const auto& GetDenseComponents() { return denseComponents; }

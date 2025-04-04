@@ -6,6 +6,7 @@ class ENGINE_API BlockTimer : public Timer
 {
 public:
 	BlockTimer();
+	~BlockTimer();
 	void Update() override;
 	float GetDeltaTime() override;
 	float GetElapsedTime() override;

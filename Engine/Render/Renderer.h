@@ -10,13 +10,16 @@
 #include "Renderers/DeferredRenderer.h"
 #include "Renderers/GeometryRenderer.h"
 #include "Engine/Managers/GeometryManager.h"
+#include "Engine/Registry/Registry.h"
+#include "Engine/Managers/ComponetBufferManager.h"
+#include "Engine/Registry/Systems/Systems.h"
 
 class ENGINE_API Renderer
 {
 public:
 	Renderer();
 	~Renderer();
-	void Render();
+	void Render(std::shared_ptr<Registry<DEFAULT_MAX_COMPONENTS>> registry, std::shared_ptr<ComponetBufferManager> componentBufferManager, std::unordered_map<std::type_index, std::shared_ptr<System>>& systems);
 	void SetGuiRenderFunction(const std::function<void(VkCommandBuffer commandBuffer)>& function);
 	void RecreateSwapChain();
 private:

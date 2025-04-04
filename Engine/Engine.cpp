@@ -1,4 +1,24 @@
 #include "Engine.h"
+#include <random>
+
+void Engine::InitRegistry()
+{
+	std::random_device dev;
+	std::mt19937 rng(dev());
+	std::uniform_real_distribution<float> dist(0, 1);
+
+	for (uint32_t i = 0; i < 4096; ++i)
+	{
+		auto entity = registry->CreateEntity();
+		registry->AddComponents<TransformComponent>(entity);
+
+		auto [component] = registry->GetComponents<TransformComponent>(entity);
+		component->scale = glm::vec3(dist(rng), dist(rng), dist(rng));
+		component->rotation = glm::vec3(dist(rng), dist(rng), dist(rng));
+		component->translation = glm::vec3(dist(rng), dist(rng), dist(rng));
+	}
+}
+
 
 Engine::Engine() : 
 	isWindowResized(false)
@@ -9,10 +29,6 @@ Engine::~Engine()
 {
 	Clean();
 }
-
-class A {};
-class B {};
-class C {};
 
 void Engine::Init()
 {
@@ -29,29 +45,25 @@ void Engine::Init()
 	renderer = std::make_shared<Renderer>();
 	frameTimer = std::make_shared<FrameTimer>();
 
-	registry = std::make_shared<Registry<32>>();
-	registry->RegisterEntitiesWithBitset<A, C>();
-	registry->RegisterEntitiesWithBitset<B>();
-	registry->RegisterEntitiesWithBitset<A, B, C>();
+	registry = std::make_shared<Registry<DEFAULT_MAX_COMPONENTS>>();
+	InitRegistry();
 
-	auto entity1 = registry->CreateEntity();
-	auto entity2 = registry->CreateEntity();
-	auto entity3 = registry->CreateEntity();
+	systems[Unique::typeID<TransformSystem>()] = std::make_shared<TransformSystem>();
 
-	registry->AddComponents<A, B, C>(entity1);
-	registry->AddComponents<A, B>(entity2);
-	registry->AddComponents<B, C>(entity3);
+	componentBufferManager = std::make_shared<ComponetBufferManager>();
 
-	auto [a1, c1] = registry->GetComponents<A, C>(entity1);
-	auto [a2, b2] = registry->GetComponents<A, B>(entity2);
-	auto [a3, b3, c3] = registry->GetComponents<A, C, B>(entity3);
-
-	registry->RemoveComponents<C>(entity1);
-	registry->DestroyEntity(entity2);
+	{
+		Vk::BufferConfig config;
+		config.size = 1;
+		config.usage = VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT;
+		config.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT; // VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+		componentBufferManager->RegisterBuffer("TransformComponentGPU", config);
+	}
 }
 
 void Engine::Clean()
 {
+	componentBufferManager.reset();
 	renderer.reset();
 	GeometryManager::Destroy();
 	Vk::VulkanContext::DestroyContext();
@@ -97,11 +109,13 @@ void Engine::Update()
 		time = 0;
 		counter = 0;
 	}
+
+	
 }
 
 void Engine::Render()
 {
-	renderer->Render();
+	renderer->Render(registry, componentBufferManager, systems);
 }
 
 void Engine::WindowResizeEvent()

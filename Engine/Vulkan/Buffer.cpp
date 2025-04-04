@@ -62,7 +62,7 @@ void Vk::Buffer::Init()
 void Vk::Buffer::Destroy()
 {
 	auto device = VulkanContext::GetContext()->GetDevice();
-
+	UnmapMemory();
 	vkDestroyBuffer(device->Value(), buffer, nullptr);
 	vkFreeMemory(device->Value(), bufferMemory, nullptr);
 }
@@ -91,9 +91,10 @@ void* Vk::Buffer::MapMemory()
 }
 void Vk::Buffer::UnmapMemory()
 {
+	auto device = VulkanContext::GetContext()->GetDevice();
 	if (bufferHandler != VK_NULL_HANDLE)
 	{
-		auto device = VulkanContext::GetContext()->GetDevice();
 		vkUnmapMemory(device->Value(), bufferMemory);
+		bufferHandler = VK_NULL_HANDLE;
 	}
 }

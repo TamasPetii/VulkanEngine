@@ -1,12 +1,5 @@
 #pragma once
 #include "Pool.h"
-#include "Unique.h"
-
-template<typename T>
-inline Pool<T>::Pool()
-{
-	uniqueIndex = Unique::typeID<T>();
-}
 
 template<typename T>
 inline void Pool<T>::AddEntity(Entity entity)
@@ -98,6 +91,13 @@ inline void Pool<T>::RemoveComponent(Entity entity)
 
 	//Set the deleted entity sparse index to NULL
 	sparseEntityPages[deleteIndices.first][deleteIndices.second] = NULL_ENTITY;
+}
+
+template<typename T>
+inline Index Pool<T>::GetIndex(Entity entity)
+{
+	auto pageIndex = GetPageIndices(entity);
+	return sparseEntityPages[pageIndex.first][pageIndex.second];
 }
 
 template<typename T>

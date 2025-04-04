@@ -5,7 +5,7 @@
 #include <bitset>
 
 template<uint32_t MAX_COMPONENTS>
-struct ENGINE_API ComponentBitset
+struct ComponentBitset
 {
 	std::bitset<MAX_COMPONENTS> bitset;
 };
