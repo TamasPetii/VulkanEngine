@@ -43,5 +43,6 @@ inline void ComponetBufferManager::RecreateBuffer(const std::string& name, uint3
 
 		config.size = requiredSize * sizeof(T);
 		componentBuffer.buffer = std::make_shared<Vk::Buffer>(config);
+		componentBuffer.buffer->MapMemory();
 	}
 }

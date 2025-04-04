@@ -9,6 +9,7 @@
 #include "Engine/Registry/Registry.h"
 #include "Engine/Managers/ComponetBufferManager.h"
 #include "Engine/Managers/GeometryManager.h"
+#include "Engine/Components/TransformComponent.h"
 
 class GeometryRenderer
 {

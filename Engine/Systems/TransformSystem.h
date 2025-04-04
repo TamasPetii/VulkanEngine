@@ -1,6 +1,6 @@
 #pragma once
 #include "System.h"
-#include "Engine/Registry/Components/TransformComponent.h"
+#include "Engine/Components/TransformComponent.h"
 #include "Engine/Render/RenderContext.h"
 
 class TransformSystem : public System

@@ -12,7 +12,7 @@
 #include "Engine/Managers/GeometryManager.h"
 #include "Engine/Registry/Registry.h"
 #include "Engine/Managers/ComponetBufferManager.h"
-#include "Engine/Registry/Systems/Systems.h"
+#include "Engine/Systems/Systems.h"
 
 class ENGINE_API Renderer
 {

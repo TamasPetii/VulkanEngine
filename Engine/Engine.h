@@ -8,8 +8,8 @@
 #include <span>
 #include <functional>
 
-#include "Engine/Registry/Components/Components.h"
-#include "Engine/Registry/Systems/Systems.h"
+#include "Engine/Components/Components.h"
+#include "Engine/Systems/Systems.h"
 #include "Engine/Managers/ComponetBufferManager.h"
 
 class ENGINE_API Engine

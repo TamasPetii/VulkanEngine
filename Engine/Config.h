@@ -1,4 +1,4 @@
 #pragma once
 #include <cstdint>
 
-constexpr uint32_t FRAMES_IN_FLIGHT = 1;
+constexpr uint32_t FRAMES_IN_FLIGHT = 3;

@@ -17,18 +17,18 @@ void TransformSystem::OnUpdate(std::shared_ptr<Registry<DEFAULT_MAX_COMPONENTS>>
 
 	uint32_t framesInFlightIndex = RenderContext::GetContext()->GetFramesInFlightIndex();
 	auto componentBuffer = componentBufferManager->GetComponentBuffer("TransformComponentGPU", framesInFlightIndex);
-	auto bufferHandler = static_cast<TransformComponentGPU*>(componentBuffer->buffer->MapMemory());
+	auto bufferHandler = static_cast<TransformComponentGPU*>(componentBuffer->buffer->GetHandler());
 
 	std::random_device dev;
 	std::mt19937 rng(dev());
 	std::uniform_real_distribution<float> dist(0, 1);
 
-	std::for_each(std::execution::seq, transformPool->GetDenseEntities().begin(), transformPool->GetDenseEntities().end(),
+	std::for_each(std::execution::par, transformPool->GetDenseEntities().begin(), transformPool->GetDenseEntities().end(),
 		[&](const Entity& entity) -> void {
 			auto index = transformPool->GetIndex(entity);
 			auto transformComponent = transformPool->GetComponent(entity);
 
-			if (true)
+			if (transformPool->GetBitset(entity).test(UPDATE_BIT))
 			{
 				transformComponent->scale = glm::vec3(dist(rng), dist(rng), dist(rng));
 				transformComponent->rotation = glm::vec3(dist(rng), dist(rng), dist(rng));
@@ -44,6 +44,8 @@ void TransformSystem::OnUpdate(std::shared_ptr<Registry<DEFAULT_MAX_COMPONENTS>>
 
 				transformComponent->transformIT = glm::inverse(glm::transpose(transform));
 				transformComponent->versionID++;
+
+				transformPool->GetBitset(entity).set(UPDATE_BIT, false);
 			}
 
 			if (componentBuffer->versions[index] != transformComponent->versionID)
@@ -53,8 +55,6 @@ void TransformSystem::OnUpdate(std::shared_ptr<Registry<DEFAULT_MAX_COMPONENTS>>
 			}
 		}
 	);
-
-	componentBuffer->buffer->UnmapMemory();
 }
 
 void TransformSystem::OnFinish(std::shared_ptr<Registry<DEFAULT_MAX_COMPONENTS>> registry)

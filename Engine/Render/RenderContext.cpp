@@ -1,5 +1,6 @@
 #include "RenderContext.h"
 #include "Vertex.h"
+#include "GpuStructs.h"
 
 RenderContext* RenderContext::context = nullptr;
 bool RenderContext::initialized = false;
@@ -210,7 +211,7 @@ void RenderContext::InitGraphicsPipelines()
 			.SetColorAttachmentFormats(VK_FORMAT_R16G16B16A16_SFLOAT, 0)
 			.SetColorAttachmentFormats(VK_FORMAT_R16G16B16A16_SFLOAT, 1)
 			.SetDepthAttachmentFormat(VK_FORMAT_D32_SFLOAT)
-			.AddPushConstant(0, sizeof(std::tuple<VkDeviceAddress, VkDeviceAddress>), VK_SHADER_STAGE_VERTEX_BIT)
+			.AddPushConstant(0, sizeof(GpuPushConstant), VK_SHADER_STAGE_VERTEX_BIT)
 			.BuildDynamic();
 	}
 	

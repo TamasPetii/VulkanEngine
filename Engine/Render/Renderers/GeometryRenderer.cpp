@@ -1,4 +1,5 @@
 #include "GeometryRenderer.h"
+#include "../GpuStructs.h"
 
 void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Registry<DEFAULT_MAX_COMPONENTS>> registry, std::shared_ptr<ComponetBufferManager> componentBufferManager)
 {
@@ -85,14 +86,15 @@ void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Reg
 
 	auto geometry = GeometryManager::GetManager()->GetShape("cube");
 
-	static std::tuple<VkDeviceAddress, VkDeviceAddress> pushConstants;
-	std::get<0>(pushConstants) = geometry->GetVertexBuffer()->GetAddress();
-	std::get<1>(pushConstants) = componentBufferManager->GetComponentBuffer("TransformComponentGPU", framesInFlightIndex)->buffer->GetAddress();
+	GpuPushConstant pushConstants;
+	pushConstants.viewProj = proj * view;
+	pushConstants.vertexBuffer = geometry->GetVertexBuffer()->GetAddress();
+	pushConstants.transformBuffer = componentBufferManager->GetComponentBuffer("TransformComponentGPU", framesInFlightIndex)->buffer->GetAddress();
 
-	vkCmdPushConstants(commandBuffer, renderContext->GetGraphicsPipeline("DeferredPre")->GetLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(std::tuple<VkDeviceAddress, VkDeviceAddress>), &pushConstants);
+	vkCmdPushConstants(commandBuffer, renderContext->GetGraphicsPipeline("DeferredPre")->GetLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GpuPushConstant), &pushConstants);
 	vkCmdBindIndexBuffer(commandBuffer, geometry->GetIndexBuffer()->Value(), 0, VK_INDEX_TYPE_UINT32);
 
-	vkCmdDrawIndexed(commandBuffer, geometry->GetIndexCount(), 4096, 0, 0, 0);
+	vkCmdDrawIndexed(commandBuffer, geometry->GetIndexCount(), std::get<0>(registry->GetPools<TransformComponent>())->GetDenseSize(), 0, 0, 0);
 
 	vkCmdEndRendering(commandBuffer);
 }

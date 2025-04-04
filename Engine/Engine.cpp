@@ -7,7 +7,7 @@ void Engine::InitRegistry()
 	std::mt19937 rng(dev());
 	std::uniform_real_distribution<float> dist(0, 1);
 
-	for (uint32_t i = 0; i < 4096; ++i)
+	for (uint32_t i = 0; i < 256; ++i)
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent>(entity);
@@ -56,7 +56,7 @@ void Engine::Init()
 		Vk::BufferConfig config;
 		config.size = 1;
 		config.usage = VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT;
-		config.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT; // VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+		config.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 		componentBufferManager->RegisterBuffer("TransformComponentGPU", config);
 	}
 }

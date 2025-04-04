@@ -32,17 +32,17 @@ void Renderer::Render(std::shared_ptr<Registry<DEFAULT_MAX_COMPONENTS>> registry
 	vkWaitForFences(device->Value(), 1, &inFlightFence->Value(), VK_TRUE, UINT64_MAX);
 	vkResetFences(device->Value(), 1, &inFlightFence->Value());
 
+	renderContext->ResizeMarkedFrameBuffers(framesInFlightIndex);
+	
 	uint32_t imageIndex;
 	VkResult result = vkAcquireNextImageKHR(device->Value(), swapChain->Value(), UINT64_MAX, imageAvailableSemaphore->Value(), VK_NULL_HANDLE, &imageIndex);
-
-	//renderContext->ResizeMarkedFrameBuffers(framesInFlightIndex);
 
 	VkCommandBuffer commandBuffer = commandBuffers[framesInFlightIndex];
 
 	vkResetCommandBuffer(commandBuffer, 0);
 
-	//componentBufferManager->RecreateBuffer<TransformComponentGPU>("TransformComponentGPU", std::get<0>(registry->GetPools<TransformComponent>())->GetDenseSize(), framesInFlightIndex);
-	//systems[Unique::typeID<TransformSystem>()]->OnUpdate(registry, componentBufferManager);
+	componentBufferManager->RecreateBuffer<TransformComponentGPU>("TransformComponentGPU", std::get<0>(registry->GetPools<TransformComponent>())->GetDenseSize(), framesInFlightIndex);
+	systems[Unique::typeID<TransformSystem>()]->OnUpdate(registry, componentBufferManager);
 
 	VkCommandBufferBeginInfo beginInfo{};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;

@@ -14,6 +14,13 @@ inline void Pool<T>::RemoveEntity(Entity entity)
 }
 
 template<typename T>
+inline std::bitset<8>& Pool<T>::GetBitset(Entity entity)
+{
+	auto indices = GetPageIndices(entity);
+	return denseBitsets[sparseEntityPages[indices.first][indices.second]];
+}
+
+template<typename T>
 inline void Pool<T>::RegisterEntity(Entity entity)
 {
 	auto indices = GetPageIndices(entity);
@@ -37,9 +44,6 @@ inline bool Pool<T>::HasComponent(Entity entity)
 template<typename T>
 inline T* Pool<T>::GetComponent(Entity entity)
 {
-	if (!HasComponent(entity))
-		return nullptr;
-
 	auto indices = GetPageIndices(entity);
 	return &denseComponents[sparseEntityPages[indices.first][indices.second]];
 }
@@ -64,6 +68,9 @@ inline void Pool<T>::AddComponent(Entity entity, const T& component)
 	sparseEntityPages[indices.first][indices.second] = denseEntities.size();
 	denseEntities.push_back(entity);
 	denseComponents.emplace_back(component);
+	denseBitsets.push_back(std::bitset<8>(0));
+	denseBitsets.back().set(REGENERATE_BIT, true);
+	denseBitsets.back().set(UPDATE_BIT, true);
 }
 
 template<typename T>
@@ -84,10 +91,12 @@ inline void Pool<T>::RemoveComponent(Entity entity)
 	//Swap the dense indices and components between the last entity, and the current deleted entity
 	std::swap(denseEntities[deleteDenseIndex], denseEntities[swapDenseIndex]);
 	std::swap(denseComponents[deleteDenseIndex], denseComponents[swapDenseIndex]);
+	std::swap(denseBitsets[deleteDenseIndex], denseBitsets[swapDenseIndex]);
 
 	//Delete entity's data from back
 	denseEntities.pop_back();
 	denseComponents.pop_back();
+	denseBitsets.pop_back();
 
 	//Set the deleted entity sparse index to NULL
 	sparseEntityPages[deleteIndices.first][deleteIndices.second] = NULL_ENTITY;
