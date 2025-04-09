@@ -9,9 +9,45 @@
 #include <stb_image.h>
 #include <dwmapi.h>
 
+#include "Engine/Managers/InputManager.h"
+
 static void FramebufferResizeCallback(GLFWwindow* window, int width, int height) {
 	auto app = reinterpret_cast<App*>(glfwGetWindowUserPointer(window));
 	app->GetEngine()->WindowResizeEvent();
+}
+
+static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
+
+	if (action == GLFW_PRESS)
+	{
+		InputManager::Instance()->SetKeyboardKey(key, true);
+	}
+	else if (action == GLFW_RELEASE)
+	{
+		InputManager::Instance()->SetKeyboardKey(key, false);
+	}
+}
+
+static void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
+{
+	ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
+
+	if (action == GLFW_PRESS)
+	{
+		InputManager::Instance()->SetMouseButton(button, true);
+	}
+	else if (action == GLFW_RELEASE)
+	{
+		InputManager::Instance()->SetMouseButton(button, false);
+	}
+}
+
+void CursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
+{
+	ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
+
+	InputManager::Instance()->SetMousePosition(xpos, ypos);
 }
 
 App::App()
@@ -29,9 +65,7 @@ void App::Run()
 	while (!glfwWindowShouldClose(window))
 	{
 		glfwPollEvents();
-
-		engine->Update();
-		engine->Render();
+		engine->SimulateFrame();
 	}
 }
 
@@ -40,6 +74,10 @@ void App::Init()
 	InitWindow();
 	InitEngine();
 	InitGui();
+
+	glfwSetKeyCallback(window, KeyCallback);
+	glfwSetMouseButtonCallback(window, MouseButtonCallback);
+	glfwSetCursorPosCallback(window, CursorPositionCallback);
 }
 
 void App::Clear()
@@ -120,7 +158,7 @@ void App::InitEngine()
 		}
 	);
 
-	engine->Init();
+	engine->Initialize();
 }
 
 void App::InitGui()
@@ -128,8 +166,8 @@ void App::InitGui()
 	gui = std::make_shared<Gui>(window);
 
 	engine->SetGuiRenderFunction(
-		[&](VkCommandBuffer commandBuffer) -> void {
-			gui->RenderDrawData(commandBuffer);
+		[&](VkCommandBuffer commandBuffer, std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex) -> void {
+			gui->Render(commandBuffer, registry, resourceManager, frameIndex);
 		}
 	);
 }

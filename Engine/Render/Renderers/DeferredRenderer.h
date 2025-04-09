@@ -1,11 +1,11 @@
 #pragma once
-#include "Engine/Render/RenderContext.h"
 #include "Engine/Vulkan/VulkanContext.h"
-#include "Engine/Vulkan/Buffer.h"
+#include "Engine/Registry/Registry.h"
+#include "Engine/Managers/ResourceManager.h"
+#include "Engine/Vulkan/DynamicRendering.h"
 
 class DeferredRenderer
 {
 public:
-	static void Render(VkCommandBuffer commandBuffer);
+	static void Render(VkCommandBuffer commandBuffer, std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex);
 };
-

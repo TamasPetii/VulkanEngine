@@ -106,7 +106,7 @@ Vk::FrameBufferBuilder& Vk::FrameBufferBuilder::AddImageSpecification(const std:
 
 Vk::FrameBufferBuilder& Vk::FrameBufferBuilder::AddDepthSpecification(uint32_t index, const ImageSpecification& specification)
 {
-	return AddImageSpecification("depth", index, specification);
+	return AddImageSpecification("Depth", index, specification);
 }
 
 std::shared_ptr<Vk::FrameBuffer> Vk::FrameBufferBuilder::Build(VkRenderPass renderPass)

@@ -8,14 +8,10 @@
 class GeometryManager
 {
 public:
-	static GeometryManager* GetManager();
-	static void Destroy();
-
-	~GeometryManager();
-	const auto& GetShape(const std::string& shapeName) const { return shapes.at(shapeName); }
-private:
-	static GeometryManager* manager;
 	GeometryManager();
+	~GeometryManager();
+	std::shared_ptr<Shape> GetShape(const std::string& name) const;
+private:
 	void Initialize();
 	void Cleanup();
 private:

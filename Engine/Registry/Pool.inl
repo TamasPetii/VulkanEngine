@@ -44,6 +44,9 @@ inline bool Pool<T>::HasComponent(Entity entity)
 template<typename T>
 inline T* Pool<T>::GetComponent(Entity entity)
 {
+	if (!HasComponent(entity))
+		return nullptr;
+
 	auto indices = GetPageIndices(entity);
 	return &denseComponents[sparseEntityPages[indices.first][indices.second]];
 }

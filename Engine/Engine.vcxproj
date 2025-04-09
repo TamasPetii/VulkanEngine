@@ -163,10 +163,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Components\CameraComponent.h" />
     <ClInclude Include="Config.h" />
-    <ClInclude Include="Managers\ComponetBufferManager.h" />
+    <ClInclude Include="Render\Renderers\GuiRenderer.h" />
+    <ClInclude Include="Managers\InputManager.h" />
+    <ClInclude Include="Managers\ComponentBufferManager.h" />
     <ClInclude Include="Components\Component.h" />
-    <ClInclude Include="Registry\ComponentBitset.h" />
     <ClInclude Include="Managers\GeometryManager.h" />
     <ClInclude Include="Geometry\Cone.h" />
     <ClInclude Include="Geometry\Cylinder.h" />
@@ -176,6 +178,7 @@
     <ClInclude Include="Geometry\Pyramid.h" />
     <ClInclude Include="Components\Components.h" />
     <ClInclude Include="Components\TransformComponent.h" />
+    <ClInclude Include="Managers\ResourceManager.h" />
     <ClInclude Include="Systems\Systems.h" />
     <ClInclude Include="Render\GpuStructs.h" />
     <ClInclude Include="Render\Renderers\DeferredRenderer.h" />
@@ -186,6 +189,8 @@
     <ClInclude Include="Geometry\Torus.h" />
     <ClInclude Include="Systems\TransformSystem.h" />
     <ClInclude Include="Systems\System.h" />
+    <ClInclude Include="Timer\Timer.h" />
+    <ClInclude Include="Managers\VulkanManager.h" />
     <ClInclude Include="Vulkan\ImmediateQueue.h" />
     <ClInclude Include="Vulkan\DescriptorSet.h" />
     <ClInclude Include="Vulkan\Semaphore.h" />
@@ -194,7 +199,6 @@
     <ClInclude Include="Vulkan\CommandBuffer.h" />
     <ClInclude Include="Vulkan\Buffer.h" />
     <ClInclude Include="Vulkan\ImageSampler.h" />
-    <ClInclude Include="Render\RenderContext.h" />
     <ClInclude Include="Vulkan\DynamicRendering.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="Render\Renderer.h" />
@@ -220,17 +224,16 @@
     <ClInclude Include="Vulkan\Instance.h" />
     <ClInclude Include="Vulkan\DebugMessenger.h" />
     <ClInclude Include="EngineApi.h" />
-    <ClInclude Include="Timer\BlockTimer.h" />
-    <ClInclude Include="Timer\FrameTimer.h" />
     <ClInclude Include="Logger\Checker.h" />
     <ClInclude Include="Logger\Logger.h" />
-    <ClInclude Include="Timer\Timer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Components\CameraComponent.cpp" />
     <ClCompile Include="Config.cpp" />
-    <ClCompile Include="Managers\ComponetBufferManager.cpp" />
+    <ClCompile Include="Render\Renderers\GuiRenderer.cpp" />
+    <ClCompile Include="Managers\InputManager.cpp" />
+    <ClCompile Include="Managers\ComponentBufferManager.cpp" />
     <ClCompile Include="Components\Component.cpp" />
-    <ClCompile Include="Registry\ComponentBitset.cpp" />
     <ClCompile Include="Managers\GeometryManager.cpp" />
     <ClCompile Include="Geometry\Cone.cpp" />
     <ClCompile Include="Geometry\Cylinder.cpp" />
@@ -238,26 +241,26 @@
     <ClCompile Include="Geometry\Capsule.cpp" />
     <ClCompile Include="Geometry\Pyramid.cpp" />
     <ClCompile Include="Components\TransformComponent.cpp" />
+    <ClCompile Include="Registry\Registry.cpp" />
     <ClCompile Include="Render\Renderers\DeferredRenderer.cpp" />
     <ClCompile Include="Render\Renderers\GeometryRenderer.cpp" />
     <ClCompile Include="Geometry\Shape.cpp" />
     <ClCompile Include="Geometry\Sphere.cpp" />
     <ClCompile Include="Geometry\Quad.cpp" />
     <ClCompile Include="Geometry\Torus.cpp" />
+    <ClCompile Include="Managers\ResourceManager.cpp" />
     <ClCompile Include="Systems\TransformSystem.cpp" />
     <ClCompile Include="Systems\System.cpp" />
+    <ClCompile Include="Timer\Timer.cpp" />
+    <ClCompile Include="Managers\VulkanManager.cpp" />
     <ClCompile Include="Vulkan\ImmediateQueue.cpp" />
     <ClCompile Include="Vulkan\DescriptorSet.cpp" />
     <ClCompile Include="Vulkan\Semaphore.cpp" />
     <ClCompile Include="Vulkan\Fence.cpp" />
     <ClCompile Include="Vulkan\DescriptorPool.cpp" />
-    <ClCompile Include="Render\Examples\BlitImageToSwapchain.cpp" />
     <ClCompile Include="Vulkan\CommandBuffer.cpp" />
     <ClCompile Include="Vulkan\Buffer.cpp" />
     <ClCompile Include="Vulkan\ImageSampler.cpp" />
-    <ClCompile Include="Render\RenderContext.cpp" />
-    <ClCompile Include="Render\Examples\DynamicRendererExample.cpp" />
-    <ClCompile Include="Render\Examples\RendererExample.cpp" />
     <ClCompile Include="Vulkan\DynamicRendering.cpp" />
     <ClCompile Include="Render\Renderer.cpp" />
     <ClCompile Include="Render\Vertex.cpp" />
@@ -278,11 +281,8 @@
     <ClCompile Include="Vulkan\ValidationLayer.cpp" />
     <ClCompile Include="Vulkan\Instance.cpp" />
     <ClCompile Include="Vulkan\DebugMessenger.cpp" />
-    <ClCompile Include="Timer\BlockTimer.cpp" />
     <ClCompile Include="Engine.cpp" />
-    <ClCompile Include="Timer\FrameTimer.cpp" />
     <ClCompile Include="Logger\Logger.cpp" />
-    <ClCompile Include="Timer\Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Registry\Pool.inl" />

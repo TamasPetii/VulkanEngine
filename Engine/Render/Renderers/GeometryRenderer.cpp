@@ -1,15 +1,13 @@
 #include "GeometryRenderer.h"
 #include "../GpuStructs.h"
 
-void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Registry<DEFAULT_MAX_COMPONENTS>> registry, std::shared_ptr<ComponetBufferManager> componentBufferManager)
+void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex)
 {
-	auto renderContext = RenderContext::GetContext();
 	auto vulkanContext = Vk::VulkanContext::GetContext();
-	uint32_t framesInFlightIndex = renderContext->GetFramesInFlightIndex();
-
 	auto device = vulkanContext->GetDevice();
 	auto graphicsQueue = device->GetQueue(Vk::QueueType::GRAPHICS);
-	auto frameBuffer = renderContext->GetFrameBuffer("main", framesInFlightIndex);
+	auto frameBuffer = resourceManager->GetVulkanManager()->GetFrameDependentFrameBuffer("Main", frameIndex);
+	auto pipeline = resourceManager->GetVulkanManager()->GetGraphicsPipeline("DeferredPre");
 
 	VkClearValue colorClearValue{};
 	colorClearValue.color.float32[0] = 0.f;
@@ -21,50 +19,27 @@ void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Reg
 	depthClearValue.depthStencil.depth = 1.0f;
 	depthClearValue.depthStencil.stencil = 0;
 
-	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, frameBuffer->GetImage("color")->Value(),
+	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, frameBuffer->GetImage("Color")->Value(),
 		VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, VK_ACCESS_2_NONE,
 		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT);
 
-	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, frameBuffer->GetImage("normal")->Value(),
+	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, frameBuffer->GetImage("Normal")->Value(),
 		VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, VK_ACCESS_2_NONE,
 		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT);
 
-	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, frameBuffer->GetImage("depth")->Value(),
+	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, frameBuffer->GetImage("Depth")->Value(),
 		VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, VK_ACCESS_2_NONE,
 		VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT, VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
 
-	VkBufferMemoryBarrier2 bufferBarrier = {};
-	bufferBarrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
-	bufferBarrier.srcStageMask = VK_PIPELINE_STAGE_2_HOST_BIT;
-	bufferBarrier.srcAccessMask = VK_ACCESS_2_HOST_WRITE_BIT;
-	bufferBarrier.dstStageMask = VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT;
-	bufferBarrier.dstAccessMask = VK_ACCESS_2_SHADER_READ_BIT;
-	bufferBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	bufferBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	bufferBarrier.buffer = componentBufferManager->GetComponentBuffer("TransformComponentGPU", framesInFlightIndex)->buffer->Value();
-	bufferBarrier.offset = 0;
-	bufferBarrier.size = VK_WHOLE_SIZE;
-
-	VkDependencyInfo dependencyInfo = {};
-	dependencyInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
-	dependencyInfo.bufferMemoryBarrierCount = 1;
-	dependencyInfo.pBufferMemoryBarriers = &bufferBarrier;
-	dependencyInfo.memoryBarrierCount = 0;
-	dependencyInfo.pMemoryBarriers = nullptr;
-	dependencyInfo.imageMemoryBarrierCount = 0;
-	dependencyInfo.pImageMemoryBarriers = nullptr;
-
-	vkCmdPipelineBarrier2(commandBuffer, &dependencyInfo);
-
-	VkRenderingAttachmentInfo colorAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(frameBuffer->GetImage("color")->GetImageView(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, &colorClearValue);
-	VkRenderingAttachmentInfo normalAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(frameBuffer->GetImage("normal")->GetImageView(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, &colorClearValue);
-	VkRenderingAttachmentInfo depthAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(frameBuffer->GetImage("depth")->GetImageView(), VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, &depthClearValue);
+	VkRenderingAttachmentInfo colorAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(frameBuffer->GetImage("Color")->GetImageView(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, &colorClearValue);
+	VkRenderingAttachmentInfo normalAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(frameBuffer->GetImage("Normal")->GetImageView(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, &colorClearValue);
+	VkRenderingAttachmentInfo depthAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(frameBuffer->GetImage("Depth")->GetImageView(), VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, &depthClearValue);
 
 	std::vector<VkRenderingAttachmentInfo> renderTargetAttachments = { colorAttachment , normalAttachment };
 	VkRenderingInfo renderingInfo = Vk::DynamicRendering::BuildRenderingInfo(frameBuffer->GetSize(), renderTargetAttachments, &depthAttachment);
 
 	vkCmdBeginRendering(commandBuffer, &renderingInfo);
-	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderContext->GetGraphicsPipeline("DeferredPre")->GetPipeline());
+	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetPipeline());
 
 	VkViewport viewport{};
 	viewport.x = 0.0f;
@@ -84,17 +59,17 @@ void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Reg
 	glm::mat4 proj = glm::perspective(glm::radians(60.0f), frameBuffer->GetSize().width / (float)frameBuffer->GetSize().height, 0.01f, 1000.0f);
 	proj[1][1] *= -1;
 
-	auto geometry = GeometryManager::GetManager()->GetShape("cube");
+	auto geometry = resourceManager->GetGeometryManager()->GetShape("Cube");
 
 	GpuPushConstant pushConstants;
 	pushConstants.viewProj = proj * view;
 	pushConstants.vertexBuffer = geometry->GetVertexBuffer()->GetAddress();
-	pushConstants.transformBuffer = componentBufferManager->GetComponentBuffer("TransformComponentGPU", framesInFlightIndex)->buffer->GetAddress();
+	pushConstants.transformBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("TransformComponentGPU", frameIndex)->buffer->GetAddress();
 
-	vkCmdPushConstants(commandBuffer, renderContext->GetGraphicsPipeline("DeferredPre")->GetLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GpuPushConstant), &pushConstants);
+	vkCmdPushConstants(commandBuffer, pipeline->GetLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GpuPushConstant), &pushConstants);
 	vkCmdBindIndexBuffer(commandBuffer, geometry->GetIndexBuffer()->Value(), 0, VK_INDEX_TYPE_UINT32);
 
-	vkCmdDrawIndexed(commandBuffer, geometry->GetIndexCount(), std::get<0>(registry->GetPools<TransformComponent>())->GetDenseSize(), 0, 0, 0);
+	vkCmdDrawIndexed(commandBuffer, geometry->GetIndexCount(), registry->GetPool<TransformComponent>()->GetDenseSize(), 0, 0, 0);
 
 	vkCmdEndRendering(commandBuffer);
 }

@@ -1,7 +1,5 @@
 #include "Gui.h"
 #include <GLFW/glfw3.h>
-#include "../../Engine/Vulkan/VulkanContext.h"
-#include "../../Engine/Render/RenderContext.h"
 
 Gui::Gui(GLFWwindow* window)
 {
@@ -74,8 +72,6 @@ void Gui::Initialize(GLFWwindow* window)
 	ImGui_ImplVulkan_CreateFontsTexture();
 
 	SetStyle();
-
-	imguiDescriptorSets.resize(3);
 }
 
 void Gui::Cleanup()
@@ -87,14 +83,11 @@ void Gui::Cleanup()
 	vkDestroyDescriptorPool(device->Value(), imguiPool, nullptr);
 }
 
-void Gui::Render()
+void Gui::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex)
 {
-	auto renderContext = RenderContext::GetContext();
-	auto framesInFlightIndex = renderContext->GetFramesInFlightIndex();
-
-	for (VkDescriptorSet descriptorSet : imguiDescriptorSets[framesInFlightIndex])
+	for (VkDescriptorSet descriptorSet : imguiDescriptorSets[frameIndex])
 		ImGui_ImplVulkan_RemoveTexture(descriptorSet);
-	imguiDescriptorSets[framesInFlightIndex].clear();
+	imguiDescriptorSets[frameIndex].clear();
 
 	ImGui_ImplVulkan_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
@@ -108,14 +101,17 @@ void Gui::Render()
 	if (ImGui::Begin("Main", nullptr, ImGuiWindowFlags_NoTitleBar))
 	{
 		auto viewPortSize = ImGui::GetContentRegionAvail();
-		if (viewPortSize.x != renderContext->GetFrameBuffer("main", framesInFlightIndex)->GetSize().width || viewPortSize.y != renderContext->GetFrameBuffer("main", framesInFlightIndex)->GetSize().height)
-			renderContext->MarkFrameBufferToResize("main", framesInFlightIndex, viewPortSize.x, viewPortSize.y);
+		auto frameBuffer = resourceManager->GetVulkanManager()->GetFrameDependentFrameBuffer("Main", frameIndex);
 
-		auto sampler = renderContext->GetSampler("nearest")->Value();
-		auto imageView = renderContext->GetFrameBuffer("main", framesInFlightIndex)->GetImage("main")->GetImageView();
+		if (static_cast<uint32_t>(viewPortSize.x) != frameBuffer->GetSize().width || static_cast<uint32_t>(viewPortSize.y) != frameBuffer->GetSize().height)
+			resourceManager->GetVulkanManager()->MarkFrameBufferToResize("Main", frameIndex, static_cast<uint32_t>(viewPortSize.x), static_cast<uint32_t>(viewPortSize.y));
+
+		auto sampler = resourceManager->GetVulkanManager()->GetSampler("Nearest")->Value();
+		auto imageView = frameBuffer->GetImage("Main")->GetImageView();
 		
 		VkDescriptorSet image = ImGui_ImplVulkan_AddTexture(sampler, imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-		imguiDescriptorSets[framesInFlightIndex].insert(image);
+		imguiDescriptorSets[frameIndex].insert(image);
+
 		ImGui::Image((ImTextureID)image, viewPortSize);
 	}
 	ImGui::End();
@@ -130,12 +126,6 @@ void Gui::Render()
 	}
 
 	ImGui::Render();
-}
-
-void Gui::RenderDrawData(VkCommandBuffer commandBuffer)
-{
-	Render();
-
 	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
 
 	if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {

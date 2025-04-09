@@ -5,15 +5,14 @@
 
 #include "Engine/EngineApi.h"
 #include "Engine/Registry/Registry.h"
-#include "Engine/Managers/ComponetBufferManager.h"
+#include "Engine/Managers/ComponentBufferManager.h"
 
 class ENGINE_API System
 {
 public:
 	virtual ~System() = default;
-	virtual void OnStart(std::shared_ptr<Registry<DEFAULT_MAX_COMPONENTS>> registry) = 0;
-	virtual void OnUpdate(std::shared_ptr<Registry<DEFAULT_MAX_COMPONENTS>> registry, std::shared_ptr<ComponetBufferManager> componentBufferManager) = 0;
-	virtual void OnFinish(std::shared_ptr<Registry<DEFAULT_MAX_COMPONENTS>> registry) = 0;
-protected:
-	virtual void RegisterComponentBitset(std::shared_ptr<Registry<DEFAULT_MAX_COMPONENTS>> registry) = 0;
+	virtual void OnStart(std::shared_ptr<Registry> registry) = 0;
+	virtual void OnUpdate(std::shared_ptr<Registry> registry) = 0;
+	virtual void OnFinish(std::shared_ptr<Registry> registry) = 0;
+	virtual void OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared_ptr<ComponentBufferManager> componentBufferManager, uint32_t frameIndex) = 0;
 };

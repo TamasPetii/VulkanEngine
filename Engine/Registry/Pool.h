@@ -8,6 +8,7 @@
 constexpr uint32_t PAGE_SIZE = 16;
 constexpr uint32_t REGENERATE_BIT = 0;
 constexpr uint32_t UPDATE_BIT = 1;
+constexpr uint32_t CHANGED_BIT = 2;
 
 class ENGINE_API PoolBase
 {
@@ -29,19 +30,19 @@ public:
 	Pool() = default;
 	void AddEntity(Entity entity) override;
 	void RemoveEntity(Entity entity) override;
-	uint32_t GetDenseSize() override { return denseEntities.size(); }
+	uint32_t GetDenseSize() override { return static_cast<uint32_t>(denseEntities.size()); }
 
 	bool HasComponent(Entity entity) override;
-	T*   GetComponent(Entity entity);
+	T*  GetComponent(Entity entity);
 	void AddComponent(Entity entity);
 	void AddComponent(Entity entity, const T& component);
 	void RemoveComponent(Entity entity) override;
 
 	//Getter
 	virtual Index GetIndex(Entity entity) override;
-	const auto& GetSparseEntityPages() { return sparseEntityPages; }
-	const auto& GetDenseEntities() { return denseEntities; }
-	const auto& GetDenseComponents() { return denseComponents; }
+	auto& GetSparseEntityPages() { return sparseEntityPages; }
+	auto& GetDenseEntities() { return denseEntities; }
+	auto& GetDenseComponents() { return denseComponents; }
 	virtual std::bitset<8>& GetBitset(Entity entity) override;
 protected:
 	void RegisterEntity(Entity entity);

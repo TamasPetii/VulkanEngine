@@ -4,20 +4,15 @@
 #include "Engine/Vulkan/Buffer.h"
 #include <random>
 
-void TransformSystem::OnStart(std::shared_ptr<Registry<DEFAULT_MAX_COMPONENTS>> registry)
+void TransformSystem::OnStart(std::shared_ptr<Registry> registry)
 {
 }
 
-void TransformSystem::OnUpdate(std::shared_ptr<Registry<DEFAULT_MAX_COMPONENTS>> registry, std::shared_ptr<ComponetBufferManager> componentBufferManager)
+void TransformSystem::OnUpdate(std::shared_ptr<Registry> registry)
 {
 	auto [transformPool] = registry->GetPools<TransformComponent>();
-
 	if (!transformPool)
 		return;
-
-	uint32_t framesInFlightIndex = RenderContext::GetContext()->GetFramesInFlightIndex();
-	auto componentBuffer = componentBufferManager->GetComponentBuffer("TransformComponentGPU", framesInFlightIndex);
-	auto bufferHandler = static_cast<TransformComponentGPU*>(componentBuffer->buffer->GetHandler());
 
 	std::random_device dev;
 	std::mt19937 rng(dev());
@@ -25,11 +20,11 @@ void TransformSystem::OnUpdate(std::shared_ptr<Registry<DEFAULT_MAX_COMPONENTS>>
 
 	std::for_each(std::execution::par, transformPool->GetDenseEntities().begin(), transformPool->GetDenseEntities().end(),
 		[&](const Entity& entity) -> void {
-			auto index = transformPool->GetIndex(entity);
-			auto transformComponent = transformPool->GetComponent(entity);
-
 			if (transformPool->GetBitset(entity).test(UPDATE_BIT))
 			{
+				auto index = transformPool->GetIndex(entity);
+				auto transformComponent = transformPool->GetComponent(entity);
+
 				transformComponent->scale = glm::vec3(dist(rng), dist(rng), dist(rng));
 				transformComponent->rotation = glm::vec3(dist(rng), dist(rng), dist(rng));
 				transformComponent->translation = glm::vec3(dist(rng), dist(rng), dist(rng));
@@ -45,22 +40,53 @@ void TransformSystem::OnUpdate(std::shared_ptr<Registry<DEFAULT_MAX_COMPONENTS>>
 				transformComponent->transformIT = glm::inverse(glm::transpose(transform));
 				transformComponent->versionID++;
 
+				transformPool->GetBitset(entity).set(REGENERATE_BIT, false);
 				transformPool->GetBitset(entity).set(UPDATE_BIT, false);
-			}
-
-			if (componentBuffer->versions[index] != transformComponent->versionID)
-			{
-				componentBuffer->versions[index] = transformComponent->versionID;
-				bufferHandler[index] = TransformComponentGPU(*transformComponent);
+				transformPool->GetBitset(entity).set(CHANGED_BIT, true);
 			}
 		}
 	);
 }
 
-void TransformSystem::OnFinish(std::shared_ptr<Registry<DEFAULT_MAX_COMPONENTS>> registry)
+void TransformSystem::OnFinish(std::shared_ptr<Registry> registry)
 {
+	auto [transformPool] = registry->GetPools<TransformComponent>();
+
+	if (!transformPool)
+		return;
+
+	std::for_each(std::execution::par, transformPool->GetDenseEntities().begin(), transformPool->GetDenseEntities().end(),
+		[&](const Entity& entity) -> void {
+			transformPool->GetBitset(entity).set(REGENERATE_BIT, false);
+			transformPool->GetBitset(entity).set(UPDATE_BIT, false);
+			transformPool->GetBitset(entity).set(CHANGED_BIT, false);
+		}
+	);
 }
 
-void TransformSystem::RegisterComponentBitset(std::shared_ptr<Registry<DEFAULT_MAX_COMPONENTS>> registry)
+void TransformSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared_ptr<ComponentBufferManager> componentBufferManager, uint32_t frameIndex)
 {
+	auto [transformPool] = registry->GetPools<TransformComponent>();
+
+	if (!transformPool)
+		return;
+
+	auto componentBuffer = componentBufferManager->GetComponentBuffer("TransformComponentGPU", frameIndex);
+	auto bufferHandler = static_cast<TransformComponentGPU*>(componentBuffer->buffer->GetHandler());
+
+	std::for_each(std::execution::par, transformPool->GetDenseEntities().begin(), transformPool->GetDenseEntities().end(),
+		[&](const Entity& entity) -> void {
+			auto index = transformPool->GetIndex(entity);
+			auto transformComponent = transformPool->GetComponent(entity);
+
+			if (componentBuffer->versions[index] != transformComponent->versionID)
+			{
+				auto index = transformPool->GetIndex(entity);
+				auto transformComponent = transformPool->GetComponent(entity);
+
+				componentBuffer->versions[index] = transformComponent->versionID;
+				bufferHandler[index] = TransformComponentGPU(*transformComponent);
+			}
+		}
+	);
 }

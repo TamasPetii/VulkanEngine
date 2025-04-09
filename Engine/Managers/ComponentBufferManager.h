@@ -1,8 +1,10 @@
 #pragma once
+#include "Engine/Config.h"
 #include "Engine/Vulkan/Buffer.h"
 #include <unordered_map>
 #include <string>
 #include <memory>
+#include <array>
 
 class Vk::Buffer;
 
@@ -12,10 +14,9 @@ struct ComponentBuffer
 	std::vector<uint32_t> versions;
 };
 
-class ComponetBufferManager
+class ComponentBufferManager
 {
 public:
-	void FramesInFlightChanged();
 	void RegisterBuffer(const std::string& name, const Vk::BufferConfig& config);
 	auto* GetComponentBuffer(const std::string& name, uint32_t framesInFlightIndex) { return &(buffers.at(name).second[framesInFlightIndex]); }
 
@@ -23,11 +24,11 @@ public:
 	void RecreateBuffer(const std::string& name, uint32_t size, uint32_t frameInFlightIndex);
 private:
 	uint32_t bufferBlockSize = 256;
-	std::unordered_map<std::string, std::pair<Vk::BufferConfig, std::vector<ComponentBuffer>>> buffers;
+	std::unordered_map<std::string, std::pair<Vk::BufferConfig, std::array<ComponentBuffer, MAX_FRAMES_IN_FLIGHTS>>> buffers;
 };
 
 template<typename T>
-inline void ComponetBufferManager::RecreateBuffer(const std::string& name, uint32_t size, uint32_t frameInFlightIndex)
+inline void ComponentBufferManager::RecreateBuffer(const std::string& name, uint32_t size, uint32_t frameInFlightIndex)
 {
 	if (buffers.find(name) == buffers.end())
 		return;

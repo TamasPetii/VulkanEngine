@@ -73,7 +73,7 @@ void Vk::RenderPassBuilder::RegisterSubpass(const std::string& subpassName, uint
 
 void Vk::RenderPassBuilder::AttachDepthDescription(uint32_t index, VkFormat format, VkImageLayout initialLayout, VkImageLayout finalLayout)
 {
-	AttachImageDescription("depth", index, format, initialLayout, finalLayout);
+	AttachImageDescription("Depth", index, format, initialLayout, finalLayout);
 }
 
 void Vk::RenderPassBuilder::AttachImageDescription(const std::string& imageName, uint32_t index, VkFormat format, VkImageLayout initialLayout, VkImageLayout finalLayout)
@@ -97,7 +97,7 @@ void Vk::RenderPassBuilder::AttachInputReferenceToSubpass(const std::string& sub
 
 void Vk::RenderPassBuilder::AttachDepthReferenceToSubpass(const std::string& subpassName, VkImageLayout layout)
 {
-	auto imageReference = BuildAttachmentReference(attachmentDescriptions["depth"].index, layout);
+	auto imageReference = BuildAttachmentReference(attachmentDescriptions["Depth"].index, layout);
 	subpassReferences[subpassName].depthReference = imageReference;
 }
 
