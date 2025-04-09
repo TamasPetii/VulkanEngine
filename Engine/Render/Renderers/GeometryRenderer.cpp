@@ -62,8 +62,10 @@ void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Reg
 	auto geometry = resourceManager->GetGeometryManager()->GetShape("Cube");
 
 	GpuPushConstant pushConstants;
-	pushConstants.viewProj = proj * view;
+	pushConstants.cameraIndex = 0;
+	pushConstants.transformIndex = 0;
 	pushConstants.vertexBuffer = geometry->GetVertexBuffer()->GetAddress();
+	pushConstants.cameraBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("CameraComponentGPU", frameIndex)->buffer->GetAddress();
 	pushConstants.transformBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("TransformComponentGPU", frameIndex)->buffer->GetAddress();
 
 	vkCmdPushConstants(commandBuffer, pipeline->GetLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GpuPushConstant), &pushConstants);

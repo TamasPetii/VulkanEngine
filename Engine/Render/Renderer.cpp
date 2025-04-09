@@ -3,7 +3,6 @@
 #include "Renderers/GeometryRenderer.h"
 #include "Renderers/GuiRenderer.h"
 
-
 Renderer::Renderer()
 {
 	Init();

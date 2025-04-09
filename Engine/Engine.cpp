@@ -70,6 +70,7 @@ void Engine::WindowResizeEvent()
 void Engine::InitSystems()
 {
 	systems[Unique::typeID<TransformSystem>()] = std::make_shared<TransformSystem>();
+	systems[Unique::typeID<CameraSystem>()] = std::make_shared<CameraSystem>();
 }
 
 void Engine::InitRegistry()
@@ -80,32 +81,38 @@ void Engine::InitRegistry()
 	std::mt19937 rng(dev());
 	std::uniform_real_distribution<float> dist(0, 1);
 
-	for (uint32_t i = 0; i < 256; ++i)
+	{ //Camera
+		auto entity = registry->CreateEntity();
+		registry->AddComponents<TransformComponent>(entity);
+		registry->AddComponents<CameraComponent>(entity);
+	}
+
+	for (uint32_t i = 0; i < 4096; ++i)
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent>(entity);
 
 		auto [component] = registry->GetComponents<TransformComponent>(entity);
-		component->scale = glm::vec3(dist(rng), dist(rng), dist(rng));
-		component->rotation = glm::vec3(dist(rng), dist(rng), dist(rng));
-		component->translation = glm::vec3(dist(rng), dist(rng), dist(rng));
+		component->rotation = 180.f * glm::vec3(dist(rng), dist(rng), dist(rng));
+		component->translation = 100.f * glm::vec3(dist(rng), dist(rng), dist(rng));
 	}
 }
 
 void Engine::InitComponentBufferManager()
 {
-	{
-		Vk::BufferConfig config;
-		config.size = 1;
-		config.usage = VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT;
-		config.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-		resourceManager->GetComponentBufferManager()->RegisterBuffer("TransformComponentGPU", config);
-	}
+	Vk::BufferConfig config;
+	config.size = 1;
+	config.usage = VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT;
+	config.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+	resourceManager->GetComponentBufferManager()->RegisterBuffer("CameraComponentGPU", config);
+	resourceManager->GetComponentBufferManager()->RegisterBuffer("TransformComponentGPU", config);
 }
 
 void Engine::CheckForComponentBufferResize()
 {
 	resourceManager->GetComponentBufferManager()->RecreateBuffer<TransformComponentGPU>("TransformComponentGPU", registry->GetPool<TransformComponent>()->GetDenseSize(), framesInFlightIndex);
+	resourceManager->GetComponentBufferManager()->RecreateBuffer<CameraComponentGPU>("CameraComponentGPU", registry->GetPool<CameraComponent>()->GetDenseSize(), framesInFlightIndex);
 }
 
 void Engine::Update()
@@ -124,10 +131,25 @@ void Engine::Update()
 		counter = 0;
 	}
 
+	auto viewPortSize = resourceManager->GetVulkanManager()->GetFrameDependentFrameBuffer("Main", framesInFlightIndex)->GetSize();
+	auto cameraComponent = registry->GetComponent<CameraComponent>(0);
+	if (viewPortSize.width != cameraComponent->width || viewPortSize.height != cameraComponent->height)
+	{
+		cameraComponent->width = viewPortSize.width;
+		cameraComponent->height = viewPortSize.height;
+		registry->GetPool<CameraComponent>()->GetBitset(0).set(UPDATE_BIT, true);
+	}
+
 	{ //Transform System
 		Timer timer;
-		systems[Unique::typeID<TransformSystem>()]->OnUpdate(registry);
+		systems[Unique::typeID<TransformSystem>()]->OnUpdate(registry, frameTimer->GetFrameDeltaTime());
 		systemTimes[Unique::typeID<TransformSystem>()] += timer.GetElapsedTime<std::chrono::milliseconds>();
+	}
+
+	{ //Camera System
+		Timer timer;
+		systems[Unique::typeID<CameraSystem>()]->OnUpdate(registry, frameTimer->GetFrameDeltaTime());
+		systemTimes[Unique::typeID<CameraSystem>()] += timer.GetElapsedTime<std::chrono::milliseconds>();
 	}
 
 	InputManager::Instance()->UpdatePrevious();
@@ -141,6 +163,12 @@ void Engine::RefreshGpuData()
 		Timer timer;
 		systems[Unique::typeID<TransformSystem>()]->OnUploadToGpu(registry, resourceManager->GetComponentBufferManager(), framesInFlightIndex);
 		systemTimes[Unique::typeID<TransformSystem>()] += timer.GetElapsedTime<std::chrono::milliseconds>();
+	}
+
+	{ //Camera System
+		Timer timer;
+		systems[Unique::typeID<CameraSystem>()]->OnUploadToGpu(registry, resourceManager->GetComponentBufferManager(), framesInFlightIndex);
+		systemTimes[Unique::typeID<CameraSystem>()] += timer.GetElapsedTime<std::chrono::milliseconds>();
 	}
 }
 

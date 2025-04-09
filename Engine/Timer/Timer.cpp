@@ -15,7 +15,7 @@ Timer::~Timer()
 void Timer::Update()
 {
 	auto currentTime = std::chrono::high_resolution_clock::now();
-	frameDeltaTime = std::chrono::duration<double>(currentTime - lastUpdateTime).count();
-	frameElapsedTime = std::chrono::duration<double>(currentTime - startTime).count();
+	frameDeltaTime = std::chrono::duration<float>(currentTime - lastUpdateTime).count();
+	frameElapsedTime = std::chrono::duration<float>(currentTime - startTime).count();
 	lastUpdateTime = currentTime;
 }

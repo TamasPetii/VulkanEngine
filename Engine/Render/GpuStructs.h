@@ -4,7 +4,9 @@
 
 struct GpuPushConstant
 {
-	glm::mat4 viewProj;
+	uint32_t cameraIndex;
+	uint32_t transformIndex;
 	VkDeviceAddress vertexBuffer;
+	VkDeviceAddress cameraBuffer;
 	VkDeviceAddress transformBuffer;
 };

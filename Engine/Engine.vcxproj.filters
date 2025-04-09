@@ -204,6 +204,9 @@
     <ClInclude Include="Render\Renderers\GuiRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Systems\CameraSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -371,6 +374,9 @@
     <ClCompile Include="Render\Renderers\GuiRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Systems\CameraSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Registry\Pool.inl">
@@ -388,5 +394,6 @@
     <None Include="Shaders\Common\Plane.glsl" />
     <None Include="Shaders\Common\Vertex.glsl" />
     <None Include="Shaders\Common\Transform.glsl" />
+    <None Include="Shaders\Common\Camera.glsl" />
   </ItemGroup>
 </Project>

@@ -4,9 +4,10 @@
 
 struct ENGINE_API CameraComponent : public Component
 {
+	CameraComponent();
+
 	float yaw;
 	float pitch;
-	float roll;
 
 	float nearPlane;
 	float farPlane;
@@ -16,6 +17,7 @@ struct ENGINE_API CameraComponent : public Component
 	float height;
 	float speed;
 	float sensitivity;
+	float distance;
 
 	glm::vec3 up;
 	glm::vec3 target;

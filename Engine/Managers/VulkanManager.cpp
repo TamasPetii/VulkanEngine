@@ -1,4 +1,5 @@
 #include "VulkanManager.h"
+#include "Engine/Render/GpuStructs.h"
 
 VulkanManager::VulkanManager()
 {
@@ -114,7 +115,7 @@ void VulkanManager::ResizeMarkedFrameBuffers(uint32_t frameIndex)
 				InitMainFramebufferDescriptorSet(index);
 			}
 
-			std::cout << std::format("Resized framebuffer {} index {}: {} {}", name, index, width, height) << std::endl;
+			//std::cout << std::format("Resized framebuffer {} index {}: {} {}", name, index, width, height) << std::endl;
 
 			it = frameBuffersToResize.erase(it);
 		}
@@ -350,7 +351,7 @@ void VulkanManager::InitGraphicsPipelines()
 	}
 
 	{
-		uint32_t pushConsantSize = sizeof(glm::mat4) + sizeof(VkDeviceAddress) + sizeof(VkDeviceAddress);
+		uint32_t pushConsantSize = sizeof(GpuPushConstant);
 			 
 		Vk::GraphicsPipelineBuilder pipelineBuilder;
 		pipelineBuilder

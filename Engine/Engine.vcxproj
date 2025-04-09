@@ -163,6 +163,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Systems\CameraSystem.h" />
     <ClInclude Include="Components\CameraComponent.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="Render\Renderers\GuiRenderer.h" />
@@ -228,6 +229,7 @@
     <ClInclude Include="Logger\Logger.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Systems\CameraSystem.cpp" />
     <ClCompile Include="Components\CameraComponent.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="Render\Renderers\GuiRenderer.cpp" />
@@ -289,6 +291,7 @@
     <None Include="Registry\Registry.inl" />
     <None Include="Shaders\Basic.frag" />
     <None Include="Shaders\Basic.vert" />
+    <None Include="Shaders\Common\Camera.glsl" />
     <None Include="Shaders\Common\Transform.glsl" />
     <None Include="Shaders\Common\Vertex.glsl" />
     <None Include="Shaders\DeferredDir.frag" />

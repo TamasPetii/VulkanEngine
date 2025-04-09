@@ -1,7 +1,8 @@
 #pragma once
 #include "System.h"
+#include "Engine/Components/TransformComponent.h"
 
-class ENGINE_API TransformSystem : public System
+class ENGINE_API CameraSystem : public System
 {
 public:
 	virtual void OnStart(std::shared_ptr<Registry> registry) override;
