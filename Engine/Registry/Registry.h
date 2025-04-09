@@ -12,7 +12,9 @@ class Registry
 public:
 	Registry();
 	Entity CreateEntity();
-	void   DestroyEntity(Entity entity);
+	void DestroyEntity(Entity entity);
+	void SetActiveEntity(Entity entity);
+	Entity GetActiveEntity();
 
 	template<typename T>
 	std::shared_ptr<Pool<T>> GetPool();

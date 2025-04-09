@@ -9,11 +9,12 @@
 layout (location = 0) out vec3 vs_out_pos;
 layout (location = 1) out vec3 vs_out_normal;
 layout (location = 2) out vec2 vs_out_tex;
+layout (location = 3) out flat uint vs_out_entity;
 
 layout( push_constant ) uniform constants
 {	
+	uint entityIndex;
 	uint cameraIndex;
-	uint transformIndex;
 	VertexBuffer vertexBuffer;
 	CameraBuffer cameraBuffer;
 	TransformBuffer transformBuffer;
@@ -28,4 +29,5 @@ void main()
 	vs_out_pos = v.position;
 	vs_out_normal = v.normal;
 	vs_out_tex = vec2(v.uv_x, v.uv_y);
+	vs_out_entity = PushConstants.entityIndex;
 }

@@ -18,7 +18,7 @@ void CameraSystem::OnUpdate(std::shared_ptr<Registry> registry, float deltaTime)
 	if (!transformPool || !cameraPool)
 		return;
 
-	std::for_each(std::execution::seq, cameraPool->GetDenseEntities().begin(), cameraPool->GetDenseEntities().end(),
+	std::for_each(std::execution::par, cameraPool->GetDenseEntities().begin(), cameraPool->GetDenseEntities().end(),
 		[&](const Entity& entity) -> void
 		{
 			if (inputManager->IsKeyHeld(KEY_W) || inputManager->IsKeyHeld(KEY_S) || inputManager->IsKeyHeld(KEY_A) || inputManager->IsKeyHeld(KEY_D) || inputManager->IsButtonHeld(BUTTON_RIGHT))
@@ -104,7 +104,7 @@ void CameraSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared
 	auto componentBuffer = componentBufferManager->GetComponentBuffer("CameraComponentGPU", frameIndex);
 	auto bufferHandler = static_cast<CameraComponentGPU*>(componentBuffer->buffer->GetHandler());
 
-	std::for_each(std::execution::seq, cameraPool->GetDenseEntities().begin(), cameraPool->GetDenseEntities().end(),
+	std::for_each(std::execution::par, cameraPool->GetDenseEntities().begin(), cameraPool->GetDenseEntities().end(),
 		[&](const Entity& entity) -> void {
 			auto cameraComponent = cameraPool->GetComponent(entity);
 			auto index = cameraPool->GetIndex(entity);

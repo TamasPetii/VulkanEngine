@@ -274,6 +274,15 @@ void VulkanManager::InitFrameBuffers()
 	normalImageSpec.aspectFlag = VK_IMAGE_ASPECT_COLOR_BIT;
 	normalImageSpec.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
+	Vk::ImageSpecification entityImageSpec;
+	entityImageSpec.type = VK_IMAGE_TYPE_2D;
+	entityImageSpec.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	entityImageSpec.format = VK_FORMAT_R32_UINT;
+	entityImageSpec.tiling = VK_IMAGE_TILING_OPTIMAL;
+	entityImageSpec.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	entityImageSpec.aspectFlag = VK_IMAGE_ASPECT_COLOR_BIT;
+	entityImageSpec.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
 	Vk::ImageSpecification depthImageSpec;
 	depthImageSpec.type = VK_IMAGE_TYPE_2D;
 	depthImageSpec.viewType = VK_IMAGE_VIEW_TYPE_2D;
@@ -288,7 +297,8 @@ void VulkanManager::InitFrameBuffers()
 		.AddImageSpecification("Main", 0, mainImageSpec)
 		.AddImageSpecification("Color", 1, colorImageSpec)
 		.AddImageSpecification("Normal", 2, normalImageSpec)
-		.AddDepthSpecification(3, depthImageSpec);
+		.AddImageSpecification("Entity", 3, entityImageSpec)
+		.AddDepthSpecification(4, depthImageSpec);
 
 	for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHTS; ++i)
 		RegisterFrameDependentFrameBuffer("Main", frameBufferBuilder.BuildDynamic(), i);
@@ -368,8 +378,10 @@ void VulkanManager::InitGraphicsPipelines()
 			.SetColorBlend(VK_FALSE)
 			.AddColorBlendAttachment(VK_FALSE)
 			.AddColorBlendAttachment(VK_FALSE)
+			.AddColorBlendAttachment(VK_FALSE)
 			.SetColorAttachmentFormats(VK_FORMAT_R16G16B16A16_SFLOAT, 0)
 			.SetColorAttachmentFormats(VK_FORMAT_R16G16B16A16_SFLOAT, 1)
+			.SetColorAttachmentFormats(VK_FORMAT_R32_UINT, 2)
 			.SetDepthAttachmentFormat(VK_FORMAT_D32_SFLOAT)
 			.AddPushConstant(0, pushConsantSize, VK_SHADER_STAGE_VERTEX_BIT);
 
@@ -419,7 +431,8 @@ void VulkanManager::InitMainFramebufferDescriptorSet(uint32_t frameIndex)
 	setBuilder
 		.AddDescriptorLayoutImage(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, GetFrameDependentFrameBuffer("Main", frameIndex)->GetImage("Main")->GetImageView(), GetSampler("Nearest")->Value(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
 		.AddDescriptorLayoutImage(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, GetFrameDependentFrameBuffer("Main", frameIndex)->GetImage("Color")->GetImageView(), GetSampler("Nearest")->Value(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-		.AddDescriptorLayoutImage(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, GetFrameDependentFrameBuffer("Main", frameIndex)->GetImage("Normal")->GetImageView(), GetSampler("Nearest")->Value(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		.AddDescriptorLayoutImage(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, GetFrameDependentFrameBuffer("Main", frameIndex)->GetImage("Normal")->GetImageView(), GetSampler("Nearest")->Value(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		.AddDescriptorLayoutImage(3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, GetFrameDependentFrameBuffer("Main", frameIndex)->GetImage("Entity")->GetImageView(), GetSampler("Nearest")->Value(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 	RegisterFrameDependentDescriptorSet("MainFrameBuffer", setBuilder.BuildDescriptorSet(GetDescriptorPool("Main")->Value()), frameIndex);
 }

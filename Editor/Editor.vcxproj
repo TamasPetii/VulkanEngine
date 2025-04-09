@@ -164,6 +164,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
+    <ClInclude Include="Gui\Windows\GlobalSettingsWindow.h" />
+    <ClInclude Include="Gui\Windows\EntityWindow.h" />
+    <ClInclude Include="Gui\Windows\ComponentWindow.h" />
     <ClInclude Include="Gui\Gui.h" />
     <ClInclude Include="Gui\ImGui\imconfig.h" />
     <ClInclude Include="Gui\ImGui\imgui.h" />
@@ -173,9 +176,14 @@
     <ClInclude Include="Gui\ImGui\imstb_rectpack.h" />
     <ClInclude Include="Gui\ImGui\imstb_textedit.h" />
     <ClInclude Include="Gui\ImGui\imstb_truetype.h" />
+    <ClInclude Include="Gui\Utils\Window.h" />
+    <ClInclude Include="Gui\Utils\Panel.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp" />
+    <ClCompile Include="Gui\Windows\GlobalSettingsWindow.cpp" />
+    <ClCompile Include="Gui\Windows\EntityWindow.cpp" />
+    <ClCompile Include="Gui\Windows\ComponentWindow.cpp" />
     <ClCompile Include="Gui\Gui.cpp" />
     <ClCompile Include="Gui\ImGui\imgui.cpp" />
     <ClCompile Include="Gui\ImGui\imgui_demo.cpp" />
@@ -185,6 +193,8 @@
     <ClCompile Include="Gui\ImGui\imgui_tables.cpp" />
     <ClCompile Include="Gui\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Gui\Utils\Window.cpp" />
+    <ClCompile Include="Gui\Utils\Panel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Engine\Engine.vcxproj">

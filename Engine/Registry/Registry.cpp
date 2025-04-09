@@ -33,3 +33,13 @@ void Registry::DestroyEntity(Entity entity)
 
 	destroyedEntities.insert(entity);
 }
+
+void Registry::SetActiveEntity(Entity entity)
+{
+	activeEntity = entity;
+}
+
+Entity Registry::GetActiveEntity()
+{
+	return activeEntity;
+}

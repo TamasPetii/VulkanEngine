@@ -1,5 +1,8 @@
 #include "Gui.h"
 #include <GLFW/glfw3.h>
+#include "Editor/Gui/Windows/ComponentWindow.h"
+#include "Editor/Gui/Windows/EntityWindow.h"
+#include "Editor/Gui/Windows/GlobalSettingsWindow.h"
 
 Gui::Gui(GLFWwindow* window)
 {
@@ -113,17 +116,29 @@ void Gui::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Registry> regist
 		imguiDescriptorSets[frameIndex].insert(image);
 
 		ImGui::Image((ImTextureID)image, viewPortSize);
+
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+		{
+			int mouseX = ImGui::GetMousePos().x - ImGui::GetWindowContentRegionMin().x - ImGui::GetWindowPos().x;
+			int mouseY = ImGui::GetMousePos().y - ImGui::GetWindowContentRegionMin().y - ImGui::GetWindowPos().y;
+			int contentRegionX = ImGui::GetContentRegionMax().x - ImGui::GetWindowContentRegionMin().x;
+			int contentRegionY = ImGui::GetContentRegionMax().y - ImGui::GetWindowContentRegionMin().y;
+			mouseY = contentRegionY - mouseY;
+
+			if (mouseX >= 0 && mouseX < contentRegionX &&
+				mouseY >= 0 && mouseY < contentRegionY &&
+				ImGui::IsWindowHovered()
+				/*  && !ImGuizmo::IsUsing()*/)
+			{
+			}
+		}
 	}
 	ImGui::End();
 	ImGui::PopStyleVar();
 
-	for (int i = 0; i < 4; i++)
-	{
-		if (ImGui::Begin(std::to_string(i).c_str()))
-		{
-		}
-		ImGui::End();
-	}
+	EntityWindow::Render(registry, resourceManager, frameIndex);
+	ComponentWindow::Render(registry, resourceManager, frameIndex);
+	GlobalSettingsWindow::Render(registry, resourceManager, frameIndex);
 
 	ImGui::Render();
 	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
