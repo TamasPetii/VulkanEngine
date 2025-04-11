@@ -33,24 +33,15 @@ uint32_t ImageManager::GetAvailableIndex()
 	return index;
 }
 
-
-uint32_t ImageManager::GetImageIndex(const std::string& path)
-{
-	if (images.find(path) == images.end())
-		return UINT32_MAX;
-
-	return images.at(path).second;
-}
-
 std::shared_ptr<Vk::Image> ImageManager::GetImage(const std::string& path)
 {
 	if (images.find(path) == images.end())
 		return nullptr;
 
-	return images.at(path).first;
+	return images.at(path);
 }
 
-const std::pair<std::shared_ptr<Vk::Image>, uint32_t>& ImageManager::LoadImage(const std::string& path)
+std::shared_ptr<Vk::Image> ImageManager::LoadImage(const std::string& path)
 {
 	if (images.find(path) != images.end())
 		return images.at(path);
@@ -59,7 +50,7 @@ const std::pair<std::shared_ptr<Vk::Image>, uint32_t>& ImageManager::LoadImage(c
 	stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
 	if (!pixels)
-		return std::make_pair(nullptr, UINT32_MAX);
+		return nullptr;
 
 	VkDeviceSize imageSize = texWidth * texHeight * 4;
 
@@ -87,7 +78,7 @@ const std::pair<std::shared_ptr<Vk::Image>, uint32_t>& ImageManager::LoadImage(c
 	imageSpec.aspectFlag = VK_IMAGE_ASPECT_COLOR_BIT;
 	imageSpec.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
-	std::shared_ptr<Vk::Image> image = std::make_shared<Vk::Image>(imageSpec);
+	std::shared_ptr<Vk::Image> image = std::make_shared<Vk::Image>(imageSpec, GetAvailableIndex());
 
 	Vk::VulkanContext::GetContext()->GetImmediateQueue()->Submit(
 		[&](VkCommandBuffer commandBuffer) -> void {
@@ -103,7 +94,7 @@ const std::pair<std::shared_ptr<Vk::Image>, uint32_t>& ImageManager::LoadImage(c
 		}
 	);
 
-	images[path] = std::make_pair(image, GetAvailableIndex());
-	vulkanManager->GetDescriptorSet("LoadedImages")->UpdateImageArrayElement("Images", images[path].first->GetImageView(), VK_NULL_HANDLE, images[path].second);
+	images[path] = image;
+	vulkanManager->GetDescriptorSet("LoadedImages")->UpdateImageArrayElement("Images", images[path]->GetImageView(), VK_NULL_HANDLE, images[path]->GetDescriptorArrayIndex());
 	return images.at(path);
 }

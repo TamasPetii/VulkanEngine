@@ -1,3 +1,5 @@
+#extension GL_EXT_buffer_reference : require
+
 struct Camera
 {
 	mat4 view;

@@ -9,4 +9,5 @@ struct GpuPushConstant
 	VkDeviceAddress vertexBuffer;
 	VkDeviceAddress cameraBuffer;
 	VkDeviceAddress transformBuffer;
+	VkDeviceAddress materialBuffer;
 };

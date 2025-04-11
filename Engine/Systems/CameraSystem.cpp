@@ -70,7 +70,6 @@ void CameraSystem::OnUpdate(std::shared_ptr<Registry> registry, float deltaTime)
 				cameraComponent->viewProj = cameraComponent->proj * cameraComponent->view;
 				cameraComponent->viewProjInv = glm::inverse(cameraComponent->viewProj);
 
-				cameraPool->GetBitset(entity).set(UPDATE_BIT, false);
 				cameraPool->GetBitset(entity).set(CHANGED_BIT, true);
 				cameraComponent->versionID++;
 			}

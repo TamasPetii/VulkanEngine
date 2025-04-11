@@ -461,7 +461,7 @@ void VulkanManager::InitGraphicsPipelines()
 			.SetColorAttachmentFormats(VK_FORMAT_R16G16B16A16_SFLOAT, 1)
 			.SetColorAttachmentFormats(VK_FORMAT_R32_UINT, 2)
 			.SetDepthAttachmentFormat(VK_FORMAT_D32_SFLOAT)
-			.AddPushConstant(0, pushConsantSize, VK_SHADER_STAGE_VERTEX_BIT)
+			.AddPushConstant(0, pushConsantSize, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
 			.AddDescriptorSetLayout(GetDescriptorSet("LoadedImages")->Layout());
 
 		RegisterGraphicsPipeline("DeferredPre", pipelineBuilder.BuildDynamic());

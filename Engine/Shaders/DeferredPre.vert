@@ -1,15 +1,15 @@
 #version 460
-#extension GL_KHR_vulkan_glsl : enable
-#extension GL_EXT_buffer_reference : require
 
 #include "Common/Vertex.glsl"
 #include "Common/Transform.glsl"
 #include "Common/Camera.glsl"
+#include "Common/Material.glsl"
 
 layout (location = 0) out vec3 vs_out_pos;
 layout (location = 1) out vec3 vs_out_normal;
 layout (location = 2) out vec2 vs_out_tex;
 layout (location = 3) out flat uint vs_out_entity;
+layout (location = 4) out flat uint vs_out_index;
 
 layout( push_constant ) uniform constants
 {	
@@ -18,6 +18,7 @@ layout( push_constant ) uniform constants
 	VertexBuffer vertexBuffer;
 	CameraBuffer cameraBuffer;
 	TransformBuffer transformBuffer;
+	MaterialBuffer materialBuffer;
 } PushConstants;
 
 void main() 
@@ -30,4 +31,5 @@ void main()
 	vs_out_normal = v.normal;
 	vs_out_tex = vec2(v.uv_x, v.uv_y);
 	vs_out_entity = PushConstants.entityIndex;
+	vs_out_index = gl_InstanceIndex;
 }

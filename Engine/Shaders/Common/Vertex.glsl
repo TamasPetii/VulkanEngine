@@ -1,3 +1,5 @@
+#extension GL_EXT_buffer_reference : require
+
 struct Vertex {
 	vec3 position;
 	float uv_x;

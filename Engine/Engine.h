@@ -28,9 +28,11 @@ public:
 	void SetGuiRenderFunction(const std::function<void(VkCommandBuffer, std::shared_ptr<Registry>, std::shared_ptr<ResourceManager>, uint32_t)>& function);
 private:
 	void Cleanup();
-	void Update();
 	void Render();
-	void RefreshGpuData();
+	void Update();
+	void SystemFinish();
+	void SystemUpdate(float deltaTime);
+	void SystemUpdateGPU();
 private:
 	void InitSystems();
 	void InitRegistry();

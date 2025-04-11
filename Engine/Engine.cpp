@@ -74,6 +74,7 @@ void Engine::InitSystems()
 {
 	systems[Unique::typeID<TransformSystem>()] = std::make_shared<TransformSystem>();
 	systems[Unique::typeID<CameraSystem>()] = std::make_shared<CameraSystem>();
+	systems[Unique::typeID<MaterialSystem>()] = std::make_shared<MaterialSystem>();
 }
 
 void Engine::InitRegistry()
@@ -93,11 +94,14 @@ void Engine::InitRegistry()
 	for (uint32_t i = 0; i < 4096; ++i)
 	{
 		auto entity = registry->CreateEntity();
-		registry->AddComponents<TransformComponent>(entity);
+		registry->AddComponents<TransformComponent, MaterialComponent>(entity);
 
-		auto [component] = registry->GetComponents<TransformComponent>(entity);
-		component->rotation = 180.f * glm::vec3(dist(rng), dist(rng), dist(rng));
-		component->translation = 100.f * glm::vec3(dist(rng), dist(rng), dist(rng));
+		auto [transformComponent, materialComponent] = registry->GetComponents<TransformComponent, MaterialComponent>(entity);
+		transformComponent->rotation = 180.f * glm::vec3(dist(rng), dist(rng), dist(rng));
+		transformComponent->translation = 100.f * glm::vec3(dist(rng), dist(rng), dist(rng));
+
+		materialComponent->color = glm::vec4(dist(rng), dist(rng), dist(rng), 1);
+		materialComponent->albedo = resourceManager->GetImageManager()->LoadImage("../Assets/Texture.jpg");
 	}
 }
 
@@ -110,12 +114,14 @@ void Engine::InitComponentBufferManager()
 
 	resourceManager->GetComponentBufferManager()->RegisterBuffer("CameraComponentGPU", config);
 	resourceManager->GetComponentBufferManager()->RegisterBuffer("TransformComponentGPU", config);
+	resourceManager->GetComponentBufferManager()->RegisterBuffer("MaterialComponentGPU", config);
 }
 
 void Engine::CheckForComponentBufferResize()
 {
 	resourceManager->GetComponentBufferManager()->RecreateBuffer<TransformComponentGPU>("TransformComponentGPU", registry->GetPool<TransformComponent>()->GetDenseSize(), framesInFlightIndex);
 	resourceManager->GetComponentBufferManager()->RecreateBuffer<CameraComponentGPU>("CameraComponentGPU", registry->GetPool<CameraComponent>()->GetDenseSize(), framesInFlightIndex);
+	resourceManager->GetComponentBufferManager()->RecreateBuffer<MaterialComponentGPU>("MaterialComponentGPU", registry->GetPool<MaterialComponent>()->GetDenseSize(), framesInFlightIndex);
 }
 
 void Engine::Update()
@@ -143,22 +149,34 @@ void Engine::Update()
 		registry->GetPool<CameraComponent>()->GetBitset(0).set(UPDATE_BIT, true);
 	}
 
+	SystemUpdate(frameTimer->GetFrameDeltaTime());
+	SystemFinish();
+
+	InputManager::Instance()->UpdatePrevious();
+}
+
+void Engine::SystemUpdate(float deltaTime)
+{
 	{ //Transform System
 		Timer timer;
-		systems[Unique::typeID<TransformSystem>()]->OnUpdate(registry, frameTimer->GetFrameDeltaTime());
+		systems[Unique::typeID<TransformSystem>()]->OnUpdate(registry, deltaTime);
 		systemTimes[Unique::typeID<TransformSystem>()] += timer.GetElapsedTime<std::chrono::milliseconds>();
 	}
 
 	{ //Camera System
 		Timer timer;
-		systems[Unique::typeID<CameraSystem>()]->OnUpdate(registry, frameTimer->GetFrameDeltaTime());
+		systems[Unique::typeID<CameraSystem>()]->OnUpdate(registry, deltaTime);
 		systemTimes[Unique::typeID<CameraSystem>()] += timer.GetElapsedTime<std::chrono::milliseconds>();
 	}
 
-	InputManager::Instance()->UpdatePrevious();
+	{ //Material System
+		Timer timer;
+		systems[Unique::typeID<MaterialSystem>()]->OnUpdate(registry, deltaTime);
+		systemTimes[Unique::typeID<MaterialSystem>()] += timer.GetElapsedTime<std::chrono::milliseconds>();
+	}
 }
 
-void Engine::RefreshGpuData()
+void Engine::SystemUpdateGPU()
 {
 	CheckForComponentBufferResize();
 
@@ -172,6 +190,33 @@ void Engine::RefreshGpuData()
 		Timer timer;
 		systems[Unique::typeID<CameraSystem>()]->OnUploadToGpu(registry, resourceManager->GetComponentBufferManager(), framesInFlightIndex);
 		systemTimes[Unique::typeID<CameraSystem>()] += timer.GetElapsedTime<std::chrono::milliseconds>();
+	}
+
+	{ //Material System
+		Timer timer;
+		systems[Unique::typeID<MaterialSystem>()]->OnUploadToGpu(registry, resourceManager->GetComponentBufferManager(), framesInFlightIndex);
+		systemTimes[Unique::typeID<MaterialSystem>()] += timer.GetElapsedTime<std::chrono::milliseconds>();
+	}
+}
+
+void Engine::SystemFinish()
+{
+	{ //Transform System
+		Timer timer;
+		systems[Unique::typeID<TransformSystem>()]->OnFinish(registry);
+		systemTimes[Unique::typeID<TransformSystem>()] += timer.GetElapsedTime<std::chrono::milliseconds>();
+	}
+
+	{ //Camera System
+		Timer timer;
+		systems[Unique::typeID<CameraSystem>()]->OnFinish(registry);
+		systemTimes[Unique::typeID<CameraSystem>()] += timer.GetElapsedTime<std::chrono::milliseconds>();
+	}
+
+	{ //Material System
+		Timer timer;
+		systems[Unique::typeID<MaterialSystem>()]->OnFinish(registry);
+		systemTimes[Unique::typeID<MaterialSystem>()] += timer.GetElapsedTime<std::chrono::milliseconds>();
 	}
 }
 
@@ -190,7 +235,7 @@ void Engine::SimulateFrame()
 	vkWaitForFences(device->Value(), 1, &inFlightFence->Value(), VK_TRUE, UINT64_MAX);
 	vkResetFences(device->Value(), 1, &inFlightFence->Value());
 
-	RefreshGpuData();
+	SystemUpdateGPU();
 	Render();
 
 	framesInFlightIndex = (framesInFlightIndex + 1) % framesInFlight;

@@ -13,9 +13,8 @@ public:
 	ImageManager(std::shared_ptr<VulkanManager> vulkanManager);
 	~ImageManager();
 	
-	uint32_t GetImageIndex(const std::string& path);
 	std::shared_ptr<Vk::Image> GetImage(const std::string& path);
-	const std::pair<std::shared_ptr<Vk::Image>, uint32_t>& LoadImage(const std::string& path);
+	std::shared_ptr<Vk::Image> LoadImage(const std::string& path);
 private:
 	void Initialize();
 	void Cleanup();
@@ -24,6 +23,6 @@ private:
 	uint32_t counter = 0;
 	std::set<uint32_t> availableIndices;
 	std::shared_ptr<VulkanManager> vulkanManager = nullptr;
-	std::unordered_map<std::string, std::pair<std::shared_ptr<Vk::Image>, uint32_t>> images;
+	std::unordered_map<std::string, std::shared_ptr<Vk::Image>> images;
 };
 

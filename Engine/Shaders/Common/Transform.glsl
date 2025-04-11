@@ -1,3 +1,5 @@
+#extension GL_EXT_buffer_reference : require
+
 struct Transform {
 	mat4 transform;
 	mat4 transformIT;

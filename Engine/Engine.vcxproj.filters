@@ -222,6 +222,12 @@
     <ClInclude Include="Renderable\Model\AssimpConverter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Components\MaterialComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\MaterialSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -407,6 +413,12 @@
     <ClCompile Include="Renderable\Model\Model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Components\MaterialComponent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Systems\MaterialSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Registry\Pool.inl">
@@ -426,5 +438,6 @@
     <None Include="Shaders\Common\Transform.glsl" />
     <None Include="Shaders\Common\Camera.glsl" />
     <None Include="Shaders\Common\Images.glsl" />
+    <None Include="Shaders\Common\Material.glsl" />
   </ItemGroup>
 </Project>

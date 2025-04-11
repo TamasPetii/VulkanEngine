@@ -31,8 +31,6 @@ void TransformSystem::OnUpdate(std::shared_ptr<Registry> registry, float deltaTi
 
 				transformComponent->transformIT = glm::inverse(glm::transpose(transform));
 
-				transformPool->GetBitset(entity).set(REGENERATE_BIT, false);
-				transformPool->GetBitset(entity).set(UPDATE_BIT, false);
 				transformPool->GetBitset(entity).set(CHANGED_BIT, true);
 				transformComponent->versionID++;
 			}
