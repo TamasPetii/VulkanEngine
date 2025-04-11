@@ -15,3 +15,7 @@ struct Material {
 layout(buffer_reference, std430) readonly buffer MaterialBuffer { 
 	Material materials[];
 };
+
+layout(buffer_reference, std430) readonly buffer MaterialIndexBuffer { 
+	uint materialIndices[];
+};

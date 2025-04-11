@@ -439,5 +439,6 @@
     <None Include="Shaders\Common\Camera.glsl" />
     <None Include="Shaders\Common\Images.glsl" />
     <None Include="Shaders\Common\Material.glsl" />
+    <None Include="Shaders\Common\Incides.glsl" />
   </ItemGroup>
 </Project>

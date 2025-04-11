@@ -1,5 +1,10 @@
 #include "Model.h"
 
+Model::Model(std::shared_ptr<ImageManager> imageManager) : 
+    imageManager(imageManager)
+{
+}
+
 bool Model::Load(const std::string& path)
 {
     Assimp::Importer importer;
@@ -46,9 +51,37 @@ void Model::UploadToGpu()
         indirectBuffer->MapMemory();
 
         memcpy(indirectBuffer->GetHandler(), indirectCommands.data(), (size_t)bufferSize);
+    }
 
-        indirectCommands.clear();
-        indirectCommands.shrink_to_fit();
+    //Upload the materials to gpu
+    {
+        std::vector<MaterialComponentGPU> materialsGPU(materials.begin(), materials.end());
+        VkDeviceSize bufferSize = sizeof(MaterialComponentGPU) * materials.size();
+
+        Vk::BufferConfig config;
+        config.size = bufferSize;
+        config.usage = VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT;
+        config.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+        materialBuffer = std::make_shared<Vk::Buffer>(config);
+        materialBuffer->MapMemory();
+
+        memcpy(materialBuffer->GetHandler(), materialsGPU.data(), (size_t)bufferSize);
+    }
+
+    //Upload the material indices to gpu
+    {
+        VkDeviceSize bufferSize = sizeof(uint32_t) * materialIndices.size();
+
+        Vk::BufferConfig config;
+        config.size = bufferSize;
+        config.usage = VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT;
+        config.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+        materialIndexBuffer = std::make_shared<Vk::Buffer>(config);
+        materialIndexBuffer->MapMemory();
+
+        memcpy(materialIndexBuffer->GetHandler(), materialIndices.data(), (size_t)bufferSize);
     }
 }
 
@@ -81,6 +114,7 @@ void Model::PreFetch(aiNode* node, const aiScene* scene)
     indices.reserve(indexCount);
     surfacePoints.reserve(vertexCount);
     indirectCommands.resize(meshCount);
+    materialIndices.reserve(meshCount);
 }
 
 void Model::Process(aiNode* node, const aiScene* scene)
@@ -154,6 +188,61 @@ void Model::ProcessGeometry(aiMesh* mesh, const aiScene* scene, uint32_t& curren
         {
             indices.push_back(face.mIndices[j]);
             meshIndicesCount++;
+        }
+    }
+
+    if (mesh->mMaterialIndex >= 0)
+    {
+        aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+        std::string materialName = std::string(material->GetName().C_Str());
+
+        if (loadedMaterials.find(materialName) == loadedMaterials.end())
+        {
+            MaterialComponent materialComponent;
+
+            //Diffuse texture
+            if (material->GetTextureCount(aiTextureType_DIFFUSE) > 0)
+            {
+                aiString path;
+                material->GetTexture(aiTextureType_DIFFUSE, 0, &path);
+                std::string real_path = directory + "/" + std::string(path.C_Str());
+                materialComponent.albedo = imageManager->LoadImage(real_path);
+            }
+
+            //Normals texture
+            if (material->GetTextureCount(aiTextureType_NORMALS) > 0)
+            {
+                aiString path;
+                material->GetTexture(aiTextureType_NORMALS, 0, &path);
+                std::string real_path = directory + "/" + std::string(path.C_Str());
+                materialComponent.normal = imageManager->LoadImage(real_path);
+            }
+
+            //Height texture
+            if (material->GetTextureCount(aiTextureType_HEIGHT) > 0 && materialComponent.normal == nullptr)
+            {
+                aiString path;
+                material->GetTexture(aiTextureType_HEIGHT, 0, &path);
+                std::string real_path = directory + "/" + std::string(path.C_Str());
+                materialComponent.normal = imageManager->LoadImage(real_path);
+            }
+
+            //Displacement
+            if (material->GetTextureCount(aiTextureType_DISPLACEMENT) > 0 && materialComponent.normal == nullptr)
+            {
+                aiString path;
+                material->GetTexture(aiTextureType_DISPLACEMENT, 0, &path);
+                std::string real_path = directory + "/" + std::string(path.C_Str());
+                materialComponent.normal = imageManager->LoadImage(real_path);
+            }
+
+            aiColor3D diffuseColor(1.f, 1.f, 1.f);
+            material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuseColor);
+            materialComponent.color = glm::vec4(Assimp::ConvertAssimpToGlm(diffuseColor), 1);
+
+            loadedMaterials[materialName] = materials.size();
+            materials.push_back(materialComponent);
+            materialIndices.push_back(loadedMaterials[materialName]);
         }
     }
     

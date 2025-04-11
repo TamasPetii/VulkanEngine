@@ -377,9 +377,9 @@ void VulkanManager::InitDescriptors()
 		RegisterDescriptorSet("LoadedImages", setBuilder.BuildDescriptorSet(GetDescriptorPool("ImagePool")->Value()));
 
 		GetDescriptorSet("LoadedImages")->UpdateImageArrayElement("Samplers", VK_NULL_HANDLE, GetSampler("Nearest")->Value(), 0);
-		GetDescriptorSet("LoadedImages")->UpdateImageArrayElement("Samplers", VK_NULL_HANDLE, GetSampler("Linear")->Value(), 0);
-		GetDescriptorSet("LoadedImages")->UpdateImageArrayElement("Samplers", VK_NULL_HANDLE, GetSampler("NearestAniso")->Value(), 0);
-		GetDescriptorSet("LoadedImages")->UpdateImageArrayElement("Samplers", VK_NULL_HANDLE, GetSampler("LinearAniso")->Value(), 0);
+		GetDescriptorSet("LoadedImages")->UpdateImageArrayElement("Samplers", VK_NULL_HANDLE, GetSampler("Linear")->Value(), 1);
+		GetDescriptorSet("LoadedImages")->UpdateImageArrayElement("Samplers", VK_NULL_HANDLE, GetSampler("NearestAniso")->Value(), 2);
+		GetDescriptorSet("LoadedImages")->UpdateImageArrayElement("Samplers", VK_NULL_HANDLE, GetSampler("LinearAniso")->Value(), 3);
 	}
 }
 

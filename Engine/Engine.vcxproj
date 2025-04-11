@@ -307,6 +307,7 @@
     <None Include="Shaders\Basic.vert" />
     <None Include="Shaders\Common\Camera.glsl" />
     <None Include="Shaders\Common\Images.glsl" />
+    <None Include="Shaders\Common\Incides.glsl" />
     <None Include="Shaders\Common\Material.glsl" />
     <None Include="Shaders\Common\Transform.glsl" />
     <None Include="Shaders\Common\Vertex.glsl" />
