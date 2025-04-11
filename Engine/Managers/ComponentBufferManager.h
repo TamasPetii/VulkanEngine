@@ -14,7 +14,7 @@ struct ComponentBuffer
 	std::vector<uint32_t> versions;
 };
 
-class ComponentBufferManager
+class ENGINE_API ComponentBufferManager
 {
 public:
 	void RegisterBuffer(const std::string& name, const Vk::BufferConfig& config);

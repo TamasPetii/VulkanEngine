@@ -111,7 +111,7 @@ void VulkanManager::ResizeMarkedFrameBuffers(uint32_t frameIndex)
 			//Regenerate descriptor for framebuffers, need some association mechanism between fbo and dsc
 			if (name == "Main")
 			{
-				GetFrameDependentDescriptorSet("MainFrameBuffer", index)->Free(GetDescriptorPool("Main")->Value());
+				GetFrameDependentDescriptorSet("MainFrameBuffer", index)->Free();
 				InitMainFramebufferDescriptorSet(index);
 			}
 
@@ -171,6 +171,19 @@ std::shared_ptr<Vk::DescriptorSet> VulkanManager::GetFrameDependentDescriptorSet
 	return frameDependentDescriptorSets.at(name)[frameIndex];
 }
 
+void VulkanManager::RegisterDescriptorSet(const std::string& name, std::shared_ptr<Vk::DescriptorSet> set)
+{
+	descriptorSets[name] = set;
+}
+
+std::shared_ptr<Vk::DescriptorSet> VulkanManager::GetDescriptorSet(const std::string& name) const
+{
+	if (descriptorSets.find(name) == descriptorSets.end())
+		return nullptr;
+
+	return descriptorSets.at(name);
+}
+
 void VulkanManager::RegisterFrameDependentFence(const std::string& name, std::shared_ptr<Vk::Fence> fence, uint32_t frameIndex)
 {
 	if (frameIndex >= MAX_FRAMES_IN_FLIGHTS)
@@ -227,6 +240,30 @@ void VulkanManager::InitSamplers()
 		config.anisotropyEnable = false;
 
 		RegisterSampler("Nearest", config);
+	}
+
+	{
+		Vk::ImageSamplerConfig config{};
+		config.magFilter = VK_FILTER_LINEAR;
+		config.minFilter = VK_FILTER_LINEAR;
+		config.addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		config.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+		config.mipMapFilter = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		config.anisotropyEnable = true;
+
+		RegisterSampler("LinearAniso", config);
+	}
+
+	{
+		Vk::ImageSamplerConfig config{};
+		config.magFilter = VK_FILTER_NEAREST;
+		config.minFilter = VK_FILTER_NEAREST;
+		config.addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		config.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+		config.mipMapFilter = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		config.anisotropyEnable = true;
+
+		RegisterSampler("NearestAniso", config);
 	}
 }
 
@@ -306,18 +343,59 @@ void VulkanManager::InitFrameBuffers()
 
 void VulkanManager::InitDescriptors()
 {
-	Vk::DescriptorPoolBuilder poolBuilder;
-	poolBuilder
-		.SetSetSize(MAX_FRAMES_IN_FLIGHTS)
-		.SetPoolSize(VK_DESCRIPTOR_TYPE_SAMPLER, 10)
-		.SetPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 10)
-		.SetPoolSize(VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 10);
+	{
+		Vk::DescriptorPoolBuilder poolBuilder;
+		poolBuilder
+			.SetMaxSets(MAX_FRAMES_IN_FLIGHTS)
+			.SetPoolSize(VK_DESCRIPTOR_TYPE_SAMPLER, 10)
+			.SetPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 10)
+			.SetPoolSize(VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 10);
+	
+		RegisterDescriptorPool("Main", poolBuilder.BuildDescriptorPool());
 
-	RegisterDescriptorPool("Main", poolBuilder.BuildDescriptorPool());
+		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHTS; ++i)
+			InitMainFramebufferDescriptorSet(i);
+	}
 
-	for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHTS; ++i)
-		InitMainFramebufferDescriptorSet(i);
+	{
+		constexpr uint32_t MAX_SAMPLERS = 16;
+		constexpr uint32_t MAX_IMAGES = 1024;
+
+		Vk::DescriptorPoolBuilder poolBuilder;
+		poolBuilder
+			.SetMaxSets(1)
+			.SetPoolSize(VK_DESCRIPTOR_TYPE_SAMPLER, 16)
+			.SetPoolSize(VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1024);
+	
+		RegisterDescriptorPool("ImagePool", poolBuilder.BuildDescriptorPool());
+
+		Vk::DescriptorSetBuilder setBuilder;
+		setBuilder
+			.AddDescriptorLayoutImage("Samplers", 0, VK_DESCRIPTOR_TYPE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, VK_NULL_HANDLE, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_UNDEFINED, MAX_SAMPLERS)
+			.AddDescriptorLayoutImage("Images", 1, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, VK_SHADER_STAGE_FRAGMENT_BIT, VK_NULL_HANDLE, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, MAX_IMAGES);
+
+		RegisterDescriptorSet("LoadedImages", setBuilder.BuildDescriptorSet(GetDescriptorPool("ImagePool")->Value()));
+
+		GetDescriptorSet("LoadedImages")->UpdateImageArrayElement("Samplers", VK_NULL_HANDLE, GetSampler("Nearest")->Value(), 0);
+		GetDescriptorSet("LoadedImages")->UpdateImageArrayElement("Samplers", VK_NULL_HANDLE, GetSampler("Linear")->Value(), 0);
+		GetDescriptorSet("LoadedImages")->UpdateImageArrayElement("Samplers", VK_NULL_HANDLE, GetSampler("NearestAniso")->Value(), 0);
+		GetDescriptorSet("LoadedImages")->UpdateImageArrayElement("Samplers", VK_NULL_HANDLE, GetSampler("LinearAniso")->Value(), 0);
+	}
 }
+
+
+void VulkanManager::InitMainFramebufferDescriptorSet(uint32_t frameIndex)
+{
+	Vk::DescriptorSetBuilder setBuilder;
+	setBuilder
+		.AddDescriptorLayoutImage("FboMain", 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, GetFrameDependentFrameBuffer("Main", frameIndex)->GetImage("Main")->GetImageView(), GetSampler("Nearest")->Value(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		.AddDescriptorLayoutImage("FboColor", 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, GetFrameDependentFrameBuffer("Main", frameIndex)->GetImage("Color")->GetImageView(), GetSampler("Nearest")->Value(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		.AddDescriptorLayoutImage("FboNormal", 2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, GetFrameDependentFrameBuffer("Main", frameIndex)->GetImage("Normal")->GetImageView(), GetSampler("Nearest")->Value(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		.AddDescriptorLayoutImage("FboEntity", 3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, GetFrameDependentFrameBuffer("Main", frameIndex)->GetImage("Entity")->GetImageView(), GetSampler("Nearest")->Value(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+	RegisterFrameDependentDescriptorSet("MainFrameBuffer", setBuilder.BuildDescriptorSet(GetDescriptorPool("Main")->Value()), frameIndex);
+}
+
 
 void VulkanManager::InitShaderModuls()
 {
@@ -383,7 +461,8 @@ void VulkanManager::InitGraphicsPipelines()
 			.SetColorAttachmentFormats(VK_FORMAT_R16G16B16A16_SFLOAT, 1)
 			.SetColorAttachmentFormats(VK_FORMAT_R32_UINT, 2)
 			.SetDepthAttachmentFormat(VK_FORMAT_D32_SFLOAT)
-			.AddPushConstant(0, pushConsantSize, VK_SHADER_STAGE_VERTEX_BIT);
+			.AddPushConstant(0, pushConsantSize, VK_SHADER_STAGE_VERTEX_BIT)
+			.AddDescriptorSetLayout(GetDescriptorSet("LoadedImages")->Layout());
 
 		RegisterGraphicsPipeline("DeferredPre", pipelineBuilder.BuildDynamic());
 	}
@@ -423,16 +502,4 @@ void VulkanManager::InitSemaphores()
 		RegisterFrameDependentSemaphore("ImageAvailable", std::make_shared<Vk::Semaphore>(), i);
 		RegisterFrameDependentSemaphore("RenderFinished", std::make_shared<Vk::Semaphore>(), i);
 	}
-}
-
-void VulkanManager::InitMainFramebufferDescriptorSet(uint32_t frameIndex)
-{
-	Vk::DescriptorSetBuilder setBuilder;
-	setBuilder
-		.AddDescriptorLayoutImage(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, GetFrameDependentFrameBuffer("Main", frameIndex)->GetImage("Main")->GetImageView(), GetSampler("Nearest")->Value(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-		.AddDescriptorLayoutImage(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, GetFrameDependentFrameBuffer("Main", frameIndex)->GetImage("Color")->GetImageView(), GetSampler("Nearest")->Value(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-		.AddDescriptorLayoutImage(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, GetFrameDependentFrameBuffer("Main", frameIndex)->GetImage("Normal")->GetImageView(), GetSampler("Nearest")->Value(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-		.AddDescriptorLayoutImage(3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, GetFrameDependentFrameBuffer("Main", frameIndex)->GetImage("Entity")->GetImageView(), GetSampler("Nearest")->Value(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-	RegisterFrameDependentDescriptorSet("MainFrameBuffer", setBuilder.BuildDescriptorSet(GetDescriptorPool("Main")->Value()), frameIndex);
 }

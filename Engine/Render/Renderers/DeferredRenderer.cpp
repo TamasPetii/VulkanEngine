@@ -7,7 +7,6 @@ void DeferredRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Reg
 	auto graphicsQueue = device->GetQueue(Vk::QueueType::GRAPHICS);
 
 	auto frameBuffer = resourceManager->GetVulkanManager()->GetFrameDependentFrameBuffer("Main", frameIndex);
-	auto descriptorSet = resourceManager->GetVulkanManager()->GetFrameDependentDescriptorSet("MainFrameBuffer", frameIndex);
 	auto pipeline = resourceManager->GetVulkanManager()->GetGraphicsPipeline("DeferredDir");
 
 	VkClearValue clearValue;
@@ -49,7 +48,8 @@ void DeferredRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Reg
 	scissor.extent = frameBuffer->GetSize();
 	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetLayout(), 0, 1, &descriptorSet->Value(), 0, nullptr);
+	auto frameBufferDescriptorSet = resourceManager->GetVulkanManager()->GetFrameDependentDescriptorSet("MainFrameBuffer", frameIndex);
+	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetLayout(), 0, 1, &frameBufferDescriptorSet->Value(), 0, nullptr);
 
 	vkCmdDraw(commandBuffer, 4, 1, 0, 0);
 

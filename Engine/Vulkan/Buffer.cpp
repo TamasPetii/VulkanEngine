@@ -11,6 +11,30 @@ void Vk::Buffer::CopyBufferToBuffer(VkCommandBuffer commandBuffer, VkBuffer srcB
 	vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 }
 
+void Vk::Buffer::CopyBufferToImage(VkCommandBuffer commandBuffer, VkBuffer srcBuffer, VkImage dstImage, uint32_t width, uint32_t height)
+{
+	VkBufferImageCopy2 region{};
+	region.sType = VK_STRUCTURE_TYPE_BUFFER_IMAGE_COPY_2;
+	region.bufferOffset = 0;
+	region.bufferImageHeight = 0;
+	region.imageOffset = { 0, 0, 0 };
+	region.imageExtent = { width, height, 1 };
+	region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	region.imageSubresource.mipLevel = 0;
+	region.imageSubresource.baseArrayLayer = 0;
+	region.imageSubresource.layerCount = 1;
+
+	VkCopyBufferToImageInfo2 copyInfo{};
+	copyInfo.sType = VK_STRUCTURE_TYPE_COPY_BUFFER_TO_IMAGE_INFO_2;
+	copyInfo.srcBuffer = srcBuffer;
+	copyInfo.dstImage = dstImage;
+	copyInfo.dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	copyInfo.regionCount = 1;
+	copyInfo.pRegions = &region;
+
+	vkCmdCopyBufferToImage2(commandBuffer, &copyInfo);
+}
+
 Vk::Buffer::Buffer(const BufferConfig& config) :
 	config(config)
 {

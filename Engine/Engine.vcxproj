@@ -190,6 +190,7 @@
     <ClInclude Include="Geometry\Torus.h" />
     <ClInclude Include="Systems\TransformSystem.h" />
     <ClInclude Include="Systems\System.h" />
+    <ClInclude Include="Managers\ImageManager.h" />
     <ClInclude Include="Timer\Timer.h" />
     <ClInclude Include="Managers\VulkanManager.h" />
     <ClInclude Include="Vulkan\ImmediateQueue.h" />
@@ -229,6 +230,7 @@
     <ClInclude Include="Logger\Logger.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="StbImage.cpp" />
     <ClCompile Include="Systems\CameraSystem.cpp" />
     <ClCompile Include="Components\CameraComponent.cpp" />
     <ClCompile Include="Config.cpp" />
@@ -253,6 +255,7 @@
     <ClCompile Include="Managers\ResourceManager.cpp" />
     <ClCompile Include="Systems\TransformSystem.cpp" />
     <ClCompile Include="Systems\System.cpp" />
+    <ClCompile Include="Managers\ImageManager.cpp" />
     <ClCompile Include="Timer\Timer.cpp" />
     <ClCompile Include="Managers\VulkanManager.cpp" />
     <ClCompile Include="Vulkan\ImmediateQueue.cpp" />
@@ -292,6 +295,7 @@
     <None Include="Shaders\Basic.frag" />
     <None Include="Shaders\Basic.vert" />
     <None Include="Shaders\Common\Camera.glsl" />
+    <None Include="Shaders\Common\Images.glsl" />
     <None Include="Shaders\Common\Transform.glsl" />
     <None Include="Shaders\Common\Vertex.glsl" />
     <None Include="Shaders\DeferredDir.frag" />

@@ -1,9 +1,9 @@
 #include "DescriptorPool.h"
 
 
-Vk::DescriptorPool::DescriptorPool(std::span<VkDescriptorPoolSize> poolSizes, uint32_t setSize)
+Vk::DescriptorPool::DescriptorPool(std::span<VkDescriptorPoolSize> poolSizes, uint32_t maxSets)
 {
-	Initialize(poolSizes, setSize);
+	Initialize(poolSizes, maxSets);
 }
 
 Vk::DescriptorPool::~DescriptorPool()
@@ -16,7 +16,7 @@ const VkDescriptorPool& Vk::DescriptorPool::Value() const
 	return descriptorPool;
 }
 
-void Vk::DescriptorPool::Initialize(std::span<VkDescriptorPoolSize> poolSizes, uint32_t setSize)
+void Vk::DescriptorPool::Initialize(std::span<VkDescriptorPoolSize> poolSizes, uint32_t maxSets)
 {
 	auto device = VulkanContext::GetContext()->GetDevice();
 
@@ -24,8 +24,8 @@ void Vk::DescriptorPool::Initialize(std::span<VkDescriptorPoolSize> poolSizes, u
 	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
 	poolInfo.pPoolSizes = poolSizes.data();
-	poolInfo.maxSets = setSize;
-	poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+	poolInfo.maxSets = maxSets;
+	poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT | VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT;
 
 	VK_CHECK_MESSAGE(vkCreateDescriptorPool(device->Value(), &poolInfo, nullptr, &descriptorPool), "Failed to create descriptor pool!");
 }
@@ -48,7 +48,7 @@ Vk::DescriptorPoolBuilder::~DescriptorPoolBuilder()
 
 Vk::DescriptorPoolBuilder& Vk::DescriptorPoolBuilder::Reset()
 {
-	setSize = 0;
+	maxSets = 0;
 	poolSizes.clear();
 
 	return *this;
@@ -57,14 +57,12 @@ Vk::DescriptorPoolBuilder& Vk::DescriptorPoolBuilder::Reset()
 Vk::DescriptorPoolBuilder& Vk::DescriptorPoolBuilder::SetPoolSize(VkDescriptorType type, uint32_t size)
 {
 	poolSizes[type] = size;
-
 	return *this;
 }
 
-Vk::DescriptorPoolBuilder& Vk::DescriptorPoolBuilder::SetSetSize(uint32_t size)
+Vk::DescriptorPoolBuilder& Vk::DescriptorPoolBuilder::SetMaxSets(uint32_t size)
 {
-	setSize = size;
-
+	maxSets = size;
 	return *this;
 }
 
@@ -76,5 +74,5 @@ std::shared_ptr<Vk::DescriptorPool> Vk::DescriptorPoolBuilder::BuildDescriptorPo
 	for (auto& [type, size] : poolSizes)
 		poolSizesVec.push_back(VkDescriptorPoolSize(type, size));
 
-	return std::make_shared<DescriptorPool>(poolSizesVec, setSize);
+	return std::make_shared<DescriptorPool>(poolSizesVec, maxSets);
 }

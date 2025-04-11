@@ -36,6 +36,8 @@ void Engine::Initialize()
 	InitRegistry();
 	InitSystems();
 	InitComponentBufferManager();
+
+	resourceManager->GetImageManager()->LoadImage("../Assets/Texture.jpg");
 }
 
 void Engine::SetRequiredWindowExtensions(std::span<const char*> extensionNames)

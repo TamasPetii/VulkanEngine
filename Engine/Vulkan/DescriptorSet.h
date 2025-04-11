@@ -11,6 +11,7 @@ namespace Vk
 		uint32_t binding;
 		VkDescriptorType type;
 		VkShaderStageFlags flags;
+		uint32_t descriptorCount = 1;
 	};
 
 	struct ENGINE_API DescriptorLayoutBuffer
@@ -32,29 +33,35 @@ namespace Vk
 	class ENGINE_API DescriptorSet
 	{
 	public:
-		static VkDescriptorSetLayoutBinding BuildLayoutBindingInfo(uint32_t binding, VkDescriptorType type, VkShaderStageFlags flags);
+		static VkDescriptorSetLayoutBinding BuildLayoutBindingInfo(uint32_t binding, VkDescriptorType type, VkShaderStageFlags flags, uint32_t descriptorCount);
 
-		DescriptorSet(VkDescriptorPool pool, std::span<DescriptorLayoutBuffer> bufferLayouts, std::span<DescriptorLayoutImage> imageLayouts);
+		DescriptorSet(VkDescriptorPool pool, const std::unordered_map<std::string, DescriptorLayoutBuffer>& bufferLayouts, const std::unordered_map<std::string, DescriptorLayoutImage>& imageLayouts);
 		~DescriptorSet();
-		void Free(VkDescriptorPool pool);
+		void Free();
 		const VkDescriptorSet& Value() const;
 		const VkDescriptorSetLayout& Layout() const;
+		void UpdateImageArrayElement(const std::string& name, VkImageView imageView, VkSampler sampler, uint32_t index);
 	private:
-		void Initialize(VkDescriptorPool pool, std::span<DescriptorLayoutBuffer> bufferLayouts, std::span<DescriptorLayoutImage> imageLayouts);
+		void Initialize();
 		void Cleanup();
 	private:
+		VkDescriptorPool pool = VK_NULL_HANDLE;
 		VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
 		VkDescriptorSetLayout descriptorlayout = VK_NULL_HANDLE;
+
+		std::unordered_map<std::string, DescriptorLayoutBuffer> bufferLayouts;
+		std::unordered_map<std::string, DescriptorLayoutImage> imageLayouts;
 	};
 
 	class ENGINE_API DescriptorSetBuilder
 	{
 	public:
-		DescriptorSetBuilder& AddDescriptorLayoutBuffer(uint32_t binding, VkDescriptorType type, VkShaderStageFlags flags, VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range);
-		DescriptorSetBuilder& AddDescriptorLayoutImage(uint32_t binding, VkDescriptorType type, VkShaderStageFlags flags, VkImageView image, VkSampler sampler, VkImageLayout layout);
+		DescriptorSetBuilder& AddDescriptorLayoutBuffer(const std::string& name, uint32_t binding, VkDescriptorType type, VkShaderStageFlags flags, VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range);
+		DescriptorSetBuilder& AddDescriptorLayoutImage(const std::string& name, uint32_t binding, VkDescriptorType type, VkShaderStageFlags flags, VkImageView image, VkSampler sampler, VkImageLayout layout, uint32_t descriptorCount = 1);
+		
 		std::shared_ptr<DescriptorSet> BuildDescriptorSet(VkDescriptorPool pool);
 	private:
-		std::vector<DescriptorLayoutBuffer> bufferLayouts;
-		std::vector<DescriptorLayoutImage> imageLayouts;
+		std::unordered_map<std::string, DescriptorLayoutBuffer> bufferLayouts;
+		std::unordered_map<std::string, DescriptorLayoutImage> imageLayouts;
 	};
 }

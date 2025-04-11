@@ -55,6 +55,9 @@ public:
 	void RegisterFrameDependentDescriptorSet(const std::string& name, std::shared_ptr<Vk::DescriptorSet> set, uint32_t frameIndex);
 	std::shared_ptr<Vk::DescriptorSet> GetFrameDependentDescriptorSet(const std::string& name, uint32_t frameIndex) const;
 
+	void RegisterDescriptorSet(const std::string& name, std::shared_ptr<Vk::DescriptorSet> set);
+	std::shared_ptr<Vk::DescriptorSet> GetDescriptorSet(const std::string& name) const;
+
 	//Fences
 	void RegisterFrameDependentFence(const std::string& name, std::shared_ptr<Vk::Fence> fence, uint32_t frameIndex);
 	std::shared_ptr<Vk::Fence> GetFrameDependentFence(const std::string& name, uint32_t frameIndex);
@@ -79,6 +82,7 @@ private:
 	std::unordered_map<std::string, std::shared_ptr<Vk::ShaderModule>> shaderModuls;
 	std::unordered_map<std::string, std::shared_ptr<Vk::DescriptorPool>> descriptorPools;
 	std::unordered_map<std::string, std::shared_ptr<Vk::GraphicsPipeline>> graphicsPipelines;
+	std::unordered_map<std::string, std::shared_ptr<Vk::DescriptorSet>> descriptorSets;
 	std::unordered_map<std::string, std::array<std::shared_ptr<Vk::FrameBuffer>, MAX_FRAMES_IN_FLIGHTS>> frameDependentBuffers;
 	std::unordered_map<std::string, std::array<std::shared_ptr<Vk::FrameBuffer>, MAX_FRAMES_IN_FLIGHTS>> frameDependentFrameBuffers;
 	std::unordered_map<std::string, std::array<std::shared_ptr<Vk::DescriptorSet>, MAX_FRAMES_IN_FLIGHTS>> frameDependentDescriptorSets;

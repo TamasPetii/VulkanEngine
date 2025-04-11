@@ -52,8 +52,12 @@ void Vk::Device::Init(std::span<const char*> deviceExtensions)
 
 	VkPhysicalDeviceVulkan12Features deviceFeatures12{};
 	deviceFeatures12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
-	deviceFeatures12.descriptorIndexing = VK_TRUE;
 	deviceFeatures12.bufferDeviceAddress = VK_TRUE;
+	deviceFeatures12.descriptorIndexing = VK_TRUE;
+	deviceFeatures12.descriptorBindingSampledImageUpdateAfterBind = VK_TRUE;
+	deviceFeatures12.descriptorBindingPartiallyBound = VK_TRUE;
+	deviceFeatures12.descriptorBindingVariableDescriptorCount = VK_TRUE;
+	deviceFeatures12.runtimeDescriptorArray = VK_TRUE;
 
 	VkPhysicalDeviceVulkan13Features deviceFeatures13 = {};
 	deviceFeatures13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;

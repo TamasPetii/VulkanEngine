@@ -5,7 +5,7 @@
 #include <string>
 #include <unordered_map>
 
-class GeometryManager
+class ENGINE_API GeometryManager
 {
 public:
 	GeometryManager();

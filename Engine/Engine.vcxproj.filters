@@ -207,6 +207,9 @@
     <ClInclude Include="Systems\CameraSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Managers\ImageManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -377,6 +380,12 @@
     <ClCompile Include="Systems\CameraSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Managers\ImageManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StbImage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Registry\Pool.inl">
@@ -395,5 +404,6 @@
     <None Include="Shaders\Common\Vertex.glsl" />
     <None Include="Shaders\Common\Transform.glsl" />
     <None Include="Shaders\Common\Camera.glsl" />
+    <None Include="Shaders\Common\Images.glsl" />
   </ItemGroup>
 </Project>
