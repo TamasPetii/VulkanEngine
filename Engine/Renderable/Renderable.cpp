@@ -1,15 +1,6 @@
-#include "Shape.h"
+#include "Renderable.h"
 
-void Shape::Initialize()
-{
-	GenerateSurfacePoints();
-	GenerateVertices();
-	GenerateIndices();
-	GenerateTangents();
-	UploadToGpu();
-}
-
-void Shape::UploadToGpu()
+void Renderable::UploadToGpu()
 {
 	auto device = Vk::VulkanContext::GetContext()->GetDevice();
 
@@ -40,6 +31,10 @@ void Shape::UploadToGpu()
 				Vk::Buffer::CopyBufferToBuffer(commandBuffer, stagingBuffer.Value(), vertexBuffer->Value(), bufferSize);
 			}
 		);
+
+		vertexCount = vertices.size();
+		vertices.clear();
+		vertices.shrink_to_fit();
 	}
 
 	//Upload the indices to the gpu
@@ -69,18 +64,9 @@ void Shape::UploadToGpu()
 				Vk::Buffer::CopyBufferToBuffer(commandBuffer, stagingBuffer.Value(), indexBuffer->Value(), bufferSize);
 			}
 		);
+
+		indexCount = indices.size();
+		indices.clear();
+		indices.shrink_to_fit();
 	}
-
-	indexCount = indices.size();
-	vertexCount = vertices.size();
-
-	vertices.clear();
-	vertices.shrink_to_fit();
-
-	indices.clear();
-	indices.shrink_to_fit();
-}
-
-void Shape::GenerateTangents()
-{
 }

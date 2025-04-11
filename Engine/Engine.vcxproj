@@ -106,7 +106,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(CoreLibraryDependencies);vulkan-1.lib;glfw3dll.lib;dwmapi.lib;shadercd.lib;shaderc_utild.lib;shaderc_combinedd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);vulkan-1.lib;glfw3dll.lib;dwmapi.lib;shadercd.lib;shaderc_utild.lib;shaderc_combinedd.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -125,7 +125,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(CoreLibraryDependencies);vulkan-1.lib;glfw3dll.lib;dwmapi.lib;shaderc.lib;shaderc_util.lib;shaderc_combined.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);vulkan-1.lib;glfw3dll.lib;dwmapi.lib;shaderc.lib;shaderc_util.lib;shaderc_combined.lib;assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -140,7 +140,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(CoreLibraryDependencies);vulkan-1.lib;glfw3dll.lib;dwmapi.lib;shadercd.lib;shaderc_utild.lib;shaderc_combinedd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);vulkan-1.lib;glfw3dll.lib;dwmapi.lib;shadercd.lib;shaderc_utild.lib;shaderc_combinedd.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -159,10 +159,14 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(CoreLibraryDependencies);vulkan-1.lib;glfw3dll.lib;dwmapi.lib;shaderc.lib;shaderc_util.lib;shaderc_combined.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);vulkan-1.lib;glfw3dll.lib;dwmapi.lib;shaderc.lib;shaderc_util.lib;shaderc_combined.lib;assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Managers\ModelManager.h" />
+    <ClInclude Include="Renderable\Model\AssimpConverter.h" />
+    <ClInclude Include="Renderable\Model\Model.h" />
+    <ClInclude Include="Renderable\Renderable.h" />
     <ClInclude Include="Systems\CameraSystem.h" />
     <ClInclude Include="Components\CameraComponent.h" />
     <ClInclude Include="Config.h" />
@@ -171,12 +175,12 @@
     <ClInclude Include="Managers\ComponentBufferManager.h" />
     <ClInclude Include="Components\Component.h" />
     <ClInclude Include="Managers\GeometryManager.h" />
-    <ClInclude Include="Geometry\Cone.h" />
-    <ClInclude Include="Geometry\Cylinder.h" />
-    <ClInclude Include="Geometry\Cube.h" />
-    <ClInclude Include="Geometry\Capsule.h" />
-    <ClInclude Include="Geometry\Geometries.h" />
-    <ClInclude Include="Geometry\Pyramid.h" />
+    <ClInclude Include="Renderable\Geometry\Cone.h" />
+    <ClInclude Include="Renderable\Geometry\Cylinder.h" />
+    <ClInclude Include="Renderable\Geometry\Cube.h" />
+    <ClInclude Include="Renderable\Geometry\Capsule.h" />
+    <ClInclude Include="Renderable\Geometry\Geometries.h" />
+    <ClInclude Include="Renderable\Geometry\Pyramid.h" />
     <ClInclude Include="Components\Components.h" />
     <ClInclude Include="Components\TransformComponent.h" />
     <ClInclude Include="Managers\ResourceManager.h" />
@@ -184,10 +188,10 @@
     <ClInclude Include="Render\GpuStructs.h" />
     <ClInclude Include="Render\Renderers\DeferredRenderer.h" />
     <ClInclude Include="Render\Renderers\GeometryRenderer.h" />
-    <ClInclude Include="Geometry\Shape.h" />
-    <ClInclude Include="Geometry\Sphere.h" />
-    <ClInclude Include="Geometry\Quad.h" />
-    <ClInclude Include="Geometry\Torus.h" />
+    <ClInclude Include="Renderable\Geometry\Shape.h" />
+    <ClInclude Include="Renderable\Geometry\Sphere.h" />
+    <ClInclude Include="Renderable\Geometry\Quad.h" />
+    <ClInclude Include="Renderable\Geometry\Torus.h" />
     <ClInclude Include="Systems\TransformSystem.h" />
     <ClInclude Include="Systems\System.h" />
     <ClInclude Include="Managers\ImageManager.h" />
@@ -230,6 +234,9 @@
     <ClInclude Include="Logger\Logger.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Managers\ModelManager.cpp" />
+    <ClCompile Include="Renderable\Model\Model.cpp" />
+    <ClCompile Include="Renderable\Renderable.cpp" />
     <ClCompile Include="StbImage.cpp" />
     <ClCompile Include="Systems\CameraSystem.cpp" />
     <ClCompile Include="Components\CameraComponent.cpp" />
@@ -239,19 +246,19 @@
     <ClCompile Include="Managers\ComponentBufferManager.cpp" />
     <ClCompile Include="Components\Component.cpp" />
     <ClCompile Include="Managers\GeometryManager.cpp" />
-    <ClCompile Include="Geometry\Cone.cpp" />
-    <ClCompile Include="Geometry\Cylinder.cpp" />
-    <ClCompile Include="Geometry\Cube.cpp" />
-    <ClCompile Include="Geometry\Capsule.cpp" />
-    <ClCompile Include="Geometry\Pyramid.cpp" />
+    <ClCompile Include="Renderable\Geometry\Cone.cpp" />
+    <ClCompile Include="Renderable\Geometry\Cylinder.cpp" />
+    <ClCompile Include="Renderable\Geometry\Cube.cpp" />
+    <ClCompile Include="Renderable\Geometry\Capsule.cpp" />
+    <ClCompile Include="Renderable\Geometry\Pyramid.cpp" />
     <ClCompile Include="Components\TransformComponent.cpp" />
     <ClCompile Include="Registry\Registry.cpp" />
     <ClCompile Include="Render\Renderers\DeferredRenderer.cpp" />
     <ClCompile Include="Render\Renderers\GeometryRenderer.cpp" />
-    <ClCompile Include="Geometry\Shape.cpp" />
-    <ClCompile Include="Geometry\Sphere.cpp" />
-    <ClCompile Include="Geometry\Quad.cpp" />
-    <ClCompile Include="Geometry\Torus.cpp" />
+    <ClCompile Include="Renderable\Geometry\Shape.cpp" />
+    <ClCompile Include="Renderable\Geometry\Sphere.cpp" />
+    <ClCompile Include="Renderable\Geometry\Quad.cpp" />
+    <ClCompile Include="Renderable\Geometry\Torus.cpp" />
     <ClCompile Include="Managers\ResourceManager.cpp" />
     <ClCompile Include="Systems\TransformSystem.cpp" />
     <ClCompile Include="Systems\System.cpp" />

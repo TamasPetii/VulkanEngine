@@ -16,10 +16,12 @@ void ResourceManager::Initialize()
 	geometryManager = std::make_shared<GeometryManager>();
 	componentBufferManager = std::make_shared<ComponentBufferManager>();
 	imageManager = std::make_shared<ImageManager>(vulkanManager);
+	modelManager = std::make_shared<ModelManager>();
 }
 
 void ResourceManager::Cleanup()
 {
+	modelManager.reset();
 	imageManager.reset();
 	geometryManager.reset();
 	componentBufferManager.reset();

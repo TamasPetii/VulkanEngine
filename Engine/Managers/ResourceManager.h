@@ -3,6 +3,7 @@
 #include "VulkanManager.h"
 #include "GeometryManager.h"
 #include "ComponentBufferManager.h"
+#include "ModelManager.h"
 
 class ENGINE_API ResourceManager
 {
@@ -12,11 +13,13 @@ public:
 	void Initialize();
 	void Cleanup();
 
+	auto GetModelManager() { return modelManager; }
 	auto GetImageManager() { return imageManager; }
 	auto GetVulkanManager() { return vulkanManager; }
 	auto GetGeometryManager() { return geometryManager; }
 	auto GetComponentBufferManager() { return componentBufferManager; }
 private:
+	std::shared_ptr<ModelManager> modelManager;
 	std::shared_ptr<ImageManager> imageManager;
 	std::shared_ptr<VulkanManager> vulkanManager;
 	std::shared_ptr<GeometryManager> geometryManager;

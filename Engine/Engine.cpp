@@ -38,6 +38,7 @@ void Engine::Initialize()
 	InitComponentBufferManager();
 
 	resourceManager->GetImageManager()->LoadImage("../Assets/Texture.jpg");
+	resourceManager->GetModelManager()->LoadModel("../Assets/Mamut.obj");
 }
 
 void Engine::SetRequiredWindowExtensions(std::span<const char*> extensionNames)

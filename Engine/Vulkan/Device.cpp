@@ -49,6 +49,7 @@ void Vk::Device::Init(std::span<const char*> deviceExtensions)
 
 	VkPhysicalDeviceFeatures deviceFeatures{};
 	deviceFeatures.samplerAnisotropy = VK_TRUE;
+	deviceFeatures.multiDrawIndirect = VK_TRUE;
 
 	VkPhysicalDeviceVulkan12Features deviceFeatures12{};
 	deviceFeatures12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
