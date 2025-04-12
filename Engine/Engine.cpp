@@ -95,15 +95,12 @@ void Engine::InitRegistry()
 	for (uint32_t i = 0; i < 256; ++i)
 	{
 		auto entity = registry->CreateEntity();
-		registry->AddComponents<TransformComponent, MaterialComponent>(entity);
+		registry->AddComponents<TransformComponent>(entity);
 
-		auto [transformComponent, materialComponent] = registry->GetComponents<TransformComponent, MaterialComponent>(entity);
-		//transformComponent->rotation = 180.f * glm::vec3(dist(rng), dist(rng), dist(rng));
-		//transformComponent->translation = 100.f * glm::vec3(dist(rng), dist(rng), dist(rng));
-		transformComponent->scale =glm::vec3(0.1);
-
-		//materialComponent->color = glm::vec4(dist(rng), dist(rng), dist(rng), 1);
-		//materialComponent->albedo = resourceManager->GetImageManager()->LoadImage("../Assets/Texture.jpg");
+		auto transformComponent = registry->GetComponent<TransformComponent>(entity);
+		transformComponent->rotation = 180.f * glm::vec3(dist(rng), dist(rng), dist(rng));
+		transformComponent->translation = 100.f * glm::vec3(dist(rng), dist(rng), dist(rng));
+		transformComponent->scale = glm::vec3(0.01);
 	}
 }
 
@@ -123,7 +120,7 @@ void Engine::CheckForComponentBufferResize()
 {
 	resourceManager->GetComponentBufferManager()->RecreateBuffer<TransformComponentGPU>("TransformComponentGPU", registry->GetPool<TransformComponent>()->GetDenseSize(), framesInFlightIndex);
 	resourceManager->GetComponentBufferManager()->RecreateBuffer<CameraComponentGPU>("CameraComponentGPU", registry->GetPool<CameraComponent>()->GetDenseSize(), framesInFlightIndex);
-	resourceManager->GetComponentBufferManager()->RecreateBuffer<MaterialComponentGPU>("MaterialComponentGPU", registry->GetPool<MaterialComponent>()->GetDenseSize(), framesInFlightIndex);
+	//resourceManager->GetComponentBufferManager()->RecreateBuffer<MaterialComponentGPU>("MaterialComponentGPU", registry->GetPool<MaterialComponent>()->GetDenseSize(), framesInFlightIndex);
 }
 
 void Engine::Update()
@@ -179,14 +176,8 @@ void Engine::SystemUpdate(float deltaTime)
 
 	auto model = resourceManager->GetModelManager()->GetModel("../Assets/Sponza/Sponza.obj");
 	model->ResetInstanceCount();
-	for (uint32_t i = 1; i < 2; i++)
+	for (uint32_t i = 1; i < 10; i++)
 		model->AddIndex({ i, i, 0, 0 });
-	model->UpdateIndirectCommandsInstanceCount(model->GetInstanceCount());
-
-	auto geometry = resourceManager->GetGeometryManager()->GetShape("Cube");
-	geometry->ResetInstanceCount();
-	for (uint32_t i = 1; i < 256; i++)
-		geometry->AddIndex({ i, i, i, 0 });
 }
 
 void Engine::SystemUpdateGPU()
@@ -213,10 +204,7 @@ void Engine::SystemUpdateGPU()
 
 	auto model = resourceManager->GetModelManager()->GetModel("../Assets/Sponza/Sponza.obj");
 	model->UploadInstanceDataToGPU(framesInFlightIndex);
-	model->UploadIndirectCommandsToGpu(framesInFlightIndex);
-
-	auto geometry = resourceManager->GetGeometryManager()->GetShape("Cube");
-	geometry->UploadInstanceDataToGPU(framesInFlightIndex);
+	model->UpdateIndirectCommandsInstanceCount(model->GetInstanceCount(), framesInFlightIndex);
 }
 
 void Engine::SystemFinish()

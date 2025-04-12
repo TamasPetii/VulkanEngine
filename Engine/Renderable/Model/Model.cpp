@@ -33,6 +33,7 @@ void Model::UploadToGpu()
 
     Renderable::UploadToGpu();
     Materialized::UploadMaterialDataToGpu();
+    IndirectMultiDrawable::UploadIndirectCommandsToGpu();
 }
 
 void Model::PreFetch(aiNode* node, const aiScene* scene)
