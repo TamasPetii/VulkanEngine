@@ -1,4 +1,8 @@
 #pragma once
 #include <cstdint>
 
-constexpr uint32_t MAX_FRAMES_IN_FLIGHTS = 3;
+struct Settings
+{
+	static inline constexpr uint32_t MAX_FRAMES_IN_FLIGHTS = 3;
+	static inline uint32_t FRAMES_IN_FLIGHT = 2;
+};

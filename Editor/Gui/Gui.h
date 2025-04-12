@@ -28,6 +28,6 @@ private:
 private:
 	VkImageView imageView;
 	VkDescriptorPool imguiPool;
-	std::array<std::set<VkDescriptorSet>, MAX_FRAMES_IN_FLIGHTS> imguiDescriptorSets;
+	std::array<std::set<VkDescriptorSet>, Settings::MAX_FRAMES_IN_FLIGHTS> imguiDescriptorSets;
 };
 

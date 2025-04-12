@@ -23,8 +23,8 @@ private:
 	void InitCommandPool();
 	void InitCommandBuffer();
 private:
-	std::array<VkCommandPool, MAX_FRAMES_IN_FLIGHTS> commandPools;
-	std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHTS> commandBuffers;
+	std::array<VkCommandPool, Settings::MAX_FRAMES_IN_FLIGHTS> commandPools;
+	std::array<VkCommandBuffer, Settings::MAX_FRAMES_IN_FLIGHTS> commandBuffers;
 	std::function<void(VkCommandBuffer, std::shared_ptr<Registry>, std::shared_ptr<ResourceManager>, uint32_t)> guiRenderFunction;
 };
 

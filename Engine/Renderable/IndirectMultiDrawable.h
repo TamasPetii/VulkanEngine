@@ -14,6 +14,6 @@ public:
 	virtual void UploadIndirectCommandsToGpu(uint32_t frameIndex);
 protected:
 	std::vector<VkDrawIndexedIndirectCommand> indirectCommands;
-	std::array<std::shared_ptr<Vk::Buffer>, MAX_FRAMES_IN_FLIGHTS> indirectBuffer;
+	std::array<std::shared_ptr<Vk::Buffer>, Settings::MAX_FRAMES_IN_FLIGHTS> indirectBuffer;
 };
 

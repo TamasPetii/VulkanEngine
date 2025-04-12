@@ -258,5 +258,5 @@ void Engine::SimulateFrame()
 	SystemUpdateGPU();
 	Render();
 
-	framesInFlightIndex = (framesInFlightIndex + 1) % framesInFlight;
+	framesInFlightIndex = (framesInFlightIndex + 1) % Settings::FRAMES_IN_FLIGHT;
 }

@@ -39,7 +39,6 @@ private:
 	void InitComponentBufferManager();
 	void CheckForComponentBufferResize();
 private:
-	uint32_t framesInFlight = 3;
 	uint32_t framesInFlightIndex = 0;
 
 	std::shared_ptr<Timer> frameTimer;

@@ -24,7 +24,7 @@ public:
 	void RecreateBuffer(const std::string& name, uint32_t size, uint32_t frameInFlightIndex);
 private:
 	uint32_t bufferBlockSize = 256;
-	std::unordered_map<std::string, std::pair<Vk::BufferConfig, std::array<ComponentBuffer, MAX_FRAMES_IN_FLIGHTS>>> buffers;
+	std::unordered_map<std::string, std::pair<Vk::BufferConfig, std::array<ComponentBuffer, Settings::MAX_FRAMES_IN_FLIGHTS>>> buffers;
 };
 
 template<typename T>

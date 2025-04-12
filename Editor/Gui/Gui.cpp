@@ -104,10 +104,14 @@ void Gui::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Registry> regist
 	if (ImGui::Begin("Main", nullptr, ImGuiWindowFlags_NoTitleBar))
 	{
 		auto viewPortSize = ImGui::GetContentRegionAvail();
-		auto frameBuffer = resourceManager->GetVulkanManager()->GetFrameDependentFrameBuffer("Main", frameIndex);
+		
+		uint32_t nextFrameIndex = (frameIndex + 1) % Settings::FRAMES_IN_FLIGHT;
 
-		if (static_cast<uint32_t>(viewPortSize.x) != frameBuffer->GetSize().width || static_cast<uint32_t>(viewPortSize.y) != frameBuffer->GetSize().height)
-			resourceManager->GetVulkanManager()->MarkFrameBufferToResize("Main", frameIndex, static_cast<uint32_t>(viewPortSize.x), static_cast<uint32_t>(viewPortSize.y));
+		auto frameBuffer = resourceManager->GetVulkanManager()->GetFrameDependentFrameBuffer("Main", frameIndex);
+		auto nextFrameBuffer = resourceManager->GetVulkanManager()->GetFrameDependentFrameBuffer("Main", nextFrameIndex);
+
+		if (static_cast<uint32_t>(viewPortSize.x) != nextFrameBuffer->GetSize().width || static_cast<uint32_t>(viewPortSize.y) != nextFrameBuffer->GetSize().height)
+			resourceManager->GetVulkanManager()->MarkFrameBufferToResize("Main", nextFrameIndex, static_cast<uint32_t>(viewPortSize.x), static_cast<uint32_t>(viewPortSize.y));
 
 		auto sampler = resourceManager->GetVulkanManager()->GetSampler("Nearest")->Value();
 		auto imageView = frameBuffer->GetImage("Main")->GetImageView();

@@ -25,6 +25,6 @@ public:
 protected:
 	uint32_t instanceCount = 0;
 	std::vector<Indices> instanceIndices;
-	std::array<std::shared_ptr<Vk::Buffer>, MAX_FRAMES_IN_FLIGHTS> instanceIndexBuffers;
+	std::array<std::shared_ptr<Vk::Buffer>, Settings::MAX_FRAMES_IN_FLIGHTS> instanceIndexBuffers;
 };
 
