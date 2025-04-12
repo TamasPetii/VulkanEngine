@@ -43,8 +43,8 @@ void Vk::ImageSampler::Init()
 	samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
 	samplerInfo.mipmapMode = config.mipMapFilter;
 	samplerInfo.mipLodBias = 0.0f;
-	samplerInfo.minLod = 0.0f;
-	samplerInfo.maxLod = 0.0f;
+	samplerInfo.minLod = config.minLod;
+	samplerInfo.maxLod =config.maxLod;
 
 	VK_CHECK_MESSAGE(vkCreateSampler(device->Value(), &samplerInfo, nullptr, &sampler), "Failed to create texture sampler!");
 }

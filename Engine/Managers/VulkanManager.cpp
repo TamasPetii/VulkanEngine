@@ -226,6 +226,7 @@ void VulkanManager::InitSamplers()
 		config.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
 		config.mipMapFilter = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 		config.anisotropyEnable = false;
+		config.maxLod = Vk::MAX_SAMPLER_MIMAP_LEVEL;
 
 		RegisterSampler("Linear", config);
 	}
@@ -236,8 +237,9 @@ void VulkanManager::InitSamplers()
 		config.minFilter = VK_FILTER_NEAREST;
 		config.addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 		config.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-		config.mipMapFilter = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		config.mipMapFilter = VK_SAMPLER_MIPMAP_MODE_NEAREST;
 		config.anisotropyEnable = false;
+		config.maxLod = Vk::MAX_SAMPLER_MIMAP_LEVEL;
 
 		RegisterSampler("Nearest", config);
 	}
@@ -250,6 +252,7 @@ void VulkanManager::InitSamplers()
 		config.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
 		config.mipMapFilter = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 		config.anisotropyEnable = true;
+		config.maxLod = Vk::MAX_SAMPLER_MIMAP_LEVEL;
 
 		RegisterSampler("LinearAniso", config);
 	}
@@ -260,8 +263,9 @@ void VulkanManager::InitSamplers()
 		config.minFilter = VK_FILTER_NEAREST;
 		config.addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 		config.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-		config.mipMapFilter = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		config.mipMapFilter = VK_SAMPLER_MIPMAP_MODE_NEAREST;
 		config.anisotropyEnable = true;
+		config.maxLod = Vk::MAX_SAMPLER_MIMAP_LEVEL;
 
 		RegisterSampler("NearestAniso", config);
 	}
