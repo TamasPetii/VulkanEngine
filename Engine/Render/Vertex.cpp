@@ -2,22 +2,13 @@
 
 
 Vertex::Vertex(const glm::vec3& position, const glm::vec3& normal, const glm::vec2& uv) :
-	position(position),
-	normal(normal)
+	Vertex(position, normal, glm::vec3(0, 0, 0), uv, 0)
 {
-	uv_x = uv.x;
-	uv_y = uv.y;
-	index = 0;
 }
 
 Vertex::Vertex(const glm::vec3& position, const glm::vec3& normal, const glm::vec3& tangent, const glm::vec2& uv) :
-	position(position),
-	normal(normal),
-	tangent(tangent)
+	Vertex(position, normal, tangent, uv, 0)
 {
-	uv_x = uv.x;
-	uv_y = uv.y;
-	index = 0;
 }
 
 Vertex::Vertex(const glm::vec3& position, const glm::vec3& normal, const glm::vec3& tangent, const glm::vec2& uv, uint32_t index) :

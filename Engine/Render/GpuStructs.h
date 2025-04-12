@@ -14,5 +14,4 @@ struct GpuPushConstant
 	VkDeviceAddress instanceIndexBuffer;
 	VkDeviceAddress transformBuffer;
 	VkDeviceAddress materialBuffer;
-	VkDeviceAddress materialIndexBuffer;
 };

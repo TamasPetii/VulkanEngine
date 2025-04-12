@@ -26,13 +26,12 @@ layout( push_constant ) uniform constants
 	uvec2 indexBuffer;
 	uvec2 transformBuffer;
 	uvec2 materialBuffer;
-	uvec2 materialIndexBuffer;
 } PushConstants;
 
 void main() 
 {
 	MaterialBuffer materialBuffer = MaterialBuffer(PushConstants.materialBuffer);
-	uint materialIndex = PushConstants.renderMode == NORMAL_INSTANCED ? fs_in_index.y : MaterialIndexBuffer(PushConstants.materialIndexBuffer).materialIndices[fs_in_index.y];
+	uint materialIndex = fs_in_index.y;
 
 	vec4 albedo = materialBuffer.materials[materialIndex].color;
 	if(materialBuffer.materials[materialIndex].albedoIndex != uint(INVALID_IMAGE_INDEX))

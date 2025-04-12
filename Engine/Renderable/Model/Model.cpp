@@ -100,10 +100,11 @@ void Model::ProcessGeometry(aiMesh* mesh, const aiScene* scene, uint32_t& curren
 {
     uint32_t meshVerticesCount = 0;
 
+    std::string materialName = "";
     if (mesh->mMaterialIndex >= 0)
     {
         aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-        std::string materialName = std::string(material->GetName().C_Str());
+        materialName = std::string(material->GetName().C_Str());
 
         if (loadedMaterials.find(materialName) == loadedMaterials.end())
         {
@@ -152,13 +153,6 @@ void Model::ProcessGeometry(aiMesh* mesh, const aiScene* scene, uint32_t& curren
             loadedMaterials[materialName] = materials.size();
             materials.push_back(materialComponent);
         }
-
-        materialIndices.push_back(loadedMaterials[materialName]);
-    }
-    else
-    {
-        //Mesh did not have material
-        materialIndices.push_back(0);
     }
 
     //Vertex Data Process
@@ -187,7 +181,7 @@ void Model::ProcessGeometry(aiMesh* mesh, const aiScene* scene, uint32_t& curren
             texcoord.y = mesh->mTextureCoords[0][i].y;
         }
 
-        vertices.emplace_back(Vertex(position, normal, tangent, texcoord, materialIndices.back()));
+        vertices.push_back(Vertex(position, normal, tangent, texcoord, loadedMaterials[materialName]));
         meshVerticesCount++;
     }
 
