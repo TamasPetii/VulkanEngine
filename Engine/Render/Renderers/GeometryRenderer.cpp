@@ -68,7 +68,7 @@ void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Reg
 	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
 	{
-		auto model = resourceManager->GetModelManager()->GetModel("../Assets/Sponza.obj");
+		auto model = resourceManager->GetModelManager()->GetModel("../Assets/Sponza/Sponza.obj");
 
 		GpuPushConstant pushConstants;
 		pushConstants.renderMode = MULTIDRAW_INDIRECT_INSTANCED;
