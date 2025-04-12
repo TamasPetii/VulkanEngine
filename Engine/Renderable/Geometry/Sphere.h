@@ -6,9 +6,9 @@ class Sphere : public Shape
 public:
 	Sphere(uint32_t segments = 32);
 private:
-	void GenerateSurfacePoints() override;
-	void GenerateVertices() override;
-	void GenerateIndices() override;
+	virtual void PopulateSurfacePoints() override;
+	virtual void GenerateVertices() override;
+	virtual void GenerateIndices() override;
 private:
 	float radius;
 	uint32_t segments;

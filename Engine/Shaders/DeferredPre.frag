@@ -35,12 +35,12 @@ void main()
 
 	vec4 albedo = materialBuffer.materials[materialIndex].color;
 	if(materialBuffer.materials[materialIndex].albedoIndex != uint(INVALID_IMAGE_INDEX))
-		albedo *= sampleTexture2D(materialBuffer.materials[materialIndex].albedoIndex, LINEAR_SAMPLER_ID, fs_in_tex);
+		albedo *= sampleTexture2D(materialBuffer.materials[materialIndex].albedoIndex, LINEAR_ANISOTROPY_SAMPLER_ID, fs_in_tex);
 		
 	vec3 normal = vec3(normalize(fs_in_normal));
 	if(materialBuffer.materials[materialIndex].normalIndex != uint(INVALID_IMAGE_INDEX))
 	{
-		normal = sampleTexture2D(materialBuffer.materials[materialIndex].normalIndex, LINEAR_SAMPLER_ID, fs_in_tex).xyz;
+		normal = sampleTexture2D(materialBuffer.materials[materialIndex].normalIndex, LINEAR_ANISOTROPY_SAMPLER_ID, fs_in_tex).xyz;
         normal = normal * 2.0 - 1.0;   
         normal = normalize(fs_in_tbn * normal); 
 	}

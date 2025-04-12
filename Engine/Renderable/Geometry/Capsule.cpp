@@ -6,7 +6,7 @@ Capsule::Capsule(float radius, float height, uint32_t segments)
     Initialize();
 }
 
-void Capsule::GenerateSurfacePoints()
+void Capsule::PopulateSurfacePoints()
 {
     // Top hemisphere (0 to π/2)
     for (uint32_t i = 0; i <= segments / 2; ++i)

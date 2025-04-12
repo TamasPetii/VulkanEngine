@@ -6,7 +6,7 @@ Pyramid::Pyramid(float baseSize, float height)
     Initialize();
 }
 
-void Pyramid::GenerateSurfacePoints()
+void Pyramid::PopulateSurfacePoints()
 {
     float halfSize = baseSize * 0.5f;
     surfacePoints.push_back({ -halfSize, 0.0f, -halfSize }); // 0: Bottom-left

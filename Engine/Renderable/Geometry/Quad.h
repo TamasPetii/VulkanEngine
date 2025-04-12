@@ -6,8 +6,8 @@ class Quad : public Shape
 public:
 	Quad();
 private:
-	void GenerateSurfacePoints() override;
-	void GenerateVertices() override;
-	void GenerateIndices() override;
+	virtual void PopulateSurfacePoints() override;
+	virtual void GenerateVertices() override;
+	virtual void GenerateIndices() override;
 };
 

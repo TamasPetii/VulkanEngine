@@ -163,6 +163,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Renderable\BoundingVolume.h" />
     <ClInclude Include="Renderable\Materialized.h" />
     <ClInclude Include="Renderable\IndirectMultiDrawable.h" />
     <ClInclude Include="Renderable\Instanceable.h" />
@@ -239,6 +240,7 @@
     <ClInclude Include="Logger\Logger.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Renderable\BoundingVolume.cpp" />
     <ClCompile Include="Renderable\Materialized.cpp" />
     <ClCompile Include="Renderable\IndirectMultiDrawable.cpp" />
     <ClCompile Include="Renderable\Instanceable.cpp" />

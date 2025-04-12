@@ -6,9 +6,9 @@ class Cone : public Shape
 public:
     Cone(uint32_t segments = 32, float radius = 1.0f, float height = 2.0f);
 private:
-    void GenerateSurfacePoints() override;
-    void GenerateVertices() override;
-    void GenerateIndices() override;
+    virtual void PopulateSurfacePoints() override;
+    virtual void GenerateVertices() override;
+    virtual void GenerateIndices() override;
 private:
     float radius;
     float height;

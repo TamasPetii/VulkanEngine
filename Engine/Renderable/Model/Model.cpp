@@ -18,6 +18,8 @@ bool Model::Load(const std::string& path)
 
     PreFetch(scene->mRootNode, scene);
     Process(scene->mRootNode, scene);
+    PopulateSurfacePoints();
+    GenerateBoundingVolume();
     UploadToGpu();
     return true;
 }
@@ -33,6 +35,14 @@ void Model::UploadToGpu()
 
     Renderable::UploadToGpu();
     Materialized::UploadMaterialDataToGpu();
+}
+
+void Model::PopulateSurfacePoints()
+{
+    surfacePoints.reserve(vertexCount);
+
+    for (auto& vertex : vertices)
+        surfacePoints.push_back(vertex.position);
 }
 
 void Model::PreFetch(aiNode* node, const aiScene* scene)
@@ -62,7 +72,6 @@ void Model::PreFetch(aiNode* node, const aiScene* scene)
 
     vertices.reserve(vertexCount);
     indices.reserve(indexCount);
-    surfacePoints.reserve(vertexCount);
     materialIndices.reserve(meshCount);
 }
 
@@ -91,9 +100,6 @@ void Model::Process(aiNode* node, const aiScene* scene)
             queue.push(currentNode->mChildren[i]);
         }
     }
-
-    for (auto& vertex : vertices)
-        surfacePoints.push_back(vertex.position);
 }
 
 void Model::ProcessGeometry(aiMesh* mesh, const aiScene* scene, uint32_t& currentMeshCount, uint32_t& currentVertexCount, uint32_t& currentIndexCount)

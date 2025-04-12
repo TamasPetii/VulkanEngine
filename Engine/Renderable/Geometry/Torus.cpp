@@ -6,7 +6,7 @@ Torus::Torus(float majorRadius, float minorRadius, uint32_t majorSegments, uint3
     Initialize();
 }
 
-void Torus::GenerateSurfacePoints()
+void Torus::PopulateSurfacePoints()
 {
     for (uint32_t i = 0; i <= majorSegments; ++i)
     {

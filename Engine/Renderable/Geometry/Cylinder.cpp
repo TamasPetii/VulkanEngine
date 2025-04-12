@@ -6,7 +6,7 @@ Cylinder::Cylinder(float radius, float height, uint32_t segments)
     Initialize();
 }
 
-void Cylinder::GenerateSurfacePoints()
+void Cylinder::PopulateSurfacePoints()
 {
     float halfHeight = height * 0.5f;
 

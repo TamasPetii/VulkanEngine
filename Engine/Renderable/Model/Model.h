@@ -1,8 +1,8 @@
 #pragma once
 #include "Engine/Renderable/Renderable.h"
-#include "Engine/Renderable/IndirectMultiDrawable.h"
 #include "Engine/Renderable/Materialized.h"
 #include "Engine/Renderable/Instanceable.h"
+#include "Engine/Renderable/BoundingVolume.h"
 
 #include "AssimpConverter.h"
 #include <Assimp/Importer.hpp>
@@ -14,7 +14,7 @@
 
 #include "Engine/Managers/ImageManager.h"
 
-class ENGINE_API Model : public Renderable, public Materialized, public Instanceable
+class ENGINE_API Model : public Renderable, public Materialized, public Instanceable, public BoundingVolume
 {
 public:
 	Model(std::shared_ptr<ImageManager> imageManager);
@@ -22,6 +22,7 @@ public:
 	uint32_t GetMeshCount();
 private:
 	virtual void UploadToGpu();
+	virtual void PopulateSurfacePoints() override;
 	void PreFetch(aiNode* node, const aiScene* scene);
 	void Process(aiNode* node, const aiScene* scene);
 	void ProcessGeometry(aiMesh* mesh, const aiScene* scene, uint32_t& currentMeshCount, uint32_t& currentVertexCount, uint32_t& currentIndexCount);

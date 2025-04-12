@@ -7,12 +7,12 @@ Sphere::Sphere(uint32_t segments) :
     Initialize();
 }
 
-void Sphere::GenerateSurfacePoints()
+void Sphere::PopulateSurfacePoints()
 {
     for (uint32_t i = 0; i <= segments; ++i)
     {
         float phi = glm::pi<float>() * static_cast<float>(i) / segments;  // 0 to π
-       
+
         for (uint32_t j = 0; j <= segments; ++j)
         {
             float theta = 2.0f * glm::pi<float>() * static_cast<float>(j) / segments;  // 0 to 2π

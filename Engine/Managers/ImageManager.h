@@ -14,7 +14,7 @@ public:
 	~ImageManager();
 	
 	std::shared_ptr<Vk::Image> GetImage(const std::string& path);
-	std::shared_ptr<Vk::Image> LoadImage(const std::string& path);
+	std::shared_ptr<Vk::Image> LoadImage(const std::string& path, bool useMipMap = true);
 private:
 	void Initialize();
 	void Cleanup();

@@ -6,7 +6,7 @@ Cone::Cone(uint32_t segments, float radius, float height)
     Initialize();
 }
 
-void Cone::GenerateSurfacePoints()
+void Cone::PopulateSurfacePoints()
 {
     // Base ring points (at y = 0)
     for (uint32_t j = 0; j <= segments; ++j)

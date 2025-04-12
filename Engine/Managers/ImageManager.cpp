@@ -41,7 +41,7 @@ std::shared_ptr<Vk::Image> ImageManager::GetImage(const std::string& path)
 	return images.at(path);
 }
 
-std::shared_ptr<Vk::Image> ImageManager::LoadImage(const std::string& path)
+std::shared_ptr<Vk::Image> ImageManager::LoadImage(const std::string& path, bool useMipMap)
 {
 	if (images.find(path) != images.end())
 		return images.at(path);
@@ -79,7 +79,7 @@ std::shared_ptr<Vk::Image> ImageManager::LoadImage(const std::string& path)
 	imageSpec.aspectFlag = VK_IMAGE_ASPECT_COLOR_BIT;
 	imageSpec.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
-	if (Vk::Image::ImageFormatSupportsLinearMipMap(imageSpec.format))
+	if (useMipMap && Vk::Image::ImageFormatSupportsLinearMipMap(imageSpec.format))
 		imageSpec.mipmapLevel = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
 
 	std::shared_ptr<Vk::Image> image = std::make_shared<Vk::Image>(imageSpec, GetAvailableIndex());

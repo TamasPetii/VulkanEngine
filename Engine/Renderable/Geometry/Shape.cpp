@@ -2,10 +2,11 @@
 
 void Shape::Initialize()
 {
-	GenerateSurfacePoints();
+	PopulateSurfacePoints();
 	GenerateVertices();
 	GenerateIndices();
 	GenerateTangents();
+	GenerateBoundingVolume();
 	UploadToGpu();
 }
 

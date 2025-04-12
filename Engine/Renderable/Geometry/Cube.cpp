@@ -5,7 +5,7 @@ Cube::Cube(float halfSize) : halfSize(halfSize)
     Initialize();
 }
 
-void Cube::GenerateSurfacePoints()
+void Cube::PopulateSurfacePoints()
 {
     surfacePoints = {
         // Front face (z = +halfSize)
