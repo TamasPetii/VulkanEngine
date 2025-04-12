@@ -3,6 +3,7 @@
 void Instanceable::AddIndex(const Indices& index)
 {
 	instanceIndices.emplace_back(index);
+	instanceCount++;
 }
 
 void Instanceable::UploadInstanceDataToGPU(uint32_t frameIndex)
@@ -35,7 +36,6 @@ void Instanceable::UploadInstanceDataToGPU(uint32_t frameIndex)
 			}
 		);
 
-		instanceCount = instanceIndices.size();
 		instanceIndices.clear();
 		instanceIndices.shrink_to_fit();
 	}
@@ -48,5 +48,10 @@ std::shared_ptr<Vk::Buffer> Instanceable::GetInstanceIndexBuffer(uint32_t frameI
 
 uint32_t Instanceable::GetInstanceCount()
 {
-	return instanceIndices.size();
+	return instanceCount;
+}
+
+void Instanceable::ResetInstanceCount()
+{
+	instanceCount = 0;
 }

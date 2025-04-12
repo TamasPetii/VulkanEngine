@@ -30,13 +30,12 @@ layout( push_constant ) uniform constants
 
 void main() 
 {
-	
 	MaterialBuffer materialBuffer = MaterialBuffer(PushConstants.materialBuffer);
 	uint materialIndex = PushConstants.renderMode == NORMAL_INSTANCED ? fs_in_index.y : MaterialIndexBuffer(PushConstants.materialIndexBuffer).materialIndices[fs_in_index.y];
 
 	vec4 albedo = materialBuffer.materials[materialIndex].color;
 	if(materialBuffer.materials[materialIndex].albedoIndex != uint(INVALID_IMAGE_INDEX))
-		albedo *= sampleTexture2D(materialBuffer.materials[materialIndex].albedoIndex, LINEAR_ANISOTROPY_SAMPLER_ID, fs_in_tex);
+		albedo *= sampleTexture2D(materialBuffer.materials[materialIndex].albedoIndex, LINEAR_SAMPLER_ID, fs_in_tex);
 		
 	vec3 normal = vec3(normalize(fs_in_normal));
 	if(materialBuffer.materials[materialIndex].normalIndex != uint(INVALID_IMAGE_INDEX))

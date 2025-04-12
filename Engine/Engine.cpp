@@ -39,6 +39,7 @@ void Engine::Initialize()
 
 	resourceManager->GetImageManager()->LoadImage("../Assets/Texture.jpg");
 	resourceManager->GetModelManager()->LoadModel("../Assets/Mamut.obj");
+	resourceManager->GetModelManager()->LoadModel("../Assets/Sponza.obj");
 }
 
 void Engine::SetRequiredWindowExtensions(std::span<const char*> extensionNames)
@@ -91,17 +92,18 @@ void Engine::InitRegistry()
 		registry->AddComponents<CameraComponent>(entity);
 	}
 
-	for (uint32_t i = 0; i < 4096; ++i)
+	for (uint32_t i = 0; i < 256; ++i)
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, MaterialComponent>(entity);
 
 		auto [transformComponent, materialComponent] = registry->GetComponents<TransformComponent, MaterialComponent>(entity);
-		transformComponent->rotation = 180.f * glm::vec3(dist(rng), dist(rng), dist(rng));
-		transformComponent->translation = 100.f * glm::vec3(dist(rng), dist(rng), dist(rng));
+		//transformComponent->rotation = 180.f * glm::vec3(dist(rng), dist(rng), dist(rng));
+		//transformComponent->translation = 100.f * glm::vec3(dist(rng), dist(rng), dist(rng));
+		transformComponent->scale =glm::vec3(0.1);
 
-		materialComponent->color = glm::vec4(dist(rng), dist(rng), dist(rng), 1);
-		materialComponent->albedo = resourceManager->GetImageManager()->LoadImage("../Assets/Texture.jpg");
+		//materialComponent->color = glm::vec4(dist(rng), dist(rng), dist(rng), 1);
+		//materialComponent->albedo = resourceManager->GetImageManager()->LoadImage("../Assets/Texture.jpg");
 	}
 }
 
@@ -175,14 +177,16 @@ void Engine::SystemUpdate(float deltaTime)
 		systemTimes[Unique::typeID<MaterialSystem>()] += timer.GetElapsedTime<std::chrono::milliseconds>();
 	}
 
-	auto model = resourceManager->GetModelManager()->GetModel("../Assets/Mamut.obj");
-
-	for (uint32_t i = 1; i < 2000; i++)
-	{
+	auto model = resourceManager->GetModelManager()->GetModel("../Assets/Sponza.obj");
+	model->ResetInstanceCount();
+	for (uint32_t i = 1; i < 2; i++)
 		model->AddIndex({ i, i, 0, 0 });
-	}
-
 	model->UpdateIndirectCommandsInstanceCount(model->GetInstanceCount());
+
+	auto geometry = resourceManager->GetGeometryManager()->GetShape("Cube");
+	geometry->ResetInstanceCount();
+	for (uint32_t i = 1; i < 256; i++)
+		geometry->AddIndex({ i, i, i, 0 });
 }
 
 void Engine::SystemUpdateGPU()
@@ -207,9 +211,12 @@ void Engine::SystemUpdateGPU()
 		systemTimes[Unique::typeID<MaterialSystem>()] += timer.GetElapsedTime<std::chrono::milliseconds>();
 	}
 
-	auto model = resourceManager->GetModelManager()->GetModel("../Assets/Mamut.obj");
+	auto model = resourceManager->GetModelManager()->GetModel("../Assets/Sponza.obj");
 	model->UploadInstanceDataToGPU(framesInFlightIndex);
 	model->UploadIndirectCommandsToGpu(framesInFlightIndex);
+
+	auto geometry = resourceManager->GetGeometryManager()->GetShape("Cube");
+	geometry->UploadInstanceDataToGPU(framesInFlightIndex);
 }
 
 void Engine::SystemFinish()

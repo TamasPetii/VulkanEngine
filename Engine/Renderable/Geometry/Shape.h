@@ -1,8 +1,9 @@
 #pragma once
 #include <glm/gtc/constants.hpp>
 #include "Engine/Renderable/Renderable.h"
+#include "Engine/Renderable/Instanceable.h"
 
-class ENGINE_API Shape : public Renderable
+class ENGINE_API Shape : public Renderable, public Instanceable
 {
 public:
 

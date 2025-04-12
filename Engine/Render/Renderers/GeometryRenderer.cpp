@@ -9,6 +9,17 @@ void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Reg
 	auto frameBuffer = resourceManager->GetVulkanManager()->GetFrameDependentFrameBuffer("Main", frameIndex);
 	auto pipeline = resourceManager->GetVulkanManager()->GetGraphicsPipeline("DeferredPre");
 
+	VkQueryPool queryPool;
+	VkQueryPoolCreateInfo queryPoolInfo{};
+	queryPoolInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
+	queryPoolInfo.queryType = VK_QUERY_TYPE_TIMESTAMP;
+	queryPoolInfo.queryCount = 2;
+
+	VK_CHECK_MESSAGE(vkCreateQueryPool(device->Value(), &queryPoolInfo, nullptr, &queryPool), "Failed to create query pool!");
+
+	vkCmdResetQueryPool(commandBuffer, queryPool, 0, 2);
+	vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queryPool, 0);
+
 	VkClearValue colorClearValue{};
 	colorClearValue.color.float32[0] = 0.f;
 	colorClearValue.color.float32[1] = 0.f;
@@ -56,29 +67,49 @@ void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Reg
 	scissor.extent = frameBuffer->GetSize();
 	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-	auto geometry = resourceManager->GetGeometryManager()->GetShape("Cube");
-	auto model = resourceManager->GetModelManager()->GetModel("../Assets/Mamut.obj");
+	{
+		auto model = resourceManager->GetModelManager()->GetModel("../Assets/Sponza.obj");
 
-	GpuPushConstant pushConstants;
-	pushConstants.renderMode = MULTIDRAW_INDIRECT_INSTANCED;
-	pushConstants.cameraIndex = 0;
-	pushConstants.cameraBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("CameraComponentGPU", frameIndex)->buffer->GetAddress();
-	pushConstants.vertexBuffer = model->GetVertexBuffer()->GetAddress();
-	pushConstants.instanceIndexBuffer = model->GetInstanceIndexBuffer(frameIndex)->GetAddress();
-	pushConstants.transformBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("TransformComponentGPU", frameIndex)->buffer->GetAddress();
-	pushConstants.materialBuffer = model->GetMaterialBuffer()->GetAddress();
-	pushConstants.materialIndexBuffer = model->GetMaterialIndexBuffer()->GetAddress();
+		GpuPushConstant pushConstants;
+		pushConstants.renderMode = MULTIDRAW_INDIRECT_INSTANCED;
+		pushConstants.cameraIndex = 0;
+		pushConstants.cameraBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("CameraComponentGPU", frameIndex)->buffer->GetAddress();
+		pushConstants.vertexBuffer = model->GetVertexBuffer()->GetAddress();
+		pushConstants.instanceIndexBuffer = model->GetInstanceIndexBuffer(frameIndex)->GetAddress();
+		pushConstants.transformBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("TransformComponentGPU", frameIndex)->buffer->GetAddress();
+		pushConstants.materialBuffer = model->GetMaterialBuffer()->GetAddress();
+		pushConstants.materialIndexBuffer = model->GetMaterialIndexBuffer()->GetAddress();
 
-	auto textureDescriptorSet = resourceManager->GetVulkanManager()->GetDescriptorSet("LoadedImages");
-	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetLayout(), 0, 1, &textureDescriptorSet->Value(), 0, nullptr);
-	vkCmdPushConstants(commandBuffer, pipeline->GetLayout(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(GpuPushConstant), &pushConstants);
-	vkCmdBindIndexBuffer(commandBuffer, model->GetIndexBuffer()->Value(), 0, VK_INDEX_TYPE_UINT32);
-	vkCmdDrawIndexedIndirect(commandBuffer, model->GetIndirectBuffer(frameIndex)->Value(), 0, model->GetMeshCount(), sizeof(VkDrawIndexedIndirectCommand));
+		auto textureDescriptorSet = resourceManager->GetVulkanManager()->GetDescriptorSet("LoadedImages");
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetLayout(), 0, 1, &textureDescriptorSet->Value(), 0, nullptr);
+		vkCmdPushConstants(commandBuffer, pipeline->GetLayout(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(GpuPushConstant), &pushConstants);
+		vkCmdBindIndexBuffer(commandBuffer, model->GetIndexBuffer()->Value(), 0, VK_INDEX_TYPE_UINT32);
+		vkCmdDrawIndexedIndirect(commandBuffer, model->GetIndirectBuffer(frameIndex)->Value(), 0, model->GetMeshCount(), sizeof(VkDrawIndexedIndirectCommand));
+	}
+	
+	/*
+	{
+		auto geometry = resourceManager->GetGeometryManager()->GetShape("Cube");
 
-	//pushConstants.materialBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("MaterialComponentGPU", frameIndex)->buffer->GetAddress();
-	//pushConstants.vertexBuffer = geometry->GetVertexBuffer()->GetAddress();
-	//vkCmdBindIndexBuffer(commandBuffer, geometry->GetIndexBuffer()->Value(), 0, VK_INDEX_TYPE_UINT32);
-	//vkCmdDrawIndexed(commandBuffer, geometry->GetIndexCount(), registry->GetPool<TransformComponent>()->GetDenseSize(), 0, 0, 0);
+		GpuPushConstant pushConstants;
+		pushConstants.renderMode = NORMAL_INSTANCED;
+		pushConstants.cameraIndex = 0;
+		pushConstants.cameraBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("CameraComponentGPU", frameIndex)->buffer->GetAddress();
+		pushConstants.vertexBuffer = geometry->GetVertexBuffer()->GetAddress();
+		pushConstants.instanceIndexBuffer = geometry->GetInstanceIndexBuffer(frameIndex)->GetAddress();
+		pushConstants.transformBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("TransformComponentGPU", frameIndex)->buffer->GetAddress();
+		pushConstants.materialBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("MaterialComponentGPU", frameIndex)->buffer->GetAddress();
+		pushConstants.materialIndexBuffer = UINT32_MAX;
+
+		auto textureDescriptorSet = resourceManager->GetVulkanManager()->GetDescriptorSet("LoadedImages");
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetLayout(), 0, 1, &textureDescriptorSet->Value(), 0, nullptr);
+		vkCmdPushConstants(commandBuffer, pipeline->GetLayout(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(GpuPushConstant), &pushConstants);
+		vkCmdBindIndexBuffer(commandBuffer, geometry->GetIndexBuffer()->Value(), 0, VK_INDEX_TYPE_UINT32);
+		vkCmdDrawIndexed(commandBuffer, geometry->GetIndexCount(), geometry->GetInstanceCount(), 0, 0, 0);
+	}
+	*/
 
 	vkCmdEndRendering(commandBuffer);
+
+	vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, queryPool, 1);
 }

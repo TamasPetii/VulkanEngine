@@ -18,6 +18,7 @@ public:
 	};
 public:
 	uint32_t GetInstanceCount();
+	void ResetInstanceCount();
 	void AddIndex(const Indices& index);
 	virtual void UploadInstanceDataToGPU(uint32_t frameIndex);
 	std::shared_ptr<Vk::Buffer> GetInstanceIndexBuffer(uint32_t frameIndex);
