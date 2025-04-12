@@ -63,7 +63,6 @@ void Model::PreFetch(aiNode* node, const aiScene* scene)
     vertices.reserve(vertexCount);
     indices.reserve(indexCount);
     surfacePoints.reserve(vertexCount);
-    indirectCommands.resize(meshCount);
     materialIndices.reserve(meshCount);
 }
 
@@ -100,49 +99,6 @@ void Model::Process(aiNode* node, const aiScene* scene)
 void Model::ProcessGeometry(aiMesh* mesh, const aiScene* scene, uint32_t& currentMeshCount, uint32_t& currentVertexCount, uint32_t& currentIndexCount)
 {
     uint32_t meshVerticesCount = 0;
-
-    //Vertex Data Process
-    for (int i = 0; i < mesh->mNumVertices; ++i)
-    {
-        //Position
-        glm::vec3 position{ 0,0,0 };
-        if (mesh->mVertices)
-            position = Assimp::ConvertAssimpToGlm(mesh->mVertices[i]);
-
-        //Normals
-        glm::vec3 normal{ 0,0,0 };
-        if (mesh->mNormals)
-            normal = Assimp::ConvertAssimpToGlm(mesh->mNormals[i]);
-
-        //Tangents
-        glm::vec3 tangent{ 0,0,0 };
-        if (mesh->mTangents)
-            tangent = Assimp::ConvertAssimpToGlm(mesh->mTangents[i]);
-
-        //Textures
-        glm::vec2 texcoord{ 0,0 };
-        if (mesh->mTextureCoords[0] != nullptr)
-        {
-            texcoord.x = mesh->mTextureCoords[0][i].x;
-            texcoord.y = mesh->mTextureCoords[0][i].y;
-        }
-
-        vertices.emplace_back(Vertex{position, normal, tangent, texcoord});
-        meshVerticesCount++;
-    }
-
-    uint32_t meshIndicesCount = 0;
-
-    //Index Data
-    for (int i = 0; i < mesh->mNumFaces; ++i)
-    {
-        aiFace face = mesh->mFaces[i];
-        for (int j = 0; j < face.mNumIndices; ++j)
-        {
-            indices.push_back(face.mIndices[j]);
-            meshIndicesCount++;
-        }
-    }
 
     if (mesh->mMaterialIndex >= 0)
     {
@@ -202,14 +158,51 @@ void Model::ProcessGeometry(aiMesh* mesh, const aiScene* scene, uint32_t& curren
     else
     {
         //Mesh did not have material
-        materialIndices.push_back(UINT32_MAX);
+        materialIndices.push_back(0);
     }
-    
-    indirectCommands[currentMeshCount].indexCount = meshIndicesCount;
-    indirectCommands[currentMeshCount].firstIndex = currentIndexCount;
-    indirectCommands[currentMeshCount].vertexOffset = currentVertexCount;
-    indirectCommands[currentMeshCount].instanceCount = 1;
-    indirectCommands[currentMeshCount].firstInstance = 0;
+
+    //Vertex Data Process
+    for (int i = 0; i < mesh->mNumVertices; ++i)
+    {
+        //Position
+        glm::vec3 position{ 0,0,0 };
+        if (mesh->mVertices)
+            position = Assimp::ConvertAssimpToGlm(mesh->mVertices[i]);
+
+        //Normals
+        glm::vec3 normal{ 0,0,0 };
+        if (mesh->mNormals)
+            normal = Assimp::ConvertAssimpToGlm(mesh->mNormals[i]);
+
+        //Tangents
+        glm::vec3 tangent{ 0,0,0 };
+        if (mesh->mTangents)
+            tangent = Assimp::ConvertAssimpToGlm(mesh->mTangents[i]);
+
+        //Textures
+        glm::vec2 texcoord{ 0,0 };
+        if (mesh->mTextureCoords[0] != nullptr)
+        {
+            texcoord.x = mesh->mTextureCoords[0][i].x;
+            texcoord.y = mesh->mTextureCoords[0][i].y;
+        }
+
+        vertices.emplace_back(Vertex(position, normal, tangent, texcoord, materialIndices.back()));
+        meshVerticesCount++;
+    }
+
+    uint32_t meshIndicesCount = 0;
+
+    //Index Data
+    for (int i = 0; i < mesh->mNumFaces; ++i)
+    {
+        aiFace face = mesh->mFaces[i];
+        for (int j = 0; j < face.mNumIndices; ++j)
+        {
+            indices.push_back(currentVertexCount + face.mIndices[j]);
+            meshIndicesCount++;
+        }
+    }
 
     currentIndexCount += meshIndicesCount;
     currentVertexCount += meshVerticesCount;

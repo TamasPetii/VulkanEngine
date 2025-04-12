@@ -42,6 +42,6 @@ void main()
 	vs_out_normal = normal;
 	vs_out_tex = vec2(v.uv_x, v.uv_y);
 	vs_out_index.x = indices.x; //Entity ID
-	vs_out_index.y = PushConstants.renderMode == NORMAL_INSTANCED ? indices.z : gl_DrawID; //Material Index
+	vs_out_index.y = PushConstants.renderMode == NORMAL_INSTANCED ? indices.z : v.index; //Material Index
 	vs_out_tbn = mat3(tangent, bitangent, normal);
 }

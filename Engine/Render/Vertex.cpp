@@ -7,7 +7,7 @@ Vertex::Vertex(const glm::vec3& position, const glm::vec3& normal, const glm::ve
 {
 	uv_x = uv.x;
 	uv_y = uv.y;
-	padding = 0;
+	index = 0;
 }
 
 Vertex::Vertex(const glm::vec3& position, const glm::vec3& normal, const glm::vec3& tangent, const glm::vec2& uv) :
@@ -17,9 +17,18 @@ Vertex::Vertex(const glm::vec3& position, const glm::vec3& normal, const glm::ve
 {
 	uv_x = uv.x;
 	uv_y = uv.y;
-	padding = 0;
+	index = 0;
 }
 
+Vertex::Vertex(const glm::vec3& position, const glm::vec3& normal, const glm::vec3& tangent, const glm::vec2& uv, uint32_t index) :
+	position(position),
+	uv_x(uv.x),
+	normal(normal),
+	uv_y(uv.y),
+	tangent(tangent),
+	index(index)
+{
+}
 
 VkVertexInputBindingDescription Vertex::GetBindingDescription() {
 	VkVertexInputBindingDescription bindingDescription{};

@@ -14,7 +14,7 @@
 
 #include "Engine/Managers/ImageManager.h"
 
-class ENGINE_API Model : public Renderable, public IndirectMultiDrawable, public Materialized, public Instanceable
+class ENGINE_API Model : public Renderable, public Materialized, public Instanceable
 {
 public:
 	Model(std::shared_ptr<ImageManager> imageManager);

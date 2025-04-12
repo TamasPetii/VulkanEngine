@@ -38,7 +38,7 @@ void Engine::Initialize()
 	InitComponentBufferManager();
 
 	resourceManager->GetImageManager()->LoadImage("../Assets/Texture.jpg");
-	resourceManager->GetModelManager()->LoadModel("../Assets/Mamut/Mamut.obj");
+	//resourceManager->GetModelManager()->LoadModel("../Assets/Mamut/Mamut.obj");
 	resourceManager->GetModelManager()->LoadModel("../Assets/Sponza/Sponza.obj");
 }
 
@@ -181,7 +181,6 @@ void Engine::SystemUpdate(float deltaTime)
 	model->ResetInstanceCount();
 	for (uint32_t i = 1; i < 2; i++)
 		model->AddIndex({ i, i, 0, 0 });
-	model->UpdateIndirectCommandsInstanceCount(model->GetInstanceCount());
 
 	auto geometry = resourceManager->GetGeometryManager()->GetShape("Cube");
 	geometry->ResetInstanceCount();
@@ -213,7 +212,6 @@ void Engine::SystemUpdateGPU()
 
 	auto model = resourceManager->GetModelManager()->GetModel("../Assets/Sponza/Sponza.obj");
 	model->UploadInstanceDataToGPU(framesInFlightIndex);
-	model->UploadIndirectCommandsToGpu(framesInFlightIndex);
 
 	auto geometry = resourceManager->GetGeometryManager()->GetShape("Cube");
 	geometry->UploadInstanceDataToGPU(framesInFlightIndex);
