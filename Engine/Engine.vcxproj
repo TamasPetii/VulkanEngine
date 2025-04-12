@@ -163,6 +163,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Renderable\Materialized.h" />
+    <ClInclude Include="Renderable\IndirectMultiDrawable.h" />
+    <ClInclude Include="Renderable\Instanceable.h" />
     <ClInclude Include="Managers\ModelManager.h" />
     <ClInclude Include="Components\MaterialComponent.h" />
     <ClInclude Include="Systems\MaterialSystem.h" />
@@ -236,6 +239,9 @@
     <ClInclude Include="Logger\Logger.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Renderable\Materialized.cpp" />
+    <ClCompile Include="Renderable\IndirectMultiDrawable.cpp" />
+    <ClCompile Include="Renderable\Instanceable.cpp" />
     <ClCompile Include="Managers\ModelManager.cpp" />
     <ClCompile Include="Components\MaterialComponent.cpp" />
     <ClCompile Include="Systems\MaterialSystem.cpp" />
@@ -306,8 +312,9 @@
     <None Include="Shaders\Basic.frag" />
     <None Include="Shaders\Basic.vert" />
     <None Include="Shaders\Common\Camera.glsl" />
+    <None Include="Shaders\Common\RenderDefines.glsl" />
     <None Include="Shaders\Common\Images.glsl" />
-    <None Include="Shaders\Common\Incides.glsl" />
+    <None Include="Shaders\Common\InstanceIndex.glsl" />
     <None Include="Shaders\Common\Material.glsl" />
     <None Include="Shaders\Common\Transform.glsl" />
     <None Include="Shaders\Common\Vertex.glsl" />

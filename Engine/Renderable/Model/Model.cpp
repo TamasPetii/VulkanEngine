@@ -27,62 +27,12 @@ uint32_t Model::GetMeshCount()
     return meshCount;
 }
 
-std::shared_ptr<Vk::Buffer> Model::GetIndirectBuffer()
-{
-    return indirectBuffer;
-}
-
 void Model::UploadToGpu()
 {
-    Renderable::UploadToGpu();
-
     auto device = Vk::VulkanContext::GetContext()->GetDevice();
 
-    //Upload the indirect commands to the gpu
-    {
-        VkDeviceSize bufferSize = sizeof(VkDrawIndexedIndirectCommand) * indirectCommands.size();
-
-        Vk::BufferConfig config;
-        config.size = bufferSize;
-        config.usage = VK_BUFFER_USAGE_2_INDIRECT_BUFFER_BIT;
-        config.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-
-        indirectBuffer = std::make_shared<Vk::Buffer>(config);
-        indirectBuffer->MapMemory();
-
-        memcpy(indirectBuffer->GetHandler(), indirectCommands.data(), (size_t)bufferSize);
-    }
-
-    //Upload the materials to gpu
-    {
-        std::vector<MaterialComponentGPU> materialsGPU(materials.begin(), materials.end());
-        VkDeviceSize bufferSize = sizeof(MaterialComponentGPU) * materials.size();
-
-        Vk::BufferConfig config;
-        config.size = bufferSize;
-        config.usage = VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT;
-        config.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-
-        materialBuffer = std::make_shared<Vk::Buffer>(config);
-        materialBuffer->MapMemory();
-
-        memcpy(materialBuffer->GetHandler(), materialsGPU.data(), (size_t)bufferSize);
-    }
-
-    //Upload the material indices to gpu
-    {
-        VkDeviceSize bufferSize = sizeof(uint32_t) * materialIndices.size();
-
-        Vk::BufferConfig config;
-        config.size = bufferSize;
-        config.usage = VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT;
-        config.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-
-        materialIndexBuffer = std::make_shared<Vk::Buffer>(config);
-        materialIndexBuffer->MapMemory();
-
-        memcpy(materialIndexBuffer->GetHandler(), materialIndices.data(), (size_t)bufferSize);
-    }
+    Renderable::UploadToGpu();
+    Materialized::UploadMaterialDataToGpu();
 }
 
 void Model::PreFetch(aiNode* node, const aiScene* scene)
@@ -142,6 +92,9 @@ void Model::Process(aiNode* node, const aiScene* scene)
             queue.push(currentNode->mChildren[i]);
         }
     }
+
+    for (auto& vertex : vertices)
+        surfacePoints.push_back(vertex.position);
 }
 
 void Model::ProcessGeometry(aiMesh* mesh, const aiScene* scene, uint32_t& currentMeshCount, uint32_t& currentVertexCount, uint32_t& currentIndexCount)
@@ -242,8 +195,14 @@ void Model::ProcessGeometry(aiMesh* mesh, const aiScene* scene, uint32_t& curren
 
             loadedMaterials[materialName] = materials.size();
             materials.push_back(materialComponent);
-            materialIndices.push_back(loadedMaterials[materialName]);
         }
+
+        materialIndices.push_back(loadedMaterials[materialName]);
+    }
+    else
+    {
+        //Mesh did not have material
+        materialIndices.push_back(UINT32_MAX);
     }
     
     indirectCommands[currentMeshCount].indexCount = meshIndicesCount;

@@ -174,6 +174,15 @@ void Engine::SystemUpdate(float deltaTime)
 		systems[Unique::typeID<MaterialSystem>()]->OnUpdate(registry, deltaTime);
 		systemTimes[Unique::typeID<MaterialSystem>()] += timer.GetElapsedTime<std::chrono::milliseconds>();
 	}
+
+	auto model = resourceManager->GetModelManager()->GetModel("../Assets/Mamut.obj");
+
+	for (uint32_t i = 1; i < 2000; i++)
+	{
+		model->AddIndex({ i, i, 0, 0 });
+	}
+
+	model->UpdateIndirectCommandsInstanceCount(model->GetInstanceCount());
 }
 
 void Engine::SystemUpdateGPU()
@@ -197,6 +206,10 @@ void Engine::SystemUpdateGPU()
 		systems[Unique::typeID<MaterialSystem>()]->OnUploadToGpu(registry, resourceManager->GetComponentBufferManager(), framesInFlightIndex);
 		systemTimes[Unique::typeID<MaterialSystem>()] += timer.GetElapsedTime<std::chrono::milliseconds>();
 	}
+
+	auto model = resourceManager->GetModelManager()->GetModel("../Assets/Mamut.obj");
+	model->UploadInstanceDataToGPU(framesInFlightIndex);
+	model->UploadIndirectCommandsToGpu(framesInFlightIndex);
 }
 
 void Engine::SystemFinish()

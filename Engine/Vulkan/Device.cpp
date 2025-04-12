@@ -51,6 +51,10 @@ void Vk::Device::Init(std::span<const char*> deviceExtensions)
 	deviceFeatures.samplerAnisotropy = VK_TRUE;
 	deviceFeatures.multiDrawIndirect = VK_TRUE;
 
+	VkPhysicalDeviceVulkan11Features deviceFeatures11{};
+	deviceFeatures11.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+	deviceFeatures11.shaderDrawParameters = VK_TRUE;
+
 	VkPhysicalDeviceVulkan12Features deviceFeatures12{};
 	deviceFeatures12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
 	deviceFeatures12.bufferDeviceAddress = VK_TRUE;
@@ -59,6 +63,7 @@ void Vk::Device::Init(std::span<const char*> deviceExtensions)
 	deviceFeatures12.descriptorBindingPartiallyBound = VK_TRUE;
 	deviceFeatures12.descriptorBindingVariableDescriptorCount = VK_TRUE;
 	deviceFeatures12.runtimeDescriptorArray = VK_TRUE;
+	deviceFeatures12.pNext = &deviceFeatures11;
 
 	VkPhysicalDeviceVulkan13Features deviceFeatures13 = {};
 	deviceFeatures13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;

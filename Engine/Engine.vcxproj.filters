@@ -228,6 +228,15 @@
     <ClInclude Include="Systems\MaterialSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Renderable\Instanceable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderable\IndirectMultiDrawable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderable\Materialized.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -419,6 +428,15 @@
     <ClCompile Include="Systems\MaterialSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Renderable\Instanceable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderable\IndirectMultiDrawable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderable\Materialized.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Registry\Pool.inl">
@@ -439,6 +457,7 @@
     <None Include="Shaders\Common\Camera.glsl" />
     <None Include="Shaders\Common\Images.glsl" />
     <None Include="Shaders\Common\Material.glsl" />
-    <None Include="Shaders\Common\Incides.glsl" />
+    <None Include="Shaders\Common\InstanceIndex.glsl" />
+    <None Include="Shaders\Common\RenderDefines.glsl" />
   </ItemGroup>
 </Project>

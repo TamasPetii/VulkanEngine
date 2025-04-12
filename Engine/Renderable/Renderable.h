@@ -4,7 +4,7 @@
 #include "Engine/Vulkan/Buffer.h"
 #include "Engine/Vulkan/VulkanContext.h"
 
-class Renderable
+class ENGINE_API Renderable
 {
 public:
 	virtual void UploadToGpu();
@@ -21,6 +21,5 @@ protected:
 	std::vector<glm::vec3> surfacePoints;
 	std::shared_ptr<Vk::Buffer> indexBuffer;
 	std::shared_ptr<Vk::Buffer> vertexBuffer;
-	std::shared_ptr<Vk::Buffer> instanceBuffer;
 };
 

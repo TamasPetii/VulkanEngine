@@ -60,20 +60,22 @@ void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Reg
 	auto model = resourceManager->GetModelManager()->GetModel("../Assets/Mamut.obj");
 
 	GpuPushConstant pushConstants;
-	pushConstants.entityIndex = 1;
+	pushConstants.renderMode = MULTIDRAW_INDIRECT_INSTANCED;
 	pushConstants.cameraIndex = 0;
-	pushConstants.vertexBuffer = model->GetVertexBuffer()->GetAddress();
 	pushConstants.cameraBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("CameraComponentGPU", frameIndex)->buffer->GetAddress();
+	pushConstants.vertexBuffer = model->GetVertexBuffer()->GetAddress();
+	pushConstants.instanceIndexBuffer = model->GetInstanceIndexBuffer(frameIndex)->GetAddress();
 	pushConstants.transformBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("TransformComponentGPU", frameIndex)->buffer->GetAddress();
-	pushConstants.materialBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("MaterialComponentGPU", frameIndex)->buffer->GetAddress();
+	pushConstants.materialBuffer = model->GetMaterialBuffer()->GetAddress();
+	pushConstants.materialIndexBuffer = model->GetMaterialIndexBuffer()->GetAddress();
 
 	auto textureDescriptorSet = resourceManager->GetVulkanManager()->GetDescriptorSet("LoadedImages");
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetLayout(), 0, 1, &textureDescriptorSet->Value(), 0, nullptr);
 	vkCmdPushConstants(commandBuffer, pipeline->GetLayout(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(GpuPushConstant), &pushConstants);
 	vkCmdBindIndexBuffer(commandBuffer, model->GetIndexBuffer()->Value(), 0, VK_INDEX_TYPE_UINT32);
+	vkCmdDrawIndexedIndirect(commandBuffer, model->GetIndirectBuffer(frameIndex)->Value(), 0, model->GetMeshCount(), sizeof(VkDrawIndexedIndirectCommand));
 
-	vkCmdDrawIndexedIndirect(commandBuffer, model->GetIndirectBuffer()->Value(), 0, model->GetMeshCount(), sizeof(VkDrawIndexedIndirectCommand));
-
+	//pushConstants.materialBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("MaterialComponentGPU", frameIndex)->buffer->GetAddress();
 	//pushConstants.vertexBuffer = geometry->GetVertexBuffer()->GetAddress();
 	//vkCmdBindIndexBuffer(commandBuffer, geometry->GetIndexBuffer()->Value(), 0, VK_INDEX_TYPE_UINT32);
 	//vkCmdDrawIndexed(commandBuffer, geometry->GetIndexCount(), registry->GetPool<TransformComponent>()->GetDenseSize(), 0, 0, 0);
