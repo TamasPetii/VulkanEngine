@@ -5,6 +5,8 @@ struct Vertex {
 	float uv_x;
 	vec3 normal;
 	float uv_y;
+	vec3 tangent;
+	float padding;
 }; 
 
 layout(buffer_reference, std430) readonly buffer VertexBuffer { 

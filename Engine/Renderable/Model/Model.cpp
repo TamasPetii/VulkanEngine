@@ -127,7 +127,7 @@ void Model::ProcessGeometry(aiMesh* mesh, const aiScene* scene, uint32_t& curren
             texcoord.y = mesh->mTextureCoords[0][i].y;
         }
 
-        vertices.emplace_back(Vertex{position, normal, texcoord});
+        vertices.emplace_back(Vertex{position, normal, tangent, texcoord});
         meshVerticesCount++;
     }
 

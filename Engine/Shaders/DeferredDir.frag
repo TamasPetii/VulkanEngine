@@ -12,7 +12,7 @@ void main()
     vec3 color = texture(u_colorTexture, fs_in_tex).xyz;
 	vec3 normal = texture(u_normalTexture, fs_in_tex).xyz;
 
-    vec3 lightDir = vec3(-0.9, -1, -0.8);
+    vec3 lightDir = vec3(-0.9, -0.5, -0.8);
 	float cosa = clamp(dot(normal, -lightDir), 0, 1);
 
 	fs_out_col = vec4(color * cosa, 1);

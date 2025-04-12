@@ -10,6 +10,7 @@ layout (location = 0) in vec3 fs_in_pos;
 layout (location = 1) in vec3 fs_in_normal;
 layout (location = 2) in vec2 fs_in_tex;
 layout (location = 3) in flat uvec2 fs_in_index;
+layout (location = 4) in mat3 fs_in_tbn;
 
 //Outputs
 layout (location = 0) out vec4 fs_out_color;
@@ -39,7 +40,11 @@ void main()
 		
 	vec3 normal = vec3(normalize(fs_in_normal));
 	if(materialBuffer.materials[materialIndex].normalIndex != uint(INVALID_IMAGE_INDEX))
-		normal = sampleTexture2D(materialBuffer.materials[materialIndex].normalIndex, NEAREST_SAMPLER_ID, fs_in_tex).xyz;
+	{
+		normal = sampleTexture2D(materialBuffer.materials[materialIndex].normalIndex, LINEAR_SAMPLER_ID, fs_in_tex).xyz;
+        normal = normal * 2.0 - 1.0;   
+        normal = normalize(fs_in_tbn * normal); 
+	}
 
 	fs_out_color = albedo;
 	fs_out_normal = vec4(normal, 1);
