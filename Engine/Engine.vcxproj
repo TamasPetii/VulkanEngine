@@ -163,12 +163,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Managers\BenchmarkManager.h" />
     <ClInclude Include="Renderable\BoundingVolume.h" />
     <ClInclude Include="Renderable\Materialized.h" />
     <ClInclude Include="Renderable\IndirectMultiDrawable.h" />
     <ClInclude Include="Renderable\Instanceable.h" />
     <ClInclude Include="Managers\ModelManager.h" />
     <ClInclude Include="Components\MaterialComponent.h" />
+    <ClInclude Include="Scene\Scene.h" />
     <ClInclude Include="Systems\MaterialSystem.h" />
     <ClInclude Include="Renderable\Model\AssimpConverter.h" />
     <ClInclude Include="Renderable\Model\Model.h" />
@@ -240,12 +242,14 @@
     <ClInclude Include="Logger\Logger.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Managers\BenchmarkManager.cpp" />
     <ClCompile Include="Renderable\BoundingVolume.cpp" />
     <ClCompile Include="Renderable\Materialized.cpp" />
     <ClCompile Include="Renderable\IndirectMultiDrawable.cpp" />
     <ClCompile Include="Renderable\Instanceable.cpp" />
     <ClCompile Include="Managers\ModelManager.cpp" />
     <ClCompile Include="Components\MaterialComponent.cpp" />
+    <ClCompile Include="Scene\Scene.cpp" />
     <ClCompile Include="Systems\MaterialSystem.cpp" />
     <ClCompile Include="Renderable\Model\Model.cpp" />
     <ClCompile Include="Renderable\Renderable.cpp" />

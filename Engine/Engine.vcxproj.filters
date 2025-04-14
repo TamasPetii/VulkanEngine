@@ -240,6 +240,12 @@
     <ClInclude Include="Renderable\BoundingVolume.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Scene\Scene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Managers\BenchmarkManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -441,6 +447,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Renderable\BoundingVolume.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Scene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Managers\BenchmarkManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

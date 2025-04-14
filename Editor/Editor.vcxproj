@@ -164,6 +164,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
+    <ClInclude Include="Gui\Windows\BenchmarkWindow.h" />
     <ClInclude Include="Gui\Windows\GlobalSettingsWindow.h" />
     <ClInclude Include="Gui\Windows\EntityWindow.h" />
     <ClInclude Include="Gui\Windows\ComponentWindow.h" />
@@ -181,6 +182,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp" />
+    <ClCompile Include="Gui\Windows\BenchmarkWindow.cpp" />
     <ClCompile Include="Gui\Windows\GlobalSettingsWindow.cpp" />
     <ClCompile Include="Gui\Windows\EntityWindow.cpp" />
     <ClCompile Include="Gui\Windows\ComponentWindow.cpp" />

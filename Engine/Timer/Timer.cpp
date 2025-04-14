@@ -4,12 +4,12 @@ Timer::Timer() :
 	frameDeltaTime(0),
 	frameElapsedTime(0)
 {
+	startTime = std::chrono::high_resolution_clock::now();
+	lastUpdateTime = startTime;
 }
 
 Timer::~Timer()
 {
-	startTime = std::chrono::high_resolution_clock::now();
-	lastUpdateTime = startTime;
 }
 
 void Timer::Update()
@@ -18,4 +18,10 @@ void Timer::Update()
 	frameDeltaTime = std::chrono::duration<float>(currentTime - lastUpdateTime).count();
 	frameElapsedTime = std::chrono::duration<float>(currentTime - startTime).count();
 	lastUpdateTime = currentTime;
+}
+
+float Timer::GetElapsedTime()
+{
+	auto currentTime = std::chrono::high_resolution_clock::now();
+	return std::chrono::duration<float, std::milli>(currentTime - startTime).count();
 }

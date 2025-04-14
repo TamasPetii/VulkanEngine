@@ -4,6 +4,7 @@
 #include "GeometryManager.h"
 #include "ComponentBufferManager.h"
 #include "ModelManager.h"
+#include "BenchmarkManager.h"
 
 class ENGINE_API ResourceManager
 {
@@ -24,5 +25,6 @@ private:
 	std::shared_ptr<VulkanManager> vulkanManager;
 	std::shared_ptr<GeometryManager> geometryManager;
 	std::shared_ptr<ComponentBufferManager> componentBufferManager;
+	std::shared_ptr<BenchmarkManager> benchmarkManager;
 };
 

@@ -67,6 +67,7 @@ void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Reg
 	scissor.extent = frameBuffer->GetSize();
 	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
+	/*
 	{
 		auto model = resourceManager->GetModelManager()->GetModel("../Assets/Sponza/Sponza.obj");
 
@@ -85,8 +86,8 @@ void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Reg
 		vkCmdBindIndexBuffer(commandBuffer, model->GetIndexBuffer()->Value(), 0, VK_INDEX_TYPE_UINT32);
 		vkCmdDrawIndexed(commandBuffer, model->GetIndexCount(), model->GetInstanceCount(), 0, 0, 0);
 	}
+	*/
 	
-	/*
 	{
 		auto geometry = resourceManager->GetGeometryManager()->GetShape("Cube");
 
@@ -98,7 +99,6 @@ void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Reg
 		pushConstants.instanceIndexBuffer = geometry->GetInstanceIndexBuffer(frameIndex)->GetAddress();
 		pushConstants.transformBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("TransformComponentGPU", frameIndex)->buffer->GetAddress();
 		pushConstants.materialBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("MaterialComponentGPU", frameIndex)->buffer->GetAddress();
-		pushConstants.materialIndexBuffer = UINT32_MAX;
 
 		auto textureDescriptorSet = resourceManager->GetVulkanManager()->GetDescriptorSet("LoadedImages");
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetLayout(), 0, 1, &textureDescriptorSet->Value(), 0, nullptr);
@@ -106,7 +106,6 @@ void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Reg
 		vkCmdBindIndexBuffer(commandBuffer, geometry->GetIndexBuffer()->Value(), 0, VK_INDEX_TYPE_UINT32);
 		vkCmdDrawIndexed(commandBuffer, geometry->GetIndexCount(), geometry->GetInstanceCount(), 0, 0, 0);
 	}
-	*/
 
 	vkCmdEndRendering(commandBuffer);
 
