@@ -1,5 +1,6 @@
 #pragma once
 #include "Component.h"
+#include "ComponentGPU.h"
 #include <glm/glm.hpp>
 
 struct ENGINE_API TransformComponent : public Component
@@ -13,7 +14,7 @@ struct ENGINE_API TransformComponent : public Component
 	glm::mat4 transformIT;
 };
 
-struct ENGINE_API TransformComponentGPU
+struct ENGINE_API TransformComponentGPU : public ComponentGPU
 {
 	TransformComponentGPU(const TransformComponent& component);
 

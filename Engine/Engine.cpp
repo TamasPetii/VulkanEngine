@@ -28,12 +28,10 @@ void Engine::Initialize()
 	vulkanContext->SetRequiredDeviceExtension(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME);
 	vulkanContext->Init();
 
-
 	frameTimer = std::make_shared<Timer>();
 	renderer = std::make_shared<Renderer>();
 	resourceManager = std::make_shared<ResourceManager>();
 	scene = std::make_shared<Scene>(resourceManager);
-	InitComponentBufferManager();
 
 	resourceManager->GetImageManager()->LoadImage("../Assets/Texture.jpg");
 	resourceManager->GetModelManager()->LoadModel("../Assets/Sponza/Sponza.obj");
@@ -68,25 +66,6 @@ void Engine::WindowResizeEvent()
 	renderer->RecreateSwapChain();
 }
 
-void Engine::InitComponentBufferManager()
-{
-	Vk::BufferConfig config;
-	config.size = 1;
-	config.usage = VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT;
-	config.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-
-	resourceManager->GetComponentBufferManager()->RegisterBuffer("CameraComponentGPU", config);
-	resourceManager->GetComponentBufferManager()->RegisterBuffer("TransformComponentGPU", config);
-	resourceManager->GetComponentBufferManager()->RegisterBuffer("MaterialComponentGPU", config);
-}
-
-void Engine::CheckForComponentBufferResize()
-{
-	resourceManager->GetComponentBufferManager()->RecreateBuffer<TransformComponentGPU>("TransformComponentGPU", registry->GetPool<TransformComponent>()->GetDenseSize(), framesInFlightIndex);
-	resourceManager->GetComponentBufferManager()->RecreateBuffer<CameraComponentGPU>("CameraComponentGPU", registry->GetPool<CameraComponent>()->GetDenseSize(), framesInFlightIndex);
-	resourceManager->GetComponentBufferManager()->RecreateBuffer<MaterialComponentGPU>("MaterialComponentGPU", registry->GetPool<MaterialComponent>()->GetDenseSize(), framesInFlightIndex);
-}
-
 void Engine::Update()
 {
 	static float time = 0;
@@ -104,19 +83,18 @@ void Engine::Update()
 		counter = 0;
 	}
 
-	scene->Update(frameTimer, framesInFlightIndex);
+	scene->Update(frameTimer, frameIndex);
 	InputManager::Instance()->UpdatePrevious();
 }
 
 void Engine::UpdateGPU()
 {
-	CheckForComponentBufferResize();
+	scene->UpdateGPU(frameIndex);
 }
-
 
 void Engine::Render()
 {
-	renderer->Render(scene->GetRegistry(), resourceManager, framesInFlightIndex);
+	renderer->Render(scene->GetRegistry(), resourceManager, frameIndex);
 }
 
 void Engine::SimulateFrame()
@@ -124,7 +102,7 @@ void Engine::SimulateFrame()
 	Update();
 
 	auto device = Vk::VulkanContext::GetContext()->GetDevice();
-	auto inFlightFence = resourceManager->GetVulkanManager()->GetFrameDependentFence("InFlight", framesInFlightIndex);
+	auto inFlightFence = resourceManager->GetVulkanManager()->GetFrameDependentFence("InFlight", frameIndex);
 
 	vkWaitForFences(device->Value(), 1, &inFlightFence->Value(), VK_TRUE, UINT64_MAX);
 	vkResetFences(device->Value(), 1, &inFlightFence->Value());
@@ -132,5 +110,5 @@ void Engine::SimulateFrame()
 	UpdateGPU();
 	Render();
 
-	framesInFlightIndex = (framesInFlightIndex + 1) % Settings::FRAMES_IN_FLIGHT;
+	frameIndex = (frameIndex + 1) % Settings::FRAMES_IN_FLIGHT;
 }

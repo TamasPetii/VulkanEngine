@@ -1,5 +1,6 @@
 #pragma once
 #include "Component.h"
+#include "ComponentGPU.h"
 #include "Engine/Vulkan/Image.h"
 #include <glm/glm.hpp>
 
@@ -16,7 +17,7 @@ struct ENGINE_API MaterialComponent : public Component
 	std::shared_ptr<Vk::Image> roughness;
 };
 
-struct ENGINE_API MaterialComponentGPU
+struct ENGINE_API MaterialComponentGPU : public ComponentGPU
 {
 	MaterialComponentGPU(const MaterialComponent& component);
 

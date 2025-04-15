@@ -11,9 +11,9 @@ void BenchmarkWindow::Render(std::shared_ptr<Registry> registry, std::shared_ptr
 	static Window::Config config = Window::Config("Benchmark-Window");
 	Window::Render(config, [&]() -> void
 		{
-			ImGui::Text("Physics System = ");
-			ImGui::SameLine();
-			ImGui::TextColored(ImVec4(0.75, 0.75, 0.75, 1), "%f ms", systemTimes[Unique::typeIndex<PhysicsSystem>()]);
+			//ImGui::Text("Physics System = ");
+			//ImGui::SameLine();
+			//ImGui::TextColored(ImVec4(0.75, 0.75, 0.75, 1), "%f ms", systemTimes[Unique::typeIndex<PhysicsSystem>()]);
 		}
 	);
 }

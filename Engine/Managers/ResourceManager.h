@@ -19,6 +19,7 @@ public:
 	auto GetVulkanManager() { return vulkanManager; }
 	auto GetGeometryManager() { return geometryManager; }
 	auto GetComponentBufferManager() { return componentBufferManager; }
+	auto GetBenchmarkManager() { return benchmarkManager; }
 private:
 	std::shared_ptr<ModelManager> modelManager;
 	std::shared_ptr<ImageManager> imageManager;

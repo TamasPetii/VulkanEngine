@@ -1,5 +1,6 @@
 #pragma once
 #include "Component.h"
+#include "ComponentGPU.h"
 #include <glm/glm.hpp>
 
 struct ENGINE_API CameraComponent : public Component
@@ -33,7 +34,7 @@ struct ENGINE_API CameraComponent : public Component
 	glm::mat4 viewProjInv;
 };
 
-struct ENGINE_API CameraComponentGPU
+struct ENGINE_API CameraComponentGPU : public ComponentGPU
 {
 public:
 	CameraComponentGPU(const CameraComponent& component);

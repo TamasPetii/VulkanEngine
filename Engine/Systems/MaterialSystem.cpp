@@ -11,7 +11,7 @@ void MaterialSystem::OnUpdate(std::shared_ptr<Registry> registry, float deltaTim
 	if (!materialPool)
 		return;
 
-	std::for_each(std::execution::par_unseq, materialPool->GetDenseEntities().begin(), materialPool->GetDenseEntities().end(),
+	std::for_each(std::execution::seq, materialPool->GetDenseEntities().begin(), materialPool->GetDenseEntities().end(),
 		[&](const Entity& entity) -> void
 		{
 			if (materialPool->GetBitset(entity).test(UPDATE_BIT))
@@ -31,7 +31,7 @@ void MaterialSystem::OnFinish(std::shared_ptr<Registry> registry)
 	if (!materialPool)
 		return;
 
-	std::for_each(std::execution::par_unseq, materialPool->GetDenseEntities().begin(), materialPool->GetDenseEntities().end(),
+	std::for_each(std::execution::seq, materialPool->GetDenseEntities().begin(), materialPool->GetDenseEntities().end(),
 		[&](const Entity& entity) -> void {
 			materialPool->GetBitset(entity).set(REGENERATE_BIT, false);
 			materialPool->GetBitset(entity).set(UPDATE_BIT, false);
@@ -47,10 +47,10 @@ void MaterialSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shar
 	if (!materialPool)
 		return;
 
-	auto componentBuffer = componentBufferManager->GetComponentBuffer("MaterialComponentGPU", frameIndex);
+	auto componentBuffer = componentBufferManager->GetComponentBuffer("MaterialData", frameIndex);
 	auto bufferHandler = static_cast<MaterialComponentGPU*>(componentBuffer->buffer->GetHandler());
 
-	std::for_each(std::execution::par_unseq, materialPool->GetDenseEntities().begin(), materialPool->GetDenseEntities().end(),
+	std::for_each(std::execution::seq, materialPool->GetDenseEntities().begin(), materialPool->GetDenseEntities().end(),
 		[&](const Entity& entity) -> void {
 			auto materialComponent = materialPool->GetComponent(entity);
 			auto index = materialPool->GetIndex(entity);

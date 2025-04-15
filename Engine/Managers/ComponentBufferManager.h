@@ -33,9 +33,9 @@ inline void ComponentBufferManager::RecreateBuffer(const std::string& name, uint
 	if (buffers.find(name) == buffers.end())
 		return;
 
-	auto& [config, buffer] = buffers[name];
+	auto& [config, buffer] = buffers.at(name);
 	uint32_t requiredSize = static_cast<uint32_t>(std::ceil(size / (float)bufferBlockSize)) * bufferBlockSize;
-	auto& componentBuffer = buffer[frameInFlightIndex];
+	auto& componentBuffer = buffer.at(frameInFlightIndex);
 
 	if (componentBuffer.versions.size() != requiredSize)
 	{
@@ -45,5 +45,7 @@ inline void ComponentBufferManager::RecreateBuffer(const std::string& name, uint
 		config.size = requiredSize * sizeof(T);
 		componentBuffer.buffer = std::make_shared<Vk::Buffer>(config);
 		componentBuffer.buffer->MapMemory();
+
+		std::cout << std::format("Recreated buffer {} with size {}", name, requiredSize) << "\n" << std::endl;
 	}
 }

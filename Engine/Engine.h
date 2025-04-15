@@ -27,10 +27,7 @@ private:
 	void Update();
 	void UpdateGPU();
 private:
-	void InitComponentBufferManager();
-	void CheckForComponentBufferResize();
-private:
-	uint32_t framesInFlightIndex = 0;
+	uint32_t frameIndex = 0;
 	std::shared_ptr<Scene> scene;
 	std::shared_ptr<Timer> frameTimer;
 	std::shared_ptr<Renderer> renderer;

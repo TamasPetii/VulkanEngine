@@ -12,8 +12,22 @@ Scene::~Scene()
 	Cleanup();
 }
 
+void Scene::Cleanup()
+{
+	registry.reset();
+	systems.clear();
+}
+
+void Scene::Initialize()
+{
+	InitializeSystems();
+	InitializeRegistry();
+}
+
+
 void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
 {
+	/*
 	//Update Registry Transforms
 	std::random_device dev;
 	std::mt19937 rng(dev());
@@ -39,11 +53,12 @@ void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
 		cameraComponent->height = viewPortSize.height;
 		registry->GetPool<CameraComponent>()->GetBitset(0).set(UPDATE_BIT, true);
 	}
+	*/
 
 	auto geometry = resourceManager->GetGeometryManager()->GetShape("Cube");
 	geometry->ResetInstanceCount();
 
-	for (uint32_t i = 0; i < 32768; i++)
+	for (uint32_t i = 0; i < 500; i++)
 		geometry->AddIndex({ i + 1, i + 1, i, 0 });
 
 	UpdateSystems(frameTimer->GetFrameDeltaTime());
@@ -55,27 +70,8 @@ void Scene::UpdateGPU(uint32_t frameIndex)
 	auto geometry = resourceManager->GetGeometryManager()->GetShape("Cube");
 	geometry->UploadInstanceDataToGPU(frameIndex);
 
+	UpdateComponentBuffers(frameIndex);
 	UpdateSystemsGPU(frameIndex);
-}
-
-void Scene::Initialize()
-{
-	InitializeSystems();
-	InitializeRegistry();
-}
-
-void Scene::Cleanup()
-{
-	registry.reset();
-	systems.clear();
-}
-
-
-void Scene::InitializeSystems()
-{
-	systems[Unique::typeID<TransformSystem>()] = std::make_shared<TransformSystem>();
-	systems[Unique::typeID<CameraSystem>()] = std::make_shared<CameraSystem>();
-	systems[Unique::typeID<MaterialSystem>()] = std::make_shared<MaterialSystem>();
 }
 
 void Scene::InitializeRegistry()
@@ -92,7 +88,7 @@ void Scene::InitializeRegistry()
 		registry->AddComponents<CameraComponent>(entity);
 	}
 
-	for (uint32_t i = 0; i < 32768; ++i)
+	for (uint32_t i = 0; i < 500; ++i)
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, MaterialComponent>(entity);
@@ -107,67 +103,38 @@ void Scene::InitializeRegistry()
 	}
 }
 
+void Scene::InitializeSystems()
+{
+	InitSystem<TransformSystem>();
+	InitSystem<CameraSystem>();
+	InitSystem<MaterialSystem>();
+}
+
 void Scene::UpdateSystems(float deltaTime)
 {
-	{ //Transform System
-		Timer timer{};
-		systems[Unique::typeID<TransformSystem>()]->OnUpdate(registry, deltaTime);
-		systemTimes[Unique::typeID<TransformSystem>()] += timer.GetElapsedTime();
-	}
-
-	{ //Camera System
-		Timer timer;
-		systems[Unique::typeID<CameraSystem>()]->OnUpdate(registry, deltaTime);
-		systemTimes[Unique::typeID<CameraSystem>()] += timer.GetElapsedTime();
-	}
-
-	{ //Material System
-		Timer timer;
-		systems[Unique::typeID<MaterialSystem>()]->OnUpdate(registry, deltaTime);
-		systemTimes[Unique::typeID<MaterialSystem>()] += timer.GetElapsedTime();
-	}
+	UpdateSystem<TransformSystem>(deltaTime);
+	UpdateSystem<CameraSystem>(deltaTime);
+	UpdateSystem<MaterialSystem>(deltaTime);
 }
 
 void Scene::FinishSystems()
 {
-	{ //Transform System Finish
-		Timer timer;
-		systems[Unique::typeID<TransformSystem>()]->OnFinish(registry);
-		systemTimes[Unique::typeID<TransformSystem>()] += timer.GetElapsedTime();
-	}
-
-	{ //Camera System Finish
-		Timer timer;
-		systems[Unique::typeID<CameraSystem>()]->OnFinish(registry);
-		systemTimes[Unique::typeID<CameraSystem>()] += timer.GetElapsedTime();
-	}
-
-	{ //Material System Finish
-		Timer timer;
-		systems[Unique::typeID<MaterialSystem>()]->OnFinish(registry);
-		systemTimes[Unique::typeID<MaterialSystem>()] += timer.GetElapsedTime();
-	}
+	FinishSystem<TransformSystem>();
+	FinishSystem<CameraSystem>();
+	FinishSystem<MaterialSystem>();
 }
 
 void Scene::UpdateSystemsGPU(uint32_t frameIndex)
 {
-	{ //Transform System
-		Timer timer;
-		systems[Unique::typeID<TransformSystem>()]->OnUploadToGpu(registry, resourceManager->GetComponentBufferManager(), frameIndex);
-		systemTimes[Unique::typeID<TransformSystem>()] += timer.GetElapsedTime();
-	}
+	UpdateGpuSystem<TransformSystem>(frameIndex);
+	UpdateGpuSystem<CameraSystem>(frameIndex);
+	UpdateGpuSystem<MaterialSystem>(frameIndex);
+}
 
-	{ //Camera System
-		Timer timer;
-		systems[Unique::typeID<CameraSystem>()]->OnUploadToGpu(registry, resourceManager->GetComponentBufferManager(), frameIndex);
-		systemTimes[Unique::typeID<CameraSystem>()] += timer.GetElapsedTime();
-	}
-
-	{ //Material System
-		Timer timer;
-		systems[Unique::typeID<MaterialSystem>()]->OnUploadToGpu(registry, resourceManager->GetComponentBufferManager(), frameIndex);
-		systemTimes[Unique::typeID<MaterialSystem>()] += timer.GetElapsedTime();
-	}
-
+void Scene::UpdateComponentBuffers(uint32_t frameIndex)
+{
+	RecalculateGpuBufferSize<TransformComponent, TransformComponentGPU>("TransformData", frameIndex);
+	RecalculateGpuBufferSize<CameraComponent, CameraComponentGPU>("CameraData", frameIndex);
+	RecalculateGpuBufferSize<MaterialComponent, MaterialComponentGPU>("MaterialData", frameIndex);
 }
 
