@@ -14,7 +14,7 @@ struct ENGINE_API TransformComponent : public Component
 	glm::mat4 transformIT;
 };
 
-struct ENGINE_API TransformComponentGPU : public ComponentGPU
+struct ENGINE_API TransformComponentGPU
 {
 	TransformComponentGPU(const TransformComponent& component);
 

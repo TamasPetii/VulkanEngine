@@ -14,6 +14,7 @@ void Engine::Cleanup()
 {
 	frameTimer.reset();
 	renderer.reset();
+	scene.reset();
 	resourceManager.reset();
 	Vk::VulkanContext::DestroyContext();
 }

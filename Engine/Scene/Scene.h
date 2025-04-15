@@ -79,7 +79,7 @@ template<typename T, typename G>
 inline void Scene::RecalculateGpuBufferSize(const std::string& name, uint32_t frameIndex)
 {
 	static_assert(std::is_base_of_v<Component, T>, "T must be derived from Component");
-	static_assert(std::is_base_of_v<ComponentGPU, G>, "G must be derived from ComponentGPU");
+	//static_assert(std::is_base_of_v<ComponentGPU, G>, "G must be derived from ComponentGPU");
 
 	static Vk::BufferConfig config = {
 		.size = 1,

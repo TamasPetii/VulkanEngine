@@ -34,7 +34,7 @@ struct ENGINE_API CameraComponent : public Component
 	glm::mat4 viewProjInv;
 };
 
-struct ENGINE_API CameraComponentGPU : public ComponentGPU
+struct ENGINE_API CameraComponentGPU
 {
 public:
 	CameraComponentGPU(const CameraComponent& component);

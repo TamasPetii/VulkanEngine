@@ -17,7 +17,7 @@ struct ENGINE_API MaterialComponent : public Component
 	std::shared_ptr<Vk::Image> roughness;
 };
 
-struct ENGINE_API MaterialComponentGPU : public ComponentGPU
+struct ENGINE_API MaterialComponentGPU
 {
 	MaterialComponentGPU(const MaterialComponent& component);
 
