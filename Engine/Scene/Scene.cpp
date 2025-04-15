@@ -1,5 +1,7 @@
 #include "Scene.h"
 #include <random>
+#include <future>
+#include <thread>
 
 Scene::Scene(std::shared_ptr<ResourceManager> resourceManager) : 
 	resourceManager(resourceManager)
@@ -27,7 +29,6 @@ void Scene::Initialize()
 
 void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
 {
-	/*
 	//Update Registry Transforms
 	std::random_device dev;
 	std::mt19937 rng(dev());
@@ -53,12 +54,11 @@ void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
 		cameraComponent->height = viewPortSize.height;
 		registry->GetPool<CameraComponent>()->GetBitset(0).set(UPDATE_BIT, true);
 	}
-	*/
 
 	auto geometry = resourceManager->GetGeometryManager()->GetShape("Cube");
 	geometry->ResetInstanceCount();
 
-	for (uint32_t i = 0; i < 500; i++)
+	for (uint32_t i = 0; i < 25000; i++)
 		geometry->AddIndex({ i + 1, i + 1, i, 0 });
 
 	UpdateSystems(frameTimer->GetFrameDeltaTime());
@@ -88,7 +88,7 @@ void Scene::InitializeRegistry()
 		registry->AddComponents<CameraComponent>(entity);
 	}
 
-	for (uint32_t i = 0; i < 500; ++i)
+	for (uint32_t i = 0; i < 25000; ++i)
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, MaterialComponent>(entity);
@@ -112,9 +112,26 @@ void Scene::InitializeSystems()
 
 void Scene::UpdateSystems(float deltaTime)
 {
-	UpdateSystem<TransformSystem>(deltaTime);
-	UpdateSystem<CameraSystem>(deltaTime);
-	UpdateSystem<MaterialSystem>(deltaTime);
+	Timer timer{};
+
+	std::unordered_map<std::type_index, std::future<void>> futures;
+
+	auto LaunchSystemAsync = [&]<typename T>() -> void {
+		futures[Unique::typeID<T>()] = std::async(std::launch::async, 
+			[&]() -> void {
+				UpdateSystem<T>(deltaTime);
+			});
+	};
+
+	LaunchSystemAsync.template operator() < TransformSystem > ();
+	LaunchSystemAsync.template operator() < CameraSystem > ();
+	LaunchSystemAsync.template operator() < MaterialSystem > ();
+
+	for (auto& [_, future] : futures) {
+		future.get();
+	}
+
+	std::cout << std::format("Systems updated async in {} ms", timer.GetElapsedTime()) << "\n";
 }
 
 void Scene::FinishSystems()

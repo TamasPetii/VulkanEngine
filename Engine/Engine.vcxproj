@@ -163,7 +163,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Components\ComponentGPU.h" />
     <ClInclude Include="Managers\BenchmarkManager.h" />
     <ClInclude Include="Renderable\BoundingVolume.h" />
     <ClInclude Include="Renderable\Materialized.h" />
@@ -243,7 +242,6 @@
     <ClInclude Include="Logger\Logger.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Components\ComponentGPU.cpp" />
     <ClCompile Include="Managers\BenchmarkManager.cpp" />
     <ClCompile Include="Renderable\BoundingVolume.cpp" />
     <ClCompile Include="Renderable\Materialized.cpp" />

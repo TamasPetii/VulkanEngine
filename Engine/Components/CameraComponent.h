@@ -1,6 +1,5 @@
 #pragma once
 #include "Component.h"
-#include "ComponentGPU.h"
 #include <glm/glm.hpp>
 
 struct ENGINE_API CameraComponent : public Component

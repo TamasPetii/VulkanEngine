@@ -44,8 +44,8 @@ template<typename T>
 inline void Scene::InitSystem()
 {
 	static_assert(std::is_base_of_v<System, T>, "T must be derived from System");
-	systems[Unique::typeID<T>()] = std::make_shared<T>();
-	resourceManager->GetBenchmarkManager()->Register<T>(); //Register systems for asnc parallel update -> No async insert into std::unordered_map
+	systems[Unique::typeID<T>()] = std::make_shared<T>(); 
+	resourceManager->GetBenchmarkManager()->Register<T>(); //Register systems for async parallel update -> No async insert into std::unordered_map
 }
 
 template<typename T>

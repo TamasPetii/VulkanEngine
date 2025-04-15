@@ -246,9 +246,6 @@
     <ClInclude Include="Managers\BenchmarkManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Components\ComponentGPU.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -456,9 +453,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Managers\BenchmarkManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Components\ComponentGPU.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
