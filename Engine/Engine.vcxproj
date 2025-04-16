@@ -163,6 +163,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Render\Renderers\BoundingVolumeRenderer.h" />
     <ClInclude Include="Systems\DefaultColliderSystem.h" />
     <ClInclude Include="Physics\Collider\ColliderOBB.h" />
     <ClInclude Include="Components\ModelComponent.h" />
@@ -258,6 +259,7 @@
     <ClInclude Include="Logger\Logger.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Render\Renderers\BoundingVolumeRenderer.cpp" />
     <ClCompile Include="Systems\DefaultColliderSystem.cpp" />
     <ClCompile Include="Physics\Collider\ColliderOBB.cpp" />
     <ClCompile Include="Components\ModelComponent.cpp" />
@@ -349,6 +351,9 @@
     <None Include="Registry\Registry.inl" />
     <None Include="Shaders\Basic.frag" />
     <None Include="Shaders\Basic.vert" />
+    <None Include="Shaders\BoundingVolume.frag" />
+    <None Include="Shaders\BoundingVolume.vert" />
+    <None Include="Shaders\Common\BoundingVolume.glsl" />
     <None Include="Shaders\Common\Camera.glsl" />
     <None Include="Shaders\Common\RenderDefines.glsl" />
     <None Include="Shaders\Common\Images.glsl" />

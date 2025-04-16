@@ -4,11 +4,6 @@
 #include "Engine/Managers/ResourceManager.h"
 #include "Engine/Vulkan/DynamicRendering.h"
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
-#include "Engine/Components/TransformComponent.h"
-
 class GeometryRenderer
 {
 public:

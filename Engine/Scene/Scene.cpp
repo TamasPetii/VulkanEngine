@@ -79,7 +79,6 @@ void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
 	std::mt19937 rng(dev());
 	std::uniform_real_distribution<float> dist(0, 1);
 
-	/*
 	if (auto transformPool = registry->GetPool<TransformComponent>())
 	{
 		std::for_each(std::execution::par,
@@ -107,7 +106,6 @@ void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
 			}
 		);
 	}
-	*/
 
 	//Update Camera Size
 	auto viewPortSize = resourceManager->GetVulkanManager()->GetFrameDependentFrameBuffer("Main", frameIndex)->GetSize();
@@ -240,5 +238,6 @@ void Scene::UpdateComponentBuffers(uint32_t frameIndex)
 	RecalculateGpuBufferSize<MaterialComponent, MaterialComponentGPU>("MaterialData", frameIndex);
 	RecalculateGpuBufferSize<ShapeComponent, RenderIndicesGPU>("ShapeRenderIndicesData", frameIndex);
 	RecalculateGpuBufferSize<ModelComponent, RenderIndicesGPU>("ModelRenderIndicesData", frameIndex);
-	RecalculateGpuBufferSize<DefaultColliderComponent, glm::mat4>("DefaultColliderData", frameIndex);
+	RecalculateGpuBufferSize<DefaultColliderComponent, glm::mat4>("DefaultColliderAabbData", frameIndex);
+	RecalculateGpuBufferSize<DefaultColliderComponent, glm::mat4>("DefaultColliderObbData", frameIndex);
 }

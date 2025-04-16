@@ -17,37 +17,33 @@ void DefaultColliderSystem::OnUpdate(std::shared_ptr<Registry> registry, std::sh
 		{
 			bool isShape = shapePool && shapePool->HasComponent(entity) && shapePool->GetComponent(entity)->shape != nullptr;
 			bool isModel = modelPool && modelPool->HasComponent(entity) && modelPool->GetComponent(entity)->model != nullptr;
+			bool shapeChanged = isShape && shapePool->GetBitset(entity).test(CHANGED_BIT);
+			bool modelChanged = isModel && modelPool->GetBitset(entity).test(CHANGED_BIT);
 
-			if (transformPool->HasComponent(entity) && (isShape || modelPool))
+			if (transformPool->HasComponent(entity) && (isShape || modelPool) && (defaultColliderPool->GetBitset(entity).test(UPDATE_BIT) || transformPool->GetBitset(entity).test(CHANGED_BIT) || shapeChanged || modelChanged))
 			{
-				bool shapeChanged = isShape && shapePool->GetBitset(entity).test(CHANGED_BIT);
-				bool modelChanged = isModel && modelPool->GetBitset(entity).test(CHANGED_BIT);
+				auto defaultColliderComponent = defaultColliderPool->GetComponent(entity);
+				auto transformComponent = transformPool->GetComponent(entity);
 
-				if (defaultColliderPool->GetBitset(entity).test(UPDATE_BIT) || transformPool->GetBitset(entity).test(CHANGED_BIT) || shapeChanged || modelChanged)
+				std::shared_ptr<BoundingVolume> boundingVolume = isShape ? std::static_pointer_cast<BoundingVolume>(shapePool->GetComponent(entity)->shape) : std::static_pointer_cast<BoundingVolume>(modelPool->GetComponent(entity)->model);
+
+				glm::vec3 maxPosition{ std::numeric_limits<float>::lowest() };
+				glm::vec3 minPosition{ std::numeric_limits<float>::max() };
+
+				for (uint32_t i = 0; i < 8; ++i)
 				{
-					auto defaultColliderComponent = defaultColliderPool->GetComponent(entity);
-					auto transformComponent = transformPool->GetComponent(entity);
-
-					std::shared_ptr<BoundingVolume> boundingVolume = isShape ? std::static_pointer_cast<BoundingVolume>(shapePool->GetComponent(entity)->shape) : std::static_pointer_cast<BoundingVolume>(modelPool->GetComponent(entity)->model);
-
-					glm::vec3 maxPosition{ std::numeric_limits<float>::lowest() };
-					glm::vec3 minPosition{ std::numeric_limits<float>::max() };
-
-					for (uint32_t i = 0; i < 8; ++i)
-					{
-						defaultColliderComponent->obbPositions[i] = glm::vec3(transformComponent->transform * glm::vec4(boundingVolume->obbPositions[i], 1));
-						maxPosition = glm::max(maxPosition, defaultColliderComponent->obbPositions[i]);
-						minPosition = glm::min(minPosition, defaultColliderComponent->obbPositions[i]);
-					}
-
-					defaultColliderComponent->aabbMin = minPosition;
-					defaultColliderComponent->aabbMax = maxPosition;
-					defaultColliderComponent->aabbOrigin = 0.5f * (minPosition + maxPosition);
-					defaultColliderComponent->aabbExtents = 0.5f * (maxPosition - minPosition);
-
-					defaultColliderPool->GetBitset(entity).set(CHANGED_BIT, true);
-					transformComponent->versionID++;
+					defaultColliderComponent->obbPositions[i] = glm::vec3(transformComponent->transform * glm::vec4(boundingVolume->obbPositions[i], 1));
+					maxPosition = glm::max(maxPosition, defaultColliderComponent->obbPositions[i]);
+					minPosition = glm::min(minPosition, defaultColliderComponent->obbPositions[i]);
 				}
+
+				defaultColliderComponent->aabbMin = minPosition;
+				defaultColliderComponent->aabbMax = maxPosition;
+				defaultColliderComponent->aabbOrigin = 0.5f * (minPosition + maxPosition);
+				defaultColliderComponent->aabbExtents = 0.5f * (maxPosition - minPosition);
+
+				defaultColliderPool->GetBitset(entity).set(CHANGED_BIT, true);
+				defaultColliderComponent->versionID++;
 			}
 		}
 	);
@@ -69,13 +65,16 @@ void DefaultColliderSystem::OnFinish(std::shared_ptr<Registry> registry)
 
 void DefaultColliderSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex)
 {
-	auto [defaultColliderPool, transformPool] = registry->GetPools<DefaultColliderComponent, TransformComponent>();
+	auto [defaultColliderPool, transformPool, shapePool, modelPool] = registry->GetPools<DefaultColliderComponent, TransformComponent, ShapeComponent, ModelComponent>();
 
 	if (!defaultColliderPool || !transformPool)
 		return;
 
-	auto componentBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("DefaultColliderData", frameIndex);
-	auto bufferHandler = static_cast<glm::mat4*>(componentBuffer->buffer->GetHandler());
+	auto componentBufferAabb = resourceManager->GetComponentBufferManager()->GetComponentBuffer("DefaultColliderAabbData", frameIndex);
+	auto bufferHandlerAabb = static_cast<glm::mat4*>(componentBufferAabb->buffer->GetHandler());
+
+	auto componentBufferObb = resourceManager->GetComponentBufferManager()->GetComponentBuffer("DefaultColliderObbData", frameIndex);
+	auto bufferHandlerObb = static_cast<glm::mat4*>(componentBufferObb->buffer->GetHandler());
 
 	std::for_each(std::execution::par, defaultColliderPool->GetDenseEntities().begin(), defaultColliderPool->GetDenseEntities().end(),
 		[&](const Entity& entity) -> void {
@@ -85,10 +84,17 @@ void DefaultColliderSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, st
 				auto defaultColliderComponent = defaultColliderPool->GetComponent(entity);
 				auto transformComponent = transformPool->GetComponent(entity);
 
-				if (componentBuffer->versions[defaultColliderIndex] != defaultColliderComponent->versionID)
+				if (componentBufferAabb->versions[defaultColliderIndex] != defaultColliderComponent->versionID ||
+					componentBufferObb->versions[defaultColliderIndex] != defaultColliderComponent->versionID)
 				{
-					componentBuffer->versions[defaultColliderIndex] = defaultColliderComponent->versionID;
-					bufferHandler[defaultColliderIndex] = transformComponent->transform * glm::translate(defaultColliderComponent->aabbOrigin) * glm::scale(defaultColliderComponent->aabbExtents);
+					bool isShape = shapePool && shapePool->HasComponent(entity) && shapePool->GetComponent(entity)->shape != nullptr;
+					std::shared_ptr<BoundingVolume> boundingVolume = isShape ? std::static_pointer_cast<BoundingVolume>(shapePool->GetComponent(entity)->shape) : std::static_pointer_cast<BoundingVolume>(modelPool->GetComponent(entity)->model);
+
+					componentBufferAabb->versions[defaultColliderIndex] = defaultColliderComponent->versionID;
+					componentBufferObb->versions[defaultColliderIndex] = defaultColliderComponent->versionID;
+					
+					bufferHandlerAabb[defaultColliderIndex] = glm::translate(defaultColliderComponent->aabbOrigin) * glm::scale(defaultColliderComponent->aabbExtents);
+					bufferHandlerObb[defaultColliderIndex] = transformComponent->transform * glm::translate(boundingVolume->aabbOrigin) * glm::scale(boundingVolume->aabbExtents);
 				}
 			}
 		}

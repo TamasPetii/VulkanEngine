@@ -2,8 +2,6 @@
 #include "Engine/Vulkan/VulkanContext.h"
 #include "Engine/Vulkan/Buffer.h"
 #include "Engine/Vulkan/CommandBuffer.h"
-
-#include "Vertex.h"
 #include "Engine/Registry/Registry.h"
 #include "Engine/Managers/ResourceManager.h"
 

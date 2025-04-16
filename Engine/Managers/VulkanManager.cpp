@@ -414,6 +414,10 @@ void VulkanManager::InitShaderModuls()
 	//Deferred Direction Light Shaders
 	RegisterShaderModule("DeferredDirVert", std::make_shared<Vk::ShaderModule>("../Engine/Shaders/DeferredDir.vert", VK_SHADER_STAGE_VERTEX_BIT));
 	RegisterShaderModule("DeferredDirFrag", std::make_shared<Vk::ShaderModule>("../Engine/Shaders/DeferredDir.frag", VK_SHADER_STAGE_FRAGMENT_BIT));
+	
+	//Bounding Volume Wireframe Shaders
+	RegisterShaderModule("BoundingVolumeVert", std::make_shared<Vk::ShaderModule>("../Engine/Shaders/BoundingVolume.vert", VK_SHADER_STAGE_VERTEX_BIT));
+	RegisterShaderModule("BoundingVolumeFrag", std::make_shared<Vk::ShaderModule>("../Engine/Shaders/BoundingVolume.frag", VK_SHADER_STAGE_FRAGMENT_BIT));
 }
 
 void VulkanManager::InitGraphicsPipelines()
@@ -443,7 +447,7 @@ void VulkanManager::InitGraphicsPipelines()
 	}
 
 	{
-		uint32_t pushConsantSize = sizeof(GpuPushConstant);
+		uint32_t pushConsantSize = sizeof(GeometryRendererPushConstants);
 			 
 		Vk::GraphicsPipelineBuilder pipelineBuilder;
 		pipelineBuilder
@@ -490,6 +494,30 @@ void VulkanManager::InitGraphicsPipelines()
 			.AddDescriptorSetLayout(GetFrameDependentDescriptorSet("MainFrameBuffer", 0)->Layout());
 
 		RegisterGraphicsPipeline("DeferredDir", pipelineBuilder.BuildDynamic());		
+	}
+
+	{
+		uint32_t pushConsantSize = sizeof(BoundingVolumeRendererPushConstants);
+
+		Vk::GraphicsPipelineBuilder pipelineBuilder;
+		pipelineBuilder
+			.ResetToDefault()
+			.AddShaderStage(shaderModuls["BoundingVolumeVert"])
+			.AddShaderStage(shaderModuls["BoundingVolumeFrag"])
+			.AddDynamicState(VK_DYNAMIC_STATE_VIEWPORT)
+			.AddDynamicState(VK_DYNAMIC_STATE_SCISSOR)
+			.SetVertexInput({}, {})
+			.SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
+			.SetRasterization(VK_POLYGON_MODE_LINE, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE, 2.f)
+			.SetMultisampling(VK_SAMPLE_COUNT_1_BIT)
+			.SetDepthStencil(VK_TRUE, VK_TRUE, VK_COMPARE_OP_LESS)
+			.SetColorBlend(VK_FALSE)
+			.AddColorBlendAttachment(VK_FALSE)
+			.SetColorAttachmentFormats(VK_FORMAT_R16G16B16A16_SFLOAT, 0)
+			.SetDepthAttachmentFormat(VK_FORMAT_D32_SFLOAT)
+			.AddPushConstant(0, pushConsantSize, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
+
+		RegisterGraphicsPipeline("BoundingVolume", pipelineBuilder.BuildDynamic());
 	}
 }
 
