@@ -46,9 +46,7 @@ void TransformSystem::OnFinish(std::shared_ptr<Registry> registry)
 
 	std::for_each(std::execution::par, transformPool->GetDenseEntities().begin(), transformPool->GetDenseEntities().end(),
 		[&](const Entity& entity) -> void {
-			transformPool->GetBitset(entity).set(REGENERATE_BIT, false);
-			transformPool->GetBitset(entity).set(UPDATE_BIT, false);
-			transformPool->GetBitset(entity).set(CHANGED_BIT, false);
+			transformPool->GetBitset(entity).reset();
 		}
 	);
 }

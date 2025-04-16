@@ -71,8 +71,15 @@ void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
 	auto geometry = resourceManager->GetGeometryManager()->GetShape("Cube");
 	geometry->ResetInstanceCount();
 
-	for (uint32_t i = 0; i < 25000; i++)
-		geometry->AddIndex({ i + 1, i + 1, i, 0 });
+	auto shapePool = registry->GetPool<ShapeComponent>();
+	std::for_each(std::execution::seq, shapePool->GetDenseEntities().begin(), shapePool->GetDenseEntities().end(),[&](Entity entity) -> void {
+		auto shapeIndex = shapePool->GetIndex(entity);
+		auto shapeComponent = shapePool->GetComponent(entity);
+
+		if (shapeComponent->shape)
+			shapeComponent->shape->AddIndex(shapeIndex);
+		}
+	);
 
 	UpdateSystems(frameTimer->GetFrameDeltaTime());
 	FinishSystems();
@@ -104,15 +111,17 @@ void Scene::InitializeRegistry()
 	for (uint32_t i = 0; i < 25000; ++i)
 	{
 		auto entity = registry->CreateEntity();
-		registry->AddComponents<TransformComponent, MaterialComponent>(entity);
+		registry->AddComponents<TransformComponent, MaterialComponent, ShapeComponent>(entity);
 
-		auto [transformComponent, materialComponent] = registry->GetComponents<TransformComponent, MaterialComponent>(entity);
+		auto [transformComponent, materialComponent, shapeComponent] = registry->GetComponents<TransformComponent, MaterialComponent, ShapeComponent>(entity);
 		transformComponent->rotation = 180.f * glm::vec3(dist(rng), dist(rng), dist(rng));
 		transformComponent->translation = 100.f * glm::vec3(dist(rng), dist(rng), dist(rng));
 		transformComponent->scale = glm::vec3(1);
 
 		materialComponent->color = glm::vec4(dist(rng), dist(rng), dist(rng), 1);
 		materialComponent->albedo = resourceManager->GetImageManager()->LoadImage("../Assets/Texture.jpg");
+
+		shapeComponent->shape = resourceManager->GetGeometryManager()->GetShape("Cube");
 	}
 }
 
@@ -121,22 +130,24 @@ void Scene::InitializeSystems()
 	InitSystem<TransformSystem>();
 	InitSystem<CameraSystem>();
 	InitSystem<MaterialSystem>();
+	InitSystem<ShapeSystem>();
 }
 
 void Scene::UpdateSystems(float deltaTime)
 {
 	std::unordered_map<std::type_index, std::future<void>> futures;
 
-	auto LaunchSystemAsync = [&]<typename T>() -> void {
+	auto LaunchSystemUpdateAsync = [&]<typename T>() -> void {
 		futures[Unique::typeID<T>()] = std::async(std::launch::async, 
 			[&]() -> void {
 				UpdateSystem<T>(deltaTime);
 			});
 	};
 
-	LaunchSystemAsync.template operator() < TransformSystem > ();
-	LaunchSystemAsync.template operator() < CameraSystem > ();
-	LaunchSystemAsync.template operator() < MaterialSystem > ();
+	LaunchSystemUpdateAsync.template operator() < TransformSystem > ();
+	LaunchSystemUpdateAsync.template operator() < CameraSystem > ();
+	LaunchSystemUpdateAsync.template operator() < MaterialSystem > ();
+	LaunchSystemUpdateAsync.template operator() < ShapeSystem > ();
 
 	for (auto& [_, future] : futures) {
 		future.get();
@@ -145,16 +156,44 @@ void Scene::UpdateSystems(float deltaTime)
 
 void Scene::FinishSystems()
 {
-	FinishSystem<TransformSystem>();
-	FinishSystem<CameraSystem>();
-	FinishSystem<MaterialSystem>();
+	std::unordered_map<std::type_index, std::future<void>> futures;
+
+	auto LaunchSystemFinishAsync = [&]<typename T>() -> void {
+		futures[Unique::typeID<T>()] = std::async(std::launch::async,
+			[&]() -> void {
+				FinishSystem<T>();
+			});
+	};
+
+	LaunchSystemFinishAsync.template operator() < TransformSystem > ();
+	LaunchSystemFinishAsync.template operator() < CameraSystem > ();
+	LaunchSystemFinishAsync.template operator() < MaterialSystem > ();
+	LaunchSystemFinishAsync.template operator() < ShapeSystem > ();
+
+	for (auto& [_, future] : futures) {
+		future.get();
+	}
 }
 
 void Scene::UpdateSystemsGPU(uint32_t frameIndex)
 {
-	UpdateGpuSystem<TransformSystem>(frameIndex);
-	UpdateGpuSystem<CameraSystem>(frameIndex);
-	UpdateGpuSystem<MaterialSystem>(frameIndex);
+	std::unordered_map<std::type_index, std::future<void>> futures;
+
+	auto LaunchSystemUpdateGpuAsync = [&]<typename T>() -> void {
+		futures[Unique::typeID<T>()] = std::async(std::launch::async,
+			[&]() -> void {
+				UpdateGpuSystem<T>(frameIndex);
+			});
+	};
+
+	LaunchSystemUpdateGpuAsync.template operator() < TransformSystem > ();
+	LaunchSystemUpdateGpuAsync.template operator() < CameraSystem > ();
+	LaunchSystemUpdateGpuAsync.template operator() < MaterialSystem > ();
+	LaunchSystemUpdateGpuAsync.template operator() < ShapeSystem > ();
+
+	for (auto& [_, future] : futures) {
+		future.get();
+	}
 }
 
 void Scene::UpdateComponentBuffers(uint32_t frameIndex)
@@ -162,5 +201,6 @@ void Scene::UpdateComponentBuffers(uint32_t frameIndex)
 	RecalculateGpuBufferSize<TransformComponent, TransformComponentGPU>("TransformData", frameIndex);
 	RecalculateGpuBufferSize<CameraComponent, CameraComponentGPU>("CameraData", frameIndex);
 	RecalculateGpuBufferSize<MaterialComponent, MaterialComponentGPU>("MaterialData", frameIndex);
+	RecalculateGpuBufferSize<ShapeComponent, ShapeComponentGPU>("ShapeData", frameIndex);
 }
 

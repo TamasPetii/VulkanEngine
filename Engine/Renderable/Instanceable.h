@@ -9,22 +9,14 @@
 class ENGINE_API Instanceable
 {
 public:
-	struct Indices
-	{
-		uint32_t entityIndex;
-		uint32_t transformIndex;
-		uint32_t materialIndex;
-		uint32_t fillerIndex;
-	};
-public:
 	uint32_t GetInstanceCount();
 	void ResetInstanceCount();
-	void AddIndex(const Indices& index);
+	void AddIndex(uint32_t index);
 	virtual void UploadInstanceDataToGPU(uint32_t frameIndex);
 	std::shared_ptr<Vk::Buffer> GetInstanceIndexBuffer(uint32_t frameIndex);
 protected:
 	uint32_t instanceCount = 0;
-	std::vector<Indices> instanceIndices;
+	std::vector<uint32_t> instanceIndices;
 	std::array<std::shared_ptr<Vk::Buffer>, Settings::MAX_FRAMES_IN_FLIGHTS> instanceIndexBuffers;
 };
 

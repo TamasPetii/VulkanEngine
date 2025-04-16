@@ -74,6 +74,7 @@ inline void Pool<T>::AddComponent(Entity entity, const T& component)
 	denseBitsets.push_back(std::bitset<8>(0));
 	denseBitsets.back().set(REGENERATE_BIT, true);
 	denseBitsets.back().set(UPDATE_BIT, true);
+	denseBitsets.back().set(INDEX_CHANGED_BIT, true);
 }
 
 template<typename T>
@@ -90,6 +91,8 @@ inline void Pool<T>::RemoveComponent(Entity entity)
 
 	denseBitsets[swapDenseIndex].set(REGENERATE_BIT, true);
 	denseBitsets[swapDenseIndex].set(UPDATE_BIT, true);
+	denseBitsets[swapDenseIndex].set(INDEX_CHANGED_BIT, true);
+	
 
 	//Set the swapped entity sparse index to the new dense location (Which is the delete index of the current entity)
 	sparseEntityPages[swapIndices.first][swapIndices.second] = deleteDenseIndex;

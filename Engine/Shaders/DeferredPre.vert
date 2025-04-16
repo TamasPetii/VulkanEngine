@@ -1,6 +1,7 @@
 #version 460
 #extension GL_EXT_buffer_reference_uvec2 : require
 
+#include "Common/Shape.glsl"
 #include "Common/RenderDefines.glsl"
 #include "Common/Vertex.glsl"
 #include "Common/Transform.glsl"
@@ -23,24 +24,25 @@ layout( push_constant ) uniform constants
 	uvec2 instanceIndexBuffer;
 	uvec2 transformBuffer;
 	uvec2 materialBuffer;
+	uvec2 shapeBuffer;
 } PushConstants;
 
 void main() 
 {
 	Vertex v = VertexBuffer(PushConstants.vertexBuffer).vertices[gl_VertexIndex];
-	uvec4 indices = InstanceIndexBuffer(PushConstants.instanceIndexBuffer).indices[gl_InstanceIndex];
+	ShapeData indices = ShapeBuffer(PushConstants.shapeBuffer).shapeDatas[InstanceIndexBuffer(PushConstants.instanceIndexBuffer).indices[gl_InstanceIndex]];
 
-	gl_Position = CameraBuffer(PushConstants.cameraBuffer).cameras[PushConstants.cameraIndex].viewProj * TransformBuffer(PushConstants.transformBuffer).transforms[indices.y].transform * vec4(v.position, 1.0);
+	gl_Position = CameraBuffer(PushConstants.cameraBuffer).cameras[PushConstants.cameraIndex].viewProj * TransformBuffer(PushConstants.transformBuffer).transforms[indices.transformIndex].transform * vec4(v.position, 1.0);
 
-	vec3 normal = normalize(vec3(TransformBuffer(PushConstants.transformBuffer).transforms[indices.y].transformIT * vec4(v.normal, 0)));
-	vec3 tangent = normalize(vec3(TransformBuffer(PushConstants.transformBuffer).transforms[indices.y].transformIT * vec4(v.tangent, 0)));
+	vec3 normal = normalize(vec3(TransformBuffer(PushConstants.transformBuffer).transforms[indices.transformIndex].transformIT * vec4(v.normal, 0)));
+	vec3 tangent = normalize(vec3(TransformBuffer(PushConstants.transformBuffer).transforms[indices.transformIndex].transformIT * vec4(v.tangent, 0)));
 	tangent = normalize(tangent - dot(tangent, normal) * normal);
 	vec3 bitangent = normalize(cross(normal, tangent));
 
 	vs_out_pos = v.position;
 	vs_out_normal = normal;
 	vs_out_tex = vec2(v.uv_x, v.uv_y);
-	vs_out_index.x = indices.x; //Entity ID
-	vs_out_index.y = PushConstants.renderMode == NORMAL_INSTANCED ? indices.z : v.index; //Material Index
+	vs_out_index.x = indices.entityIndex; //Entity ID
+	vs_out_index.y = PushConstants.renderMode == NORMAL_INSTANCED ? indices.materialIndex : v.index; //Material Index
 	vs_out_tbn = mat3(tangent, bitangent, normal);
 }

@@ -3,3 +3,4 @@
 #include "TransformSystem.h"
 #include "CameraSystem.h"
 #include "MaterialSystem.h"
+#include "ShapeSystem.h"

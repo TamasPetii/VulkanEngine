@@ -33,9 +33,7 @@ void MaterialSystem::OnFinish(std::shared_ptr<Registry> registry)
 
 	std::for_each(std::execution::par, materialPool->GetDenseEntities().begin(), materialPool->GetDenseEntities().end(),
 		[&](const Entity& entity) -> void {
-			materialPool->GetBitset(entity).set(REGENERATE_BIT, false);
-			materialPool->GetBitset(entity).set(UPDATE_BIT, false);
-			materialPool->GetBitset(entity).set(CHANGED_BIT, false);
+			materialPool->GetBitset(entity).reset();
 		}
 	);
 }

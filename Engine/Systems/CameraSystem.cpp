@@ -86,9 +86,7 @@ void CameraSystem::OnFinish(std::shared_ptr<Registry> registry)
 
 	std::for_each(std::execution::par, cameraPool->GetDenseEntities().begin(), cameraPool->GetDenseEntities().end(),
 		[&](const Entity& entity) -> void {
-			cameraPool->GetBitset(entity).set(REGENERATE_BIT, false);
-			cameraPool->GetBitset(entity).set(UPDATE_BIT, false);
-			cameraPool->GetBitset(entity).set(CHANGED_BIT, false);
+			cameraPool->GetBitset(entity).reset();
 		}
 	);
 }

@@ -99,6 +99,7 @@ void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Reg
 		pushConstants.instanceIndexBuffer = geometry->GetInstanceIndexBuffer(frameIndex)->GetAddress();
 		pushConstants.transformBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("TransformData", frameIndex)->buffer->GetAddress();
 		pushConstants.materialBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("MaterialData", frameIndex)->buffer->GetAddress();
+		pushConstants.shapeBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("ShapeData", frameIndex)->buffer->GetAddress();
 
 		auto textureDescriptorSet = resourceManager->GetVulkanManager()->GetDescriptorSet("LoadedImages");
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetLayout(), 0, 1, &textureDescriptorSet->Value(), 0, nullptr);

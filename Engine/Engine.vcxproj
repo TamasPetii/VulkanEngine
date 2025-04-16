@@ -179,6 +179,7 @@
     <ClInclude Include="Physics\Collider\SphereColliderGJK.h" />
     <ClInclude Include="Physics\Simplex.h" />
     <ClInclude Include="Components\ShapeComponent.h" />
+    <ClInclude Include="Systems\ShapeSystem.h" />
     <ClInclude Include="Systems\MaterialSystem.h" />
     <ClInclude Include="Renderable\Model\AssimpConverter.h" />
     <ClInclude Include="Renderable\Model\Model.h" />
@@ -266,6 +267,7 @@
     <ClCompile Include="Physics\Collider\SphereColliderGJK.cpp" />
     <ClCompile Include="Physics\Simplex.cpp" />
     <ClCompile Include="Components\ShapeComponent.cpp" />
+    <ClCompile Include="Systems\ShapeSystem.cpp" />
     <ClCompile Include="Systems\MaterialSystem.cpp" />
     <ClCompile Include="Renderable\Model\Model.cpp" />
     <ClCompile Include="Renderable\Renderable.cpp" />
@@ -338,6 +340,7 @@
     <None Include="Shaders\Common\Images.glsl" />
     <None Include="Shaders\Common\InstanceIndex.glsl" />
     <None Include="Shaders\Common\Material.glsl" />
+    <None Include="Shaders\Common\Shape.glsl" />
     <None Include="Shaders\Common\Transform.glsl" />
     <None Include="Shaders\Common\Vertex.glsl" />
     <None Include="Shaders\DeferredDir.frag" />

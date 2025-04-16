@@ -1,6 +1,6 @@
 #include "Instanceable.h"
 
-void Instanceable::AddIndex(const Indices& index)
+void Instanceable::AddIndex(const uint32_t index)
 {
 	instanceIndices.push_back(index);
 	instanceCount++;
@@ -10,7 +10,7 @@ void Instanceable::UploadInstanceDataToGPU(uint32_t frameIndex)
 {
 	//Upload the vertices to the gpu
 	{
-		VkDeviceSize bufferSize = sizeof(Indices) * instanceIndices.size();
+		VkDeviceSize bufferSize = sizeof(uint32_t) * instanceIndices.size();
 
 		Vk::BufferConfig config;
 		config.size = bufferSize;
