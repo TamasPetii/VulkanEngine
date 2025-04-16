@@ -16,9 +16,6 @@ void InstanceSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_pt
 
 	futureShape.get();
 	futureModel.get();
-
-	//UpdateShapeInstances(registry, resourceManager);
-	//UpdateModelInstances(registry, resourceManager);
 }
 
 void InstanceSystem::OnFinish(std::shared_ptr<Registry> registry)
@@ -32,9 +29,6 @@ void InstanceSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shar
 
 	futureShapeGpu.get();
 	futureModelGpu.get();
-
-	//UpdateShapeInstancesGpu(resourceManager, frameIndex);
-	//UpdateModelInstancesGpu(resourceManager, frameIndex);
 }
 
 void InstanceSystem::UpdateShapeInstances(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager)
@@ -68,7 +62,7 @@ void InstanceSystem::UpdateShapeInstancesGpu(std::shared_ptr<ResourceManager> re
 	auto geometryManager = resourceManager->GetGeometryManager();
 	std::for_each(std::execution::par, geometryManager->GetShapes().begin(), geometryManager->GetShapes().end(),
 		[&](const std::pair<std::string, std::shared_ptr<Shape>>& data) -> void {
-			data.second->UploadInstanceDataToGPU(frameIndex);
+			data.second->UploadInstanceDataToGPU(data.second.use_count(), frameIndex);
 		}
 	);
 }
@@ -104,7 +98,7 @@ void InstanceSystem::UpdateModelInstancesGpu(std::shared_ptr<ResourceManager> re
 	auto modelManager = resourceManager->GetModelManager();
 	std::for_each(std::execution::par, modelManager->GetModels().begin(), modelManager->GetModels().end(),
 		[&](const std::pair<std::string, std::shared_ptr<Model>>& data) -> void {
-			data.second->UploadInstanceDataToGPU(frameIndex);
+			data.second->UploadInstanceDataToGPU(data.second.use_count(), frameIndex);
 		}
 	);
 }

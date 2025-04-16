@@ -42,7 +42,7 @@ void Scene::InitializeRegistry()
 		registry->AddComponents<CameraComponent>(entity);
 	}
 
-	for (uint32_t i = 0; i < 0; ++i)
+	for (uint32_t i = 0; i < 25000; ++i)
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, MaterialComponent, ShapeComponent>(entity);

@@ -14,11 +14,11 @@ public:
 	void ReserveInstances(uint32_t size);
 	void ShrinkInstances();
 	void AddIndex(uint32_t index);
-	virtual void UploadInstanceDataToGPU(uint32_t frameIndex);
+	virtual void UploadInstanceDataToGPU(uint32_t maxInstanceCount, uint32_t frameIndex);
 	std::shared_ptr<Vk::Buffer> GetInstanceIndexBuffer(uint32_t frameIndex);
 protected:
 	uint32_t instanceCount = 0;
 	std::vector<uint32_t> instanceIndices;
-	std::array<std::shared_ptr<Vk::Buffer>, Settings::MAX_FRAMES_IN_FLIGHTS> instanceIndexBuffers;
+	std::array<std::pair<std::shared_ptr<Vk::Buffer>, uint32_t>, Settings::MAX_FRAMES_IN_FLIGHTS> instanceIndexBuffers;
 };
 
