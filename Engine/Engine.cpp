@@ -33,9 +33,6 @@ void Engine::Initialize()
 	renderer = std::make_shared<Renderer>();
 	resourceManager = std::make_shared<ResourceManager>();
 	scene = std::make_shared<Scene>(resourceManager);
-
-	resourceManager->GetImageManager()->LoadImage("../Assets/Texture.jpg");
-	resourceManager->GetModelManager()->LoadModel("../Assets/Sponza/Sponza.obj");
 }
 
 void Engine::SetRequiredWindowExtensions(std::span<const char*> extensionNames)
@@ -79,10 +76,21 @@ void Engine::Update()
 
 	if (time > 1)
 	{
+		std::cout << "---------------------------------------------------------" << "\n";
+
+		resourceManager->GetBenchmarkManager()->AverageBenchmarkTimes();
+
+		for (auto& [typeIndex, time] : resourceManager->GetBenchmarkManager()->GetAverageBenchmarkTimes())
+			std::cout << std::format("{} run in average of {} ms", typeIndex.name(), time) << "\n";
+
+		resourceManager->GetBenchmarkManager()->ResetBenchmarkTimes();
+
 		std::cout << std::format("Fps: {}", counter) << std::endl;
 		time = 0;
 		counter = 0;
 	}
+
+	resourceManager->GetBenchmarkManager()->AddToCounter();
 
 	scene->Update(frameTimer, frameIndex);
 	InputManager::Instance()->UpdatePrevious();

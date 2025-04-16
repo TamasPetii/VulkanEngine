@@ -46,6 +46,7 @@ void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
 		}
 	);
 
+	/*
 	auto materialPool = registry->GetPool<MaterialComponent>();
 	std::for_each(std::execution::par,
 		materialPool->GetDenseEntities().begin(),
@@ -57,6 +58,7 @@ void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
 			materialPool->GetBitset(entity).set(UPDATE_BIT, true);
 		}
 	);
+	*/
 
 	//Update Camera Size
 	auto viewPortSize = resourceManager->GetVulkanManager()->GetFrameDependentFrameBuffer("Main", frameIndex)->GetSize();
@@ -68,6 +70,7 @@ void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
 		registry->GetPool<CameraComponent>()->GetBitset(0).set(UPDATE_BIT, true);
 	}
 
+	/*
 	auto geometry = resourceManager->GetGeometryManager()->GetShape("Cube");
 	geometry->ResetInstanceCount();
 
@@ -80,6 +83,20 @@ void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
 			shapeComponent->shape->AddIndex(shapeIndex);
 		}
 	);
+	*/
+
+	auto model = resourceManager->GetModelManager()->GetModel("../Assets/Sponza/Sponza.obj");
+	model->ResetInstanceCount();
+
+	auto modelPool = registry->GetPool<ModelComponent>();
+	std::for_each(std::execution::seq, modelPool->GetDenseEntities().begin(), modelPool->GetDenseEntities().end(), [&](Entity entity) -> void {
+		auto modelIndex = modelPool->GetIndex(entity);
+		auto modelComponent = modelPool->GetComponent(entity);
+
+		if (modelComponent->model)
+			modelComponent->model->AddIndex(modelIndex);
+		}
+	);
 
 	UpdateSystems(frameTimer->GetFrameDeltaTime());
 	FinishSystems();
@@ -87,8 +104,13 @@ void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
 
 void Scene::UpdateGPU(uint32_t frameIndex)
 {
+	auto model = resourceManager->GetModelManager()->GetModel("../Assets/Sponza/Sponza.obj");
+	model->UploadInstanceDataToGPU(frameIndex);
+
+	/*
 	auto geometry = resourceManager->GetGeometryManager()->GetShape("Cube");
 	geometry->UploadInstanceDataToGPU(frameIndex);
+	*/
 
 	UpdateComponentBuffers(frameIndex);
 	UpdateSystemsGPU(frameIndex);
@@ -102,13 +124,16 @@ void Scene::InitializeRegistry()
 	std::mt19937 rng(dev());
 	std::uniform_real_distribution<float> dist(0, 1);
 
+	resourceManager->GetImageManager()->LoadImage("../Assets/Texture.jpg");
+
 	{ //Camera
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent>(entity);
 		registry->AddComponents<CameraComponent>(entity);
 	}
 
-	for (uint32_t i = 0; i < 25000; ++i)
+	/*
+	for (uint32_t i = 0; i < 1000; ++i)
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, MaterialComponent, ShapeComponent>(entity);
@@ -123,6 +148,20 @@ void Scene::InitializeRegistry()
 
 		shapeComponent->shape = resourceManager->GetGeometryManager()->GetShape("Cube");
 	}
+	*/
+
+	for (uint32_t i = 0; i < 20; ++i)
+	{
+		auto entity = registry->CreateEntity();
+		registry->AddComponents<TransformComponent, ModelComponent>(entity);
+
+		auto [transformComponent, modelComponent] = registry->GetComponents<TransformComponent, ModelComponent>(entity);
+		transformComponent->rotation = 180.f * glm::vec3(dist(rng), dist(rng), dist(rng));
+		transformComponent->translation = 100.f * glm::vec3(dist(rng), dist(rng), dist(rng));
+		transformComponent->scale = glm::vec3(1);
+
+		modelComponent->model = resourceManager->GetModelManager()->LoadModel("../Assets/Sponza/Sponza.obj");
+	}
 }
 
 void Scene::InitializeSystems()
@@ -131,10 +170,13 @@ void Scene::InitializeSystems()
 	InitSystem<CameraSystem>();
 	InitSystem<MaterialSystem>();
 	InitSystem<ShapeSystem>();
+	InitSystem<ModelSystem>();
 }
 
 void Scene::UpdateSystems(float deltaTime)
 {
+	Timer timer{};
+
 	std::unordered_map<std::type_index, std::future<void>> futures;
 
 	auto LaunchSystemUpdateAsync = [&]<typename T>() -> void {
@@ -148,14 +190,19 @@ void Scene::UpdateSystems(float deltaTime)
 	LaunchSystemUpdateAsync.template operator() < CameraSystem > ();
 	LaunchSystemUpdateAsync.template operator() < MaterialSystem > ();
 	LaunchSystemUpdateAsync.template operator() < ShapeSystem > ();
+	LaunchSystemUpdateAsync.template operator() < ModelSystem > ();
 
 	for (auto& [_, future] : futures) {
 		future.get();
 	}
+
+	resourceManager->GetBenchmarkManager()->AddBenchmarkTime<System>(timer.GetElapsedTime());
 }
 
 void Scene::FinishSystems()
 {
+	Timer timer{};
+
 	std::unordered_map<std::type_index, std::future<void>> futures;
 
 	auto LaunchSystemFinishAsync = [&]<typename T>() -> void {
@@ -169,14 +216,19 @@ void Scene::FinishSystems()
 	LaunchSystemFinishAsync.template operator() < CameraSystem > ();
 	LaunchSystemFinishAsync.template operator() < MaterialSystem > ();
 	LaunchSystemFinishAsync.template operator() < ShapeSystem > ();
+	LaunchSystemFinishAsync.template operator() < ModelSystem > ();
 
 	for (auto& [_, future] : futures) {
 		future.get();
 	}
+
+	resourceManager->GetBenchmarkManager()->AddBenchmarkTime<System>(timer.GetElapsedTime());
 }
 
 void Scene::UpdateSystemsGPU(uint32_t frameIndex)
 {
+	Timer timer{};
+
 	std::unordered_map<std::type_index, std::future<void>> futures;
 
 	auto LaunchSystemUpdateGpuAsync = [&]<typename T>() -> void {
@@ -190,17 +242,22 @@ void Scene::UpdateSystemsGPU(uint32_t frameIndex)
 	LaunchSystemUpdateGpuAsync.template operator() < CameraSystem > ();
 	LaunchSystemUpdateGpuAsync.template operator() < MaterialSystem > ();
 	LaunchSystemUpdateGpuAsync.template operator() < ShapeSystem > ();
+	LaunchSystemUpdateGpuAsync.template operator() < ModelSystem > ();
 
 	for (auto& [_, future] : futures) {
 		future.get();
 	}
+
+	resourceManager->GetBenchmarkManager()->AddBenchmarkTime<System>(timer.GetElapsedTime());
 }
 
 void Scene::UpdateComponentBuffers(uint32_t frameIndex)
 {
+	//TODO: Error when size 0 
 	RecalculateGpuBufferSize<TransformComponent, TransformComponentGPU>("TransformData", frameIndex);
 	RecalculateGpuBufferSize<CameraComponent, CameraComponentGPU>("CameraData", frameIndex);
-	RecalculateGpuBufferSize<MaterialComponent, MaterialComponentGPU>("MaterialData", frameIndex);
-	RecalculateGpuBufferSize<ShapeComponent, ShapeComponentGPU>("ShapeData", frameIndex);
+	//RecalculateGpuBufferSize<MaterialComponent, MaterialComponentGPU>("MaterialData", frameIndex);
+	//RecalculateGpuBufferSize<ShapeComponent, RenderIndicesGPU>("ShapeRenderIndicesData", frameIndex);
+	RecalculateGpuBufferSize<ModelComponent, RenderIndicesGPU>("ModelRenderIndicesData", frameIndex);
 }
 

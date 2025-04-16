@@ -5,6 +5,11 @@ BenchmarkManager::~BenchmarkManager()
 	benchmarkTimes.clear();
 }
 
+void BenchmarkManager::AddToCounter()
+{
+	counter++;
+}
+
 void BenchmarkManager::ResetBenchmarkTimes()
 {
 	for (auto& [typeID, time] : benchmarkTimes)
@@ -12,6 +17,8 @@ void BenchmarkManager::ResetBenchmarkTimes()
 
 	for (auto& [typeID, time] : averageBenchmarkTimes)
 		time = 0;
+
+	counter = 0;
 }
 
 void BenchmarkManager::AverageBenchmarkTimes()

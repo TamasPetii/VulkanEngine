@@ -163,6 +163,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Components\ModelComponent.h" />
+    <ClInclude Include="Systems\ModelSystem.h" />
     <ClInclude Include="Physics\Tester\TesterAABB.h" />
     <ClInclude Include="Physics\Tester\TesterGJK.h" />
     <ClInclude Include="Physics\Collider\ColliderAABB.h" />
@@ -175,6 +177,7 @@
     <ClInclude Include="Renderable\Instanceable.h" />
     <ClInclude Include="Managers\ModelManager.h" />
     <ClInclude Include="Components\MaterialComponent.h" />
+    <ClInclude Include="Components\RenderComponent.h" />
     <ClInclude Include="Scene\Scene.h" />
     <ClInclude Include="Physics\Collider\SphereColliderGJK.h" />
     <ClInclude Include="Physics\Simplex.h" />
@@ -251,6 +254,8 @@
     <ClInclude Include="Logger\Logger.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Components\ModelComponent.cpp" />
+    <ClCompile Include="Systems\ModelSystem.cpp" />
     <ClCompile Include="Physics\Tester\TesterAABB.cpp" />
     <ClCompile Include="Physics\Tester\TesterGJK.cpp" />
     <ClCompile Include="Physics\Collider\ColliderAABB.cpp" />
@@ -263,6 +268,7 @@
     <ClCompile Include="Renderable\Instanceable.cpp" />
     <ClCompile Include="Managers\ModelManager.cpp" />
     <ClCompile Include="Components\MaterialComponent.cpp" />
+    <ClCompile Include="Components\RenderComponent.cpp" />
     <ClCompile Include="Scene\Scene.cpp" />
     <ClCompile Include="Physics\Collider\SphereColliderGJK.cpp" />
     <ClCompile Include="Physics\Simplex.cpp" />
@@ -340,7 +346,7 @@
     <None Include="Shaders\Common\Images.glsl" />
     <None Include="Shaders\Common\InstanceIndex.glsl" />
     <None Include="Shaders\Common\Material.glsl" />
-    <None Include="Shaders\Common\Shape.glsl" />
+    <None Include="Shaders\Common\RenderIndices.glsl" />
     <None Include="Shaders\Common\Transform.glsl" />
     <None Include="Shaders\Common\Vertex.glsl" />
     <None Include="Shaders\DeferredDir.frag" />

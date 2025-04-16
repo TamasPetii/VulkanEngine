@@ -26,6 +26,7 @@ layout( push_constant ) uniform constants
 	uvec2 indexBuffer;
 	uvec2 transformBuffer;
 	uvec2 materialBuffer;
+	uvec2 renderIndicesBuffer;
 } PushConstants;
 
 void main() 

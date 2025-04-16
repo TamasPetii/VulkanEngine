@@ -8,8 +8,11 @@ class BenchmarkManager
 public:
 	~BenchmarkManager();
 
+	void AddToCounter();
 	void ResetBenchmarkTimes();
 	void AverageBenchmarkTimes();
+	const auto& GetBenchmarkTimes() { return benchmarkTimes; }
+	const auto& GetAverageBenchmarkTimes() { return averageBenchmarkTimes; }
 
 	template<typename T>
 	void AddBenchmarkTime(float time);

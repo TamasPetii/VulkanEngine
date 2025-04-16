@@ -273,6 +273,15 @@
     <ClInclude Include="Systems\ShapeSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Components\ModelComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\RenderComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\ModelSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -509,6 +518,15 @@
     <ClCompile Include="Systems\ShapeSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Components\ModelComponent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Components\RenderComponent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Systems\ModelSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Registry\Pool.inl">
@@ -531,6 +549,6 @@
     <None Include="Shaders\Common\Material.glsl" />
     <None Include="Shaders\Common\InstanceIndex.glsl" />
     <None Include="Shaders\Common\RenderDefines.glsl" />
-    <None Include="Shaders\Common\Shape.glsl" />
+    <None Include="Shaders\Common\RenderIndices.glsl" />
   </ItemGroup>
 </Project>

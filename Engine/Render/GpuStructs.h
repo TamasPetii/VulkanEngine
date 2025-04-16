@@ -2,8 +2,9 @@
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.h>
 
-#define NORMAL_INSTANCED 0
-#define MULTIDRAW_INDIRECT_INSTANCED 1
+#define SHAPE_INSTANCED 0
+#define MODEL_INSTANCED 1
+#define MULTIDRAW_INDIRECT_INSTANCED 2
 
 struct GpuPushConstant
 {
@@ -14,5 +15,5 @@ struct GpuPushConstant
 	VkDeviceAddress instanceIndexBuffer;
 	VkDeviceAddress transformBuffer;
 	VkDeviceAddress materialBuffer;
-	VkDeviceAddress shapeBuffer;
+	VkDeviceAddress renderIndicesBuffer;
 };

@@ -1,7 +1,7 @@
 #version 460
 #extension GL_EXT_buffer_reference_uvec2 : require
 
-#include "Common/Shape.glsl"
+#include "Common/RenderIndices.glsl"
 #include "Common/RenderDefines.glsl"
 #include "Common/Vertex.glsl"
 #include "Common/Transform.glsl"
@@ -24,13 +24,13 @@ layout( push_constant ) uniform constants
 	uvec2 instanceIndexBuffer;
 	uvec2 transformBuffer;
 	uvec2 materialBuffer;
-	uvec2 shapeBuffer;
+	uvec2 renderIndicesBuffer;
 } PushConstants;
 
 void main() 
 {
 	Vertex v = VertexBuffer(PushConstants.vertexBuffer).vertices[gl_VertexIndex];
-	ShapeData indices = ShapeBuffer(PushConstants.shapeBuffer).shapeDatas[InstanceIndexBuffer(PushConstants.instanceIndexBuffer).indices[gl_InstanceIndex]];
+	RenderIndices indices = RenderIndicesBuffer(PushConstants.renderIndicesBuffer).indices[InstanceIndexBuffer(PushConstants.instanceIndexBuffer).indices[gl_InstanceIndex]];
 
 	gl_Position = CameraBuffer(PushConstants.cameraBuffer).cameras[PushConstants.cameraIndex].viewProj * TransformBuffer(PushConstants.transformBuffer).transforms[indices.transformIndex].transform * vec4(v.position, 1.0);
 
@@ -43,6 +43,6 @@ void main()
 	vs_out_normal = normal;
 	vs_out_tex = vec2(v.uv_x, v.uv_y);
 	vs_out_index.x = indices.entityIndex; //Entity ID
-	vs_out_index.y = PushConstants.renderMode == NORMAL_INSTANCED ? indices.materialIndex : v.index; //Material Index
+	vs_out_index.y = PushConstants.renderMode == SHAPE_INSTANCED ? indices.materialIndex : v.index; //Material Index
 	vs_out_tbn = mat3(tangent, bitangent, normal);
 }

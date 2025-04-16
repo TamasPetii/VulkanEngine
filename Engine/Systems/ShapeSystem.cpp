@@ -49,8 +49,8 @@ void ShapeSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared_
 	if (!shapePool)
 		return;
 
-	auto componentBuffer = componentBufferManager->GetComponentBuffer("ShapeData", frameIndex);
-	auto bufferHandler = static_cast<ShapeComponentGPU*>(componentBuffer->buffer->GetHandler());
+	auto componentBuffer = componentBufferManager->GetComponentBuffer("ShapeRenderIndicesData", frameIndex);
+	auto bufferHandler = static_cast<RenderIndicesGPU*>(componentBuffer->buffer->GetHandler());
 
 	std::for_each(std::execution::par, shapePool->GetDenseEntities().begin(), shapePool->GetDenseEntities().end(),
 		[&](const Entity& entity) -> void {
@@ -61,7 +61,7 @@ void ShapeSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared_
 			{
 				componentBuffer->versions[shapeIndex] = shapeComponent->versionID;
 
-				bufferHandler[shapeIndex] = ShapeComponentGPU{
+				bufferHandler[shapeIndex] = RenderIndicesGPU{
 					.entityIndex = entity,
 					.transformIndex = transformPool && transformPool->HasComponent(entity) ? transformPool->GetIndex(entity) : NULL_ENTITY,
 					.materialIndex = materialPool && materialPool->HasComponent(entity) ? materialPool->GetIndex(entity) : NULL_ENTITY,

@@ -1,6 +1,6 @@
 #extension GL_EXT_buffer_reference : require
 
-struct ShapeData
+struct RenderIndices
 {
 	uint entityIndex;
 	uint transformIndex;
@@ -8,6 +8,6 @@ struct ShapeData
 	uint receiveShadow;
 };
 
-layout(buffer_reference, std430) readonly buffer ShapeBuffer {
-	ShapeData shapeDatas[];
+layout(buffer_reference, std430) readonly buffer RenderIndicesBuffer {
+	RenderIndices indices[];
 };
