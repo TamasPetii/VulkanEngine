@@ -164,6 +164,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Components\ModelComponent.h" />
+    <ClInclude Include="Systems\InstanceSystem.h" />
     <ClInclude Include="Systems\ModelSystem.h" />
     <ClInclude Include="Physics\Tester\TesterAABB.h" />
     <ClInclude Include="Physics\Tester\TesterGJK.h" />
@@ -255,6 +256,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Components\ModelComponent.cpp" />
+    <ClCompile Include="Systems\InstanceSystem.cpp" />
     <ClCompile Include="Systems\ModelSystem.cpp" />
     <ClCompile Include="Physics\Tester\TesterAABB.cpp" />
     <ClCompile Include="Physics\Tester\TesterGJK.cpp" />

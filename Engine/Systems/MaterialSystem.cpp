@@ -1,10 +1,6 @@
 #include "MaterialSystem.h"
 
-void MaterialSystem::OnStart(std::shared_ptr<Registry> registry)
-{
-}
-
-void MaterialSystem::OnUpdate(std::shared_ptr<Registry> registry, float deltaTime)
+void MaterialSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, float deltaTime)
 {
 	auto materialPool = registry->GetPool<MaterialComponent>();
 
@@ -38,14 +34,14 @@ void MaterialSystem::OnFinish(std::shared_ptr<Registry> registry)
 	);
 }
 
-void MaterialSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared_ptr<ComponentBufferManager> componentBufferManager, uint32_t frameIndex)
+void MaterialSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex)
 {
 	auto materialPool = registry->GetPool<MaterialComponent>();
 
 	if (!materialPool)
 		return;
 
-	auto componentBuffer = componentBufferManager->GetComponentBuffer("MaterialData", frameIndex);
+	auto componentBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("MaterialData", frameIndex);
 	auto bufferHandler = static_cast<MaterialComponentGPU*>(componentBuffer->buffer->GetHandler());
 
 	std::for_each(std::execution::par, materialPool->GetDenseEntities().begin(), materialPool->GetDenseEntities().end(),

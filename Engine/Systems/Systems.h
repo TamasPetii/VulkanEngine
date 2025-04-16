@@ -5,3 +5,4 @@
 #include "MaterialSystem.h"
 #include "ShapeSystem.h"
 #include "ModelSystem.h"
+#include "InstanceSystem.h"

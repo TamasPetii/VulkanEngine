@@ -1,5 +1,7 @@
 #include "GeometryRenderer.h"
 #include "../GpuStructs.h"
+#include <algorithm>
+#include <execution>
 
 void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex)
 {
@@ -67,49 +69,65 @@ void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Reg
 	scissor.extent = frameBuffer->GetSize();
 	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-	{
-		auto model = resourceManager->GetModelManager()->GetModel("../Assets/Sponza/Sponza.obj");
+	auto textureDescriptorSet = resourceManager->GetVulkanManager()->GetDescriptorSet("LoadedImages");
+	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetLayout(), 0, 1, &textureDescriptorSet->Value(), 0, nullptr);
 
-		GpuPushConstant pushConstants;
-		pushConstants.renderMode = MODEL_INSTANCED;
-		pushConstants.cameraIndex = 0;
-		pushConstants.cameraBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("CameraData", frameIndex)->buffer->GetAddress();
-		pushConstants.vertexBuffer = model->GetVertexBuffer()->GetAddress();
-		pushConstants.instanceIndexBuffer = model->GetInstanceIndexBuffer(frameIndex)->GetAddress();
-		pushConstants.transformBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("TransformData", frameIndex)->buffer->GetAddress();
-		pushConstants.materialBuffer = model->GetMaterialBuffer()->GetAddress();
-		pushConstants.renderIndicesBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("ModelRenderIndicesData", frameIndex)->buffer->GetAddress();
-
-		auto textureDescriptorSet = resourceManager->GetVulkanManager()->GetDescriptorSet("LoadedImages");
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetLayout(), 0, 1, &textureDescriptorSet->Value(), 0, nullptr);
-		vkCmdPushConstants(commandBuffer, pipeline->GetLayout(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(GpuPushConstant), &pushConstants);
-		vkCmdBindIndexBuffer(commandBuffer, model->GetIndexBuffer()->Value(), 0, VK_INDEX_TYPE_UINT32);
-		vkCmdDrawIndexed(commandBuffer, model->GetIndexCount(), model->GetInstanceCount(), 0, 0, 0);
-	}
-	
-	/*
-	{
-		auto geometry = resourceManager->GetGeometryManager()->GetShape("Cube");
-
-		GpuPushConstant pushConstants;
-		pushConstants.renderMode = SHAPE_INSTANCED;
-		pushConstants.cameraIndex = 0;
-		pushConstants.cameraBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("CameraData", frameIndex)->buffer->GetAddress();
-		pushConstants.vertexBuffer = geometry->GetVertexBuffer()->GetAddress();
-		pushConstants.instanceIndexBuffer = geometry->GetInstanceIndexBuffer(frameIndex)->GetAddress();
-		pushConstants.transformBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("TransformData", frameIndex)->buffer->GetAddress();
-		pushConstants.materialBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("MaterialData", frameIndex)->buffer->GetAddress();
-		pushConstants.renderIndicesBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("ShapeRenderIndicesData", frameIndex)->buffer->GetAddress();
-
-		auto textureDescriptorSet = resourceManager->GetVulkanManager()->GetDescriptorSet("LoadedImages");
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetLayout(), 0, 1, &textureDescriptorSet->Value(), 0, nullptr);
-		vkCmdPushConstants(commandBuffer, pipeline->GetLayout(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(GpuPushConstant), &pushConstants);
-		vkCmdBindIndexBuffer(commandBuffer, geometry->GetIndexBuffer()->Value(), 0, VK_INDEX_TYPE_UINT32);
-		vkCmdDrawIndexed(commandBuffer, geometry->GetIndexCount(), geometry->GetInstanceCount(), 0, 0, 0);
-	}
-	*/
+	RenderShapesInstanced(commandBuffer, pipeline->GetLayout(), resourceManager, frameIndex);
+	RenderModelsInstanced(commandBuffer, pipeline->GetLayout(), resourceManager, frameIndex);
 
 	vkCmdEndRendering(commandBuffer);
 
 	vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, queryPool, 1);
+}
+
+void GeometryRenderer::RenderShapesInstanced(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex)
+{
+	auto geometryManager = resourceManager->GetGeometryManager();
+	std::for_each(std::execution::seq, geometryManager->GetShapes().begin(), geometryManager->GetShapes().end(),
+		[&](const std::pair<std::string, std::shared_ptr<Shape>>& data) -> void {
+			auto shape = data.second;
+			if (shape->GetInstanceCount() > 0)
+			{
+				GpuPushConstant pushConstants;
+				pushConstants.renderMode = SHAPE_INSTANCED;
+				pushConstants.cameraIndex = 0;
+				pushConstants.cameraBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("CameraData", frameIndex)->buffer->GetAddress();
+				pushConstants.vertexBuffer = shape->GetVertexBuffer()->GetAddress();
+				pushConstants.instanceIndexBuffer = shape->GetInstanceIndexBuffer(frameIndex)->GetAddress();
+				pushConstants.transformBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("TransformData", frameIndex)->buffer->GetAddress();
+				pushConstants.materialBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("MaterialData", frameIndex)->buffer->GetAddress();
+				pushConstants.renderIndicesBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("ShapeRenderIndicesData", frameIndex)->buffer->GetAddress();
+
+				vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(GpuPushConstant), &pushConstants);
+				vkCmdBindIndexBuffer(commandBuffer, shape->GetIndexBuffer()->Value(), 0, VK_INDEX_TYPE_UINT32);
+				vkCmdDrawIndexed(commandBuffer, shape->GetIndexCount(), shape->GetInstanceCount(), 0, 0, 0);
+			}
+		}
+	);
+}
+
+void GeometryRenderer::RenderModelsInstanced(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex)
+{
+	auto modelManager = resourceManager->GetModelManager();
+	std::for_each(std::execution::seq, modelManager->GetModels().begin(), modelManager->GetModels().end(),
+		[&](const std::pair<std::string, std::shared_ptr<Model>>& data) -> void {
+			auto model = data.second;
+			if (model->GetInstanceCount() > 0)
+			{
+				GpuPushConstant pushConstants;
+				pushConstants.renderMode = MODEL_INSTANCED;
+				pushConstants.cameraIndex = 0;
+				pushConstants.cameraBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("CameraData", frameIndex)->buffer->GetAddress();
+				pushConstants.vertexBuffer = model->GetVertexBuffer()->GetAddress();
+				pushConstants.instanceIndexBuffer = model->GetInstanceIndexBuffer(frameIndex)->GetAddress();
+				pushConstants.transformBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("TransformData", frameIndex)->buffer->GetAddress();
+				pushConstants.materialBuffer = model->GetMaterialBuffer()->GetAddress();
+				pushConstants.renderIndicesBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("ModelRenderIndicesData", frameIndex)->buffer->GetAddress();
+
+				vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(GpuPushConstant), &pushConstants);
+				vkCmdBindIndexBuffer(commandBuffer, model->GetIndexBuffer()->Value(), 0, VK_INDEX_TYPE_UINT32);
+				vkCmdDrawIndexed(commandBuffer, model->GetIndexCount(), model->GetInstanceCount(), 0, 0, 0);
+			}
+		}
+	);
 }

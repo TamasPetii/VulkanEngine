@@ -11,6 +11,7 @@ public:
 	GeometryManager();
 	~GeometryManager();
 	std::shared_ptr<Shape> GetShape(const std::string& name) const;
+	const auto& GetShapes() { return shapes; }
 private:
 	void Initialize();
 	void Cleanup();

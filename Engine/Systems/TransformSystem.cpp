@@ -5,11 +5,7 @@
 #include "Engine/Components/TransformComponent.h"
 #include <chrono>
 
-void TransformSystem::OnStart(std::shared_ptr<Registry> registry)
-{
-}
-
-void TransformSystem::OnUpdate(std::shared_ptr<Registry> registry, float deltaTime)
+void TransformSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, float deltaTime)
 {
 	auto transformPool = registry->GetPool<TransformComponent>();
 	if (!transformPool)
@@ -51,14 +47,14 @@ void TransformSystem::OnFinish(std::shared_ptr<Registry> registry)
 	);
 }
 
-void TransformSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared_ptr<ComponentBufferManager> componentBufferManager, uint32_t frameIndex)
+void TransformSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex)
 {
 	auto transformPool = registry->GetPool<TransformComponent>();
 
 	if (!transformPool)
 		return;
 
-	auto componentBuffer = componentBufferManager->GetComponentBuffer("TransformData", frameIndex);
+	auto componentBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("TransformData", frameIndex);
 	auto bufferHandler = static_cast<TransformComponentGPU*>(componentBuffer->buffer->GetHandler());
 
 	std::for_each(std::execution::par, transformPool->GetDenseEntities().begin(), transformPool->GetDenseEntities().end(),

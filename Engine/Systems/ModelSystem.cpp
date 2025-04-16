@@ -3,11 +3,7 @@
 #include "Engine/Components/ModelComponent.h"
 #include "Engine/Components/TransformComponent.h"
 
-void ModelSystem::OnStart(std::shared_ptr<Registry> registry)
-{
-}
-
-void ModelSystem::OnUpdate(std::shared_ptr<Registry> registry, float deltaTime)
+void ModelSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, float deltaTime)
 {
 	auto [modelPool, transformPool] = registry->GetPools<ModelComponent, TransformComponent>();
 
@@ -40,14 +36,14 @@ void ModelSystem::OnFinish(std::shared_ptr<Registry> registry)
 	);
 }
 
-void ModelSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared_ptr<ComponentBufferManager> componentBufferManager, uint32_t frameIndex)
+void ModelSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex)
 {
 	auto [modelPool, transformPool] = registry->GetPools<ModelComponent, TransformComponent>();
 
 	if (!modelPool)
 		return;
 
-	auto componentBuffer = componentBufferManager->GetComponentBuffer("ModelRenderIndicesData", frameIndex);
+	auto componentBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("ModelRenderIndicesData", frameIndex);
 	auto bufferHandler = static_cast<RenderIndicesGPU*>(componentBuffer->buffer->GetHandler());
 
 	std::for_each(std::execution::par, modelPool->GetDenseEntities().begin(), modelPool->GetDenseEntities().end(),

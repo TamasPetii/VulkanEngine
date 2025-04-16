@@ -53,7 +53,7 @@ inline void Scene::UpdateSystem(float deltaTime)
 {
 	static_assert(std::is_base_of_v<System, T>, "T must be derived from System");
 	Timer timer{};
-	systems.at(Unique::typeID<T>())->OnUpdate(registry, deltaTime);
+	systems.at(Unique::typeID<T>())->OnUpdate(registry, resourceManager, deltaTime);
 	resourceManager->GetBenchmarkManager()->AddBenchmarkTime<T>(timer.GetElapsedTime());
 }
 
@@ -71,7 +71,7 @@ inline void Scene::UpdateGpuSystem(uint32_t frameIndex)
 {
 	static_assert(std::is_base_of_v<System, T>, "T must be derived from System");
 	Timer timer;
-	systems.at(Unique::typeID<T>())->OnUploadToGpu(registry, resourceManager->GetComponentBufferManager(), frameIndex);
+	systems.at(Unique::typeID<T>())->OnUploadToGpu(registry, resourceManager, frameIndex);
 	resourceManager->GetBenchmarkManager()->AddBenchmarkTime<T>(timer.GetElapsedTime());
 }
 

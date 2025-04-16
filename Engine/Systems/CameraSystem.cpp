@@ -6,11 +6,7 @@
 #include <glm/gtx/transform2.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-void CameraSystem::OnStart(std::shared_ptr<Registry> registry)
-{
-}
-
-void CameraSystem::OnUpdate(std::shared_ptr<Registry> registry, float deltaTime)
+void CameraSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, float deltaTime)
 {
 	auto inputManager = InputManager::Instance();
 	auto [transformPool, cameraPool] = registry->GetPools<TransformComponent, CameraComponent>();
@@ -91,14 +87,14 @@ void CameraSystem::OnFinish(std::shared_ptr<Registry> registry)
 	);
 }
 
-void CameraSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared_ptr<ComponentBufferManager> componentBufferManager, uint32_t frameIndex)
+void CameraSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex)
 {
 	auto cameraPool = registry->GetPool<CameraComponent>();
 
 	if (!cameraPool)
 		return;
 
-	auto componentBuffer = componentBufferManager->GetComponentBuffer("CameraData", frameIndex);
+	auto componentBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("CameraData", frameIndex);
 	auto bufferHandler = static_cast<CameraComponentGPU*>(componentBuffer->buffer->GetHandler());
 
 	std::for_each(std::execution::par, cameraPool->GetDenseEntities().begin(), cameraPool->GetDenseEntities().end(),

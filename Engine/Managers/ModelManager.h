@@ -12,6 +12,7 @@ public:
 	ModelManager(std::shared_ptr<ImageManager> imageManager);
 	std::shared_ptr<Model> LoadModel(const std::string& path);
 	std::shared_ptr<Model> GetModel(const std::string& path);
+	const auto& GetModels() { return models; }
 private:
 	std::shared_ptr<ImageManager> imageManager = nullptr;
 	std::unordered_map<std::string, std::shared_ptr<Model>> models;

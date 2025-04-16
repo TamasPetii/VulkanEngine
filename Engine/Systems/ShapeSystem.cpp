@@ -4,11 +4,7 @@
 #include "Engine/Components/TransformComponent.h"
 #include "Engine/Components/MaterialComponent.h"
 
-void ShapeSystem::OnStart(std::shared_ptr<Registry> registry)
-{
-}
-
-void ShapeSystem::OnUpdate(std::shared_ptr<Registry> registry, float deltaTime)
+void ShapeSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, float deltaTime)
 {
 	auto [shapePool, transformPool, materialPool] = registry->GetPools<ShapeComponent, TransformComponent, MaterialComponent>();
 
@@ -42,14 +38,14 @@ void ShapeSystem::OnFinish(std::shared_ptr<Registry> registry)
 	);
 }
 
-void ShapeSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared_ptr<ComponentBufferManager> componentBufferManager, uint32_t frameIndex)
+void ShapeSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex)
 {
 	auto [shapePool, transformPool, materialPool] = registry->GetPools<ShapeComponent, TransformComponent, MaterialComponent>();
 
 	if (!shapePool)
 		return;
 
-	auto componentBuffer = componentBufferManager->GetComponentBuffer("ShapeRenderIndicesData", frameIndex);
+	auto componentBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("ShapeRenderIndicesData", frameIndex);
 	auto bufferHandler = static_cast<RenderIndicesGPU*>(componentBuffer->buffer->GetHandler());
 
 	std::for_each(std::execution::par, shapePool->GetDenseEntities().begin(), shapePool->GetDenseEntities().end(),

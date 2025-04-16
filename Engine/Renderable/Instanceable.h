@@ -11,6 +11,8 @@ class ENGINE_API Instanceable
 public:
 	uint32_t GetInstanceCount();
 	void ResetInstanceCount();
+	void ReserveInstances(uint32_t size);
+	void ShrinkInstances();
 	void AddIndex(uint32_t index);
 	virtual void UploadInstanceDataToGPU(uint32_t frameIndex);
 	std::shared_ptr<Vk::Buffer> GetInstanceIndexBuffer(uint32_t frameIndex);
