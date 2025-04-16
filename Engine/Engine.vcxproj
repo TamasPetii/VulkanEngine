@@ -163,6 +163,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Systems\FrustumCullingSystem.h" />
     <ClInclude Include="Render\Renderers\BoundingVolumeRenderer.h" />
     <ClInclude Include="Systems\DefaultColliderSystem.h" />
     <ClInclude Include="Physics\Collider\ColliderOBB.h" />
@@ -259,6 +260,7 @@
     <ClInclude Include="Logger\Logger.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Systems\FrustumCullingSystem.cpp" />
     <ClCompile Include="Render\Renderers\BoundingVolumeRenderer.cpp" />
     <ClCompile Include="Systems\DefaultColliderSystem.cpp" />
     <ClCompile Include="Physics\Collider\ColliderOBB.cpp" />

@@ -33,6 +33,7 @@ void ShapeSystem::OnFinish(std::shared_ptr<Registry> registry)
 
 	std::for_each(std::execution::par, shapePool->GetDenseEntities().begin(), shapePool->GetDenseEntities().end(),
 		[&](const Entity& entity) -> void {
+			shapePool->GetComponent(entity)->toRender = false;
 			shapePool->GetBitset(entity).reset();
 		}
 	);

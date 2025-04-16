@@ -7,3 +7,4 @@
 #include "ModelSystem.h"
 #include "InstanceSystem.h"
 #include "DefaultColliderSystem.h"
+#include "FrustumCullingSystem.h"

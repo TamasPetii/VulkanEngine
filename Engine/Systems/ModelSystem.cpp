@@ -31,6 +31,7 @@ void ModelSystem::OnFinish(std::shared_ptr<Registry> registry)
 
 	std::for_each(std::execution::par, modelPool->GetDenseEntities().begin(), modelPool->GetDenseEntities().end(),
 		[&](const Entity& entity) -> void {
+			modelPool->GetComponent(entity)->toRender = false;
 			modelPool->GetBitset(entity).reset();
 		}
 	);

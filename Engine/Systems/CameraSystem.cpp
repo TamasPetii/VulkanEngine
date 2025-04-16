@@ -1,6 +1,5 @@
 #include "CameraSystem.h"
 #include "Engine/Managers/InputManager.h"
-#include "Engine/Components/CameraComponent.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtx/transform2.hpp>
@@ -109,4 +108,20 @@ void CameraSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared
 			}
 		}
 	);
+}
+
+Entity CameraSystem::GetMainCameraEntity(std::shared_ptr<Registry> registry)
+{
+	auto cameraPool = registry->GetPool<CameraComponent>();
+
+	if (!cameraPool)
+		return NULL_ENTITY;;
+
+	for (Entity entity : cameraPool->GetDenseEntities())
+	{
+		if (cameraPool->GetComponent(entity)->isMain)
+			return entity;
+	}
+
+	return NULL_ENTITY;
 }

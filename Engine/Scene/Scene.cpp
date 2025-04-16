@@ -38,11 +38,11 @@ void Scene::InitializeRegistry()
 
 	{ //Camera
 		auto entity = registry->CreateEntity();
-		registry->AddComponents<TransformComponent>(entity);
-		registry->AddComponents<CameraComponent>(entity);
+		registry->AddComponents<TransformComponent, CameraComponent>(entity);
+		registry->GetComponent<CameraComponent>(entity)->isMain = true;
 	}
 
-	for (uint32_t i = 0; i < 1000; ++i)
+	for (uint32_t i = 0; i < 25000; ++i)
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, MaterialComponent, ShapeComponent, DefaultColliderComponent>(entity);
@@ -136,6 +136,7 @@ void Scene::InitializeSystems()
 	InitSystem<ModelSystem>();
 	InitSystem<InstanceSystem>();
 	InitSystem<DefaultColliderSystem>();
+	InitSystem<FrustumCullingSystem>();
 }
 
 void Scene::UpdateSystems(float deltaTime)
@@ -156,14 +157,21 @@ void Scene::UpdateSystems(float deltaTime)
 	LaunchSystemUpdateAsync.template operator() < MaterialSystem > ();
 	LaunchSystemUpdateAsync.template operator() < ShapeSystem > ();
 	LaunchSystemUpdateAsync.template operator() < ModelSystem > ();
-	LaunchSystemUpdateAsync.template operator() < InstanceSystem > ();
 
 	//DefaultColliderSystem uses these systems output as input
 	futures[Unique::typeID<TransformSystem>()].get();
 	futures[Unique::typeID<ShapeSystem>()].get();
 	futures[Unique::typeID<ModelSystem>()].get();
-
 	LaunchSystemUpdateAsync.template operator() < DefaultColliderSystem > ();
+
+	//FrustumCullingSystem uses these systems output as input
+	futures[Unique::typeID<CameraSystem>()].get();
+	futures[Unique::typeID<DefaultColliderSystem>()].get();
+	LaunchSystemUpdateAsync.template operator() < FrustumCullingSystem > ();
+
+	//InstanceSystem uses these systems output as input
+	futures[Unique::typeID<FrustumCullingSystem>()].get();
+	LaunchSystemUpdateAsync.template operator() < InstanceSystem > ();
 
 	for (auto& [_, future] : futures) {
 		if(future.valid())

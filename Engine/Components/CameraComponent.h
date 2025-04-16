@@ -6,6 +6,8 @@ struct ENGINE_API CameraComponent : public Component
 {
 	CameraComponent();
 
+	bool isMain;
+
 	float yaw;
 	float pitch;
 
