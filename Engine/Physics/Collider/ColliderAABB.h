@@ -4,9 +4,9 @@
 
 struct ENGINE_API ColliderAABB
 {
-	glm::vec3 min;
-	glm::vec3 max;
-	glm::vec3 origin;
-	glm::vec3 extents;
+	glm::vec3 aabbMin;
+	glm::vec3 aabbMax;
+	glm::vec3 aabbOrigin;
+	glm::vec3 aabbExtents;
 };
 

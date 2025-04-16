@@ -3,7 +3,6 @@
 #include <glm/gtx/transform2.hpp>
 #include "Engine/Vulkan/Buffer.h"
 #include "Engine/Components/TransformComponent.h"
-#include <chrono>
 
 void TransformSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, float deltaTime)
 {
@@ -59,13 +58,13 @@ void TransformSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::sha
 
 	std::for_each(std::execution::par, transformPool->GetDenseEntities().begin(), transformPool->GetDenseEntities().end(),
 		[&](const Entity& entity) -> void {
-			auto index = transformPool->GetIndex(entity);
+			auto transformIndex = transformPool->GetIndex(entity);
 			auto transformComponent = transformPool->GetComponent(entity);
 
-			if (componentBuffer->versions[index] != transformComponent->versionID)
+			if (componentBuffer->versions[transformIndex] != transformComponent->versionID)
 			{
-				componentBuffer->versions[index] = transformComponent->versionID;
-				bufferHandler[index] = TransformComponentGPU(*transformComponent);
+				componentBuffer->versions[transformIndex] = transformComponent->versionID;
+				bufferHandler[transformIndex] = TransformComponentGPU(*transformComponent);
 			}
 		}
 	);

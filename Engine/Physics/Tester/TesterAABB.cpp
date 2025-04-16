@@ -3,11 +3,11 @@
 bool TesterAABB::Test(const ColliderAABB& A, const ColliderAABB& B)
 {
 	return (
-		A.min.x <= B.max.x &&
-		A.max.x >= B.min.x &&
-		A.min.y <= B.max.y &&
-		A.max.y >= B.min.y &&
-		A.min.z <= B.max.z &&
-		A.max.z >= B.min.z
+		A.aabbMin.x <= B.aabbMax.x &&
+		A.aabbMax.x >= B.aabbMin.x &&
+		A.aabbMin.y <= B.aabbMax.y &&
+		A.aabbMax.y >= B.aabbMin.y &&
+		A.aabbMin.z <= B.aabbMax.z &&
+		A.aabbMax.z >= B.aabbMin.z
 		);
 }

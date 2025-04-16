@@ -4,3 +4,4 @@
 #include "MaterialComponent.h"
 #include "ShapeComponent.h"
 #include "ModelComponent.h"
+#include "DefaultColliderComponent.h"

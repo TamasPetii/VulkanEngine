@@ -100,12 +100,12 @@ void CameraSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared
 	std::for_each(std::execution::par, cameraPool->GetDenseEntities().begin(), cameraPool->GetDenseEntities().end(),
 		[&](const Entity& entity) -> void {
 			auto cameraComponent = cameraPool->GetComponent(entity);
-			auto index = cameraPool->GetIndex(entity);
+			auto cameraIndex = cameraPool->GetIndex(entity);
 
-			if (componentBuffer->versions[index] != cameraComponent->versionID)
+			if (componentBuffer->versions[cameraIndex] != cameraComponent->versionID)
 			{
-				componentBuffer->versions[index] = cameraComponent->versionID;
-				bufferHandler[index] = CameraComponentGPU(*cameraComponent);
+				componentBuffer->versions[cameraIndex] = cameraComponent->versionID;
+				bufferHandler[cameraIndex] = CameraComponentGPU(*cameraComponent);
 			}
 		}
 	);

@@ -4,18 +4,13 @@
 #include <array>
 #include <vector>
 
-class ENGINE_API BoundingVolume
+#include "Engine/Physics/Collider/ColliderAABB.h"
+#include "Engine/Physics/Collider/ColliderOBB.h"
+#include "Engine/Physics/Collider/ConvexColliderGJK.h"
+
+class ENGINE_API BoundingVolume : public ColliderAABB, public ColliderOBB, public ConvexColliderGJK
 {
-public:
-	const auto& GetSurfacePoints() const { return surfacePoints; }
 protected:
 	virtual void PopulateSurfacePoints() = 0;
 	void GenerateBoundingVolume();
-protected:
-	glm::vec3 aabbMax;
-	glm::vec3 aabbMin;
-	glm::vec3 aabbOrigin;
-	glm::vec3 aabbExtents;
-	std::array<glm::vec3, 8> obb;
-	std::vector<glm::vec3> surfacePoints;
 };

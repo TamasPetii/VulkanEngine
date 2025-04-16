@@ -47,12 +47,12 @@ void MaterialSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shar
 	std::for_each(std::execution::par, materialPool->GetDenseEntities().begin(), materialPool->GetDenseEntities().end(),
 		[&](const Entity& entity) -> void {
 			auto materialComponent = materialPool->GetComponent(entity);
-			auto index = materialPool->GetIndex(entity);
+			auto materialIndex = materialPool->GetIndex(entity);
 
-			if (componentBuffer->versions[index] != materialComponent->versionID)
+			if (componentBuffer->versions[materialIndex] != materialComponent->versionID)
 			{
-				componentBuffer->versions[index] = materialComponent->versionID;
-				bufferHandler[index] = MaterialComponentGPU(*materialComponent);
+				componentBuffer->versions[materialIndex] = materialComponent->versionID;
+				bufferHandler[materialIndex] = MaterialComponentGPU(*materialComponent);
 			}
 		}
 	);

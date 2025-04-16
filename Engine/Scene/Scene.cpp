@@ -42,10 +42,10 @@ void Scene::InitializeRegistry()
 		registry->AddComponents<CameraComponent>(entity);
 	}
 
-	for (uint32_t i = 0; i < 25000; ++i)
+	for (uint32_t i = 0; i < 1000; ++i)
 	{
 		auto entity = registry->CreateEntity();
-		registry->AddComponents<TransformComponent, MaterialComponent, ShapeComponent>(entity);
+		registry->AddComponents<TransformComponent, MaterialComponent, ShapeComponent, DefaultColliderComponent>(entity);
 
 		auto [transformComponent, materialComponent, shapeComponent] = registry->GetComponents<TransformComponent, MaterialComponent, ShapeComponent>(entity);
 		transformComponent->rotation = 180.f * glm::vec3(dist(rng), dist(rng), dist(rng));
@@ -58,10 +58,10 @@ void Scene::InitializeRegistry()
 		shapeComponent->shape = resourceManager->GetGeometryManager()->GetShape("Cube");
 	}
 
-	for (uint32_t i = 0; i < 1; ++i)
+	for (uint32_t i = 0; i < 0; ++i)
 	{
 		auto entity = registry->CreateEntity();
-		registry->AddComponents<TransformComponent, ModelComponent>(entity);
+		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
 
 		auto [transformComponent, modelComponent] = registry->GetComponents<TransformComponent, ModelComponent>(entity);
 		transformComponent->rotation = 180.f * glm::vec3(dist(rng), dist(rng), dist(rng));
@@ -79,6 +79,7 @@ void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
 	std::mt19937 rng(dev());
 	std::uniform_real_distribution<float> dist(0, 1);
 
+	/*
 	if (auto transformPool = registry->GetPool<TransformComponent>())
 	{
 		std::for_each(std::execution::par,
@@ -106,6 +107,7 @@ void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
 			}
 		);
 	}
+	*/
 
 	//Update Camera Size
 	auto viewPortSize = resourceManager->GetVulkanManager()->GetFrameDependentFrameBuffer("Main", frameIndex)->GetSize();
@@ -135,6 +137,7 @@ void Scene::InitializeSystems()
 	InitSystem<ShapeSystem>();
 	InitSystem<ModelSystem>();
 	InitSystem<InstanceSystem>();
+	InitSystem<DefaultColliderSystem>();
 }
 
 void Scene::UpdateSystems(float deltaTime)
@@ -157,8 +160,16 @@ void Scene::UpdateSystems(float deltaTime)
 	LaunchSystemUpdateAsync.template operator() < ModelSystem > ();
 	LaunchSystemUpdateAsync.template operator() < InstanceSystem > ();
 
+	//DefaultColliderSystem uses these systems output as input
+	futures[Unique::typeID<TransformSystem>()].get();
+	futures[Unique::typeID<ShapeSystem>()].get();
+	futures[Unique::typeID<ModelSystem>()].get();
+
+	LaunchSystemUpdateAsync.template operator() < DefaultColliderSystem > ();
+
 	for (auto& [_, future] : futures) {
-		future.get();
+		if(future.valid())
+			future.get();
 	}
 
 	resourceManager->GetBenchmarkManager()->AddBenchmarkTime<System>(timer.GetElapsedTime());
@@ -183,9 +194,11 @@ void Scene::FinishSystems()
 	LaunchSystemFinishAsync.template operator() < ShapeSystem > ();
 	LaunchSystemFinishAsync.template operator() < ModelSystem > ();
 	LaunchSystemFinishAsync.template operator() < InstanceSystem > ();
+	LaunchSystemFinishAsync.template operator() < DefaultColliderSystem > ();
 
 	for (auto& [_, future] : futures) {
-		future.get();
+		if (future.valid())
+			future.get();
 	}
 
 	resourceManager->GetBenchmarkManager()->AddBenchmarkTime<System>(timer.GetElapsedTime());
@@ -210,9 +223,11 @@ void Scene::UpdateSystemsGPU(uint32_t frameIndex)
 	LaunchSystemUpdateGpuAsync.template operator() < ShapeSystem > ();
 	LaunchSystemUpdateGpuAsync.template operator() < ModelSystem > ();
 	LaunchSystemUpdateGpuAsync.template operator() < InstanceSystem > ();
+	LaunchSystemUpdateGpuAsync.template operator() < DefaultColliderSystem > ();
 
 	for (auto& [_, future] : futures) {
-		future.get();
+		if (future.valid())
+			future.get();
 	}
 
 	resourceManager->GetBenchmarkManager()->AddBenchmarkTime<System>(timer.GetElapsedTime());
@@ -220,10 +235,10 @@ void Scene::UpdateSystemsGPU(uint32_t frameIndex)
 
 void Scene::UpdateComponentBuffers(uint32_t frameIndex)
 {
-	//TODO: Error when size 0 
 	RecalculateGpuBufferSize<TransformComponent, TransformComponentGPU>("TransformData", frameIndex);
 	RecalculateGpuBufferSize<CameraComponent, CameraComponentGPU>("CameraData", frameIndex);
 	RecalculateGpuBufferSize<MaterialComponent, MaterialComponentGPU>("MaterialData", frameIndex);
 	RecalculateGpuBufferSize<ShapeComponent, RenderIndicesGPU>("ShapeRenderIndicesData", frameIndex);
 	RecalculateGpuBufferSize<ModelComponent, RenderIndicesGPU>("ModelRenderIndicesData", frameIndex);
+	RecalculateGpuBufferSize<DefaultColliderComponent, glm::mat4>("DefaultColliderData", frameIndex);
 }

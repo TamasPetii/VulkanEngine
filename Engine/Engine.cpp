@@ -81,7 +81,7 @@ void Engine::Update()
 		resourceManager->GetBenchmarkManager()->AverageBenchmarkTimes();
 
 		for (auto& [typeIndex, time] : resourceManager->GetBenchmarkManager()->GetAverageBenchmarkTimes())
-			std::cout << std::format("{} run in average of {} ms", typeIndex.name(), time) << "\n";
+			std::cout << std::format("{} ran in an average of {} ms", typeIndex.name(), time) << "\n";
 
 		resourceManager->GetBenchmarkManager()->ResetBenchmarkTimes();
 

@@ -163,7 +163,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Systems\DefaultColliderSystem.h" />
+    <ClInclude Include="Physics\Collider\ColliderOBB.h" />
     <ClInclude Include="Components\ModelComponent.h" />
+    <ClInclude Include="Components\DefaultColliderComponent.h" />
     <ClInclude Include="Systems\InstanceSystem.h" />
     <ClInclude Include="Systems\ModelSystem.h" />
     <ClInclude Include="Physics\Tester\TesterAABB.h" />
@@ -255,7 +258,10 @@
     <ClInclude Include="Logger\Logger.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Systems\DefaultColliderSystem.cpp" />
+    <ClCompile Include="Physics\Collider\ColliderOBB.cpp" />
     <ClCompile Include="Components\ModelComponent.cpp" />
+    <ClCompile Include="Components\DefaultColliderComponent.cpp" />
     <ClCompile Include="Systems\InstanceSystem.cpp" />
     <ClCompile Include="Systems\ModelSystem.cpp" />
     <ClCompile Include="Physics\Tester\TesterAABB.cpp" />
