@@ -3,6 +3,6 @@
 
 struct Settings
 {
-	static inline constexpr uint32_t MAX_FRAMES_IN_FLIGHTS = 1;
-	static inline uint32_t FRAMES_IN_FLIGHT = 1;
+	static inline constexpr uint32_t MAX_FRAMES_IN_FLIGHTS = 3;
+	static inline uint32_t FRAMES_IN_FLIGHT = 2;
 };

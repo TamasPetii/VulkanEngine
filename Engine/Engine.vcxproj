@@ -163,6 +163,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Physics\Tester\TesterAABB.h" />
+    <ClInclude Include="Physics\Tester\TesterGJK.h" />
+    <ClInclude Include="Physics\Collider\ColliderAABB.h" />
+    <ClInclude Include="Physics\Collider\ConvexColliderGJK.h" />
+    <ClInclude Include="Physics\Collider\ColliderGJK.h" />
     <ClInclude Include="Managers\BenchmarkManager.h" />
     <ClInclude Include="Renderable\BoundingVolume.h" />
     <ClInclude Include="Renderable\Materialized.h" />
@@ -171,6 +176,9 @@
     <ClInclude Include="Managers\ModelManager.h" />
     <ClInclude Include="Components\MaterialComponent.h" />
     <ClInclude Include="Scene\Scene.h" />
+    <ClInclude Include="Physics\Collider\SphereColliderGJK.h" />
+    <ClInclude Include="Physics\Simplex.h" />
+    <ClInclude Include="Components\ShapeComponent.h" />
     <ClInclude Include="Systems\MaterialSystem.h" />
     <ClInclude Include="Renderable\Model\AssimpConverter.h" />
     <ClInclude Include="Renderable\Model\Model.h" />
@@ -242,6 +250,11 @@
     <ClInclude Include="Logger\Logger.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Physics\Tester\TesterAABB.cpp" />
+    <ClCompile Include="Physics\Tester\TesterGJK.cpp" />
+    <ClCompile Include="Physics\Collider\ColliderAABB.cpp" />
+    <ClCompile Include="Physics\Collider\ConvexColliderGJK.cpp" />
+    <ClCompile Include="Physics\Collider\ColliderGJK.cpp" />
     <ClCompile Include="Managers\BenchmarkManager.cpp" />
     <ClCompile Include="Renderable\BoundingVolume.cpp" />
     <ClCompile Include="Renderable\Materialized.cpp" />
@@ -250,6 +263,9 @@
     <ClCompile Include="Managers\ModelManager.cpp" />
     <ClCompile Include="Components\MaterialComponent.cpp" />
     <ClCompile Include="Scene\Scene.cpp" />
+    <ClCompile Include="Physics\Collider\SphereColliderGJK.cpp" />
+    <ClCompile Include="Physics\Simplex.cpp" />
+    <ClCompile Include="Components\ShapeComponent.cpp" />
     <ClCompile Include="Systems\MaterialSystem.cpp" />
     <ClCompile Include="Renderable\Model\Model.cpp" />
     <ClCompile Include="Renderable\Renderable.cpp" />

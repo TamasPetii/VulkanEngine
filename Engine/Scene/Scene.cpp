@@ -33,6 +33,7 @@ void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
 	std::random_device dev;
 	std::mt19937 rng(dev());
 	std::uniform_real_distribution<float> dist(0, 1);
+
 	auto transformPool = registry->GetPool<TransformComponent>();
 	std::for_each(std::execution::par,
 		transformPool->GetDenseEntities().begin(),
@@ -41,7 +42,19 @@ void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
 		{
 			auto transformComponent = transformPool->GetComponent(entity);
 			transformComponent->scale = glm::vec3(glm::sin(frameTimer->GetFrameElapsedTime() * 2 * glm::pi<float>()) + 2);
-			registry->GetPool<TransformComponent>()->GetBitset(entity).set(UPDATE_BIT, true);
+			transformPool->GetBitset(entity).set(UPDATE_BIT, true);
+		}
+	);
+
+	auto materialPool = registry->GetPool<MaterialComponent>();
+	std::for_each(std::execution::par,
+		materialPool->GetDenseEntities().begin(),
+		materialPool->GetDenseEntities().end(),
+		[&](Entity entity) -> void
+		{
+			auto materialComponent = materialPool->GetComponent(entity);
+			materialComponent->color = glm::vec4(glm::vec3(glm::sin(frameTimer->GetFrameElapsedTime() * 2 * glm::pi<float>()) + 2), 1);
+			materialPool->GetBitset(entity).set(UPDATE_BIT, true);
 		}
 	);
 
@@ -112,8 +125,6 @@ void Scene::InitializeSystems()
 
 void Scene::UpdateSystems(float deltaTime)
 {
-	Timer timer{};
-
 	std::unordered_map<std::type_index, std::future<void>> futures;
 
 	auto LaunchSystemAsync = [&]<typename T>() -> void {
@@ -130,8 +141,6 @@ void Scene::UpdateSystems(float deltaTime)
 	for (auto& [_, future] : futures) {
 		future.get();
 	}
-
-	std::cout << std::format("Systems updated async in {} ms", timer.GetElapsedTime()) << "\n";
 }
 
 void Scene::FinishSystems()
