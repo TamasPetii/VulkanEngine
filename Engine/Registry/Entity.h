@@ -7,3 +7,4 @@ using Parent = Entity;
 using Child = Entity;
 using Index = Entity;
 constexpr Entity NULL_ENTITY = std::numeric_limits<Entity>::max();
+constexpr uint32_t NULL_INDEX = std::numeric_limits<Entity>::max();

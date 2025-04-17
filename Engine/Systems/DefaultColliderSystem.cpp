@@ -10,16 +10,11 @@
 
 void DefaultColliderSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, float deltaTime)
 {
-	/*
 	auto futureShape = std::async(std::launch::async, &DefaultColliderSystem::UpdateDefaultComponentsWithShapes, this, registry, resourceManager);
 	auto futureModel = std::async(std::launch::async, &DefaultColliderSystem::UpdateDefaultComponentsWithModels, this, registry, resourceManager);
 
 	futureShape.get();
 	futureModel.get();
-	*/
-
-	UpdateDefaultComponentsWithShapes(registry, resourceManager);
-	UpdateDefaultComponentsWithModels(registry, resourceManager);
 }
 
 void DefaultColliderSystem::OnFinish(std::shared_ptr<Registry> registry)

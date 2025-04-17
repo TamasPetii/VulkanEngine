@@ -163,7 +163,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Registry\Pools\ComponentPool.h" />
+    <ClInclude Include="Registry\Pools\DataPool.h" />
+    <ClInclude Include="Registry\Pools\BitsetPool.h" />
     <ClInclude Include="Physics\Collider\FrustumCollider.h" />
+    <ClInclude Include="Registry\Pools\SparseSet.h" />
     <ClInclude Include="Systems\FrustumCullingSystem.h" />
     <ClInclude Include="Render\Renderers\BoundingVolumeRenderer.h" />
     <ClInclude Include="Systems\DefaultColliderSystem.h" />
@@ -262,7 +266,11 @@
     <ClInclude Include="Logger\Logger.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Registry\Pools\ComponentPool.cpp" />
+    <ClCompile Include="Registry\Pools\DataPool.cpp" />
+    <ClCompile Include="Registry\Pools\BitsetPool.cpp" />
     <ClCompile Include="Physics\Collider\FrustumCollider.cpp" />
+    <ClCompile Include="Registry\Pools\SparseSet.cpp" />
     <ClCompile Include="Systems\FrustumCullingSystem.cpp" />
     <ClCompile Include="Render\Renderers\BoundingVolumeRenderer.cpp" />
     <ClCompile Include="Systems\DefaultColliderSystem.cpp" />

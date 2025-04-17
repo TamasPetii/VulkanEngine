@@ -306,6 +306,18 @@
     <ClInclude Include="Physics\Tester\TesterFrustum.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Registry\Pools\SparseSet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Registry\Pools\BitsetPool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Registry\Pools\DataPool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Registry\Pools\ComponentPool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -573,6 +585,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Physics\Tester\TesterFrustum.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Registry\Pools\SparseSet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Registry\Pools\BitsetPool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Registry\Pools\DataPool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Registry\Pools\ComponentPool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
