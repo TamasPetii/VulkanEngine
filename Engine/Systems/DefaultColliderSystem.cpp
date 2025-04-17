@@ -26,21 +26,9 @@ void DefaultColliderSystem::OnUpdate(std::shared_ptr<Registry> registry, std::sh
 				auto transformComponent = transformPool->GetComponent(entity);
 
 				std::shared_ptr<BoundingVolume> boundingVolume = isShape ? std::static_pointer_cast<BoundingVolume>(shapePool->GetComponent(entity)->shape) : std::static_pointer_cast<BoundingVolume>(modelPool->GetComponent(entity)->model);
-
-				glm::vec3 maxPosition{ std::numeric_limits<float>::lowest() };
-				glm::vec3 minPosition{ std::numeric_limits<float>::max() };
-
-				for (uint32_t i = 0; i < 8; ++i)
-				{
-					defaultColliderComponent->obbPositions[i] = glm::vec3(transformComponent->transform * glm::vec4(boundingVolume->obbPositions[i], 1));
-					maxPosition = glm::max(maxPosition, defaultColliderComponent->obbPositions[i]);
-					minPosition = glm::min(minPosition, defaultColliderComponent->obbPositions[i]);
-				}
-
-				defaultColliderComponent->aabbMin = minPosition;
-				defaultColliderComponent->aabbMax = maxPosition;
-				defaultColliderComponent->aabbOrigin = 0.5f * (minPosition + maxPosition);
-				defaultColliderComponent->aabbExtents = 0.5f * (maxPosition - minPosition);
+				
+				defaultColliderComponent->origin = transformComponent->transform * glm::vec4(boundingVolume->aabbOrigin, 1);
+				defaultColliderComponent->radius = glm::max(glm::max(transformComponent->scale.x, transformComponent->scale.y), transformComponent->scale.z) * glm::length(boundingVolume->aabbExtents);
 
 				defaultColliderPool->GetBitset(entity).set(CHANGED_BIT, true);
 				defaultColliderComponent->versionID++;
@@ -93,7 +81,7 @@ void DefaultColliderSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, st
 					componentBufferAabb->versions[defaultColliderIndex] = defaultColliderComponent->versionID;
 					componentBufferObb->versions[defaultColliderIndex] = defaultColliderComponent->versionID;
 					
-					bufferHandlerAabb[defaultColliderIndex] = glm::translate(defaultColliderComponent->aabbOrigin) * glm::scale(defaultColliderComponent->aabbExtents);
+					bufferHandlerAabb[defaultColliderIndex] = glm::translate(defaultColliderComponent->origin) * glm::scale(glm::vec3(defaultColliderComponent->radius));
 					bufferHandlerObb[defaultColliderIndex] = transformComponent->transform * glm::translate(boundingVolume->aabbOrigin) * glm::scale(boundingVolume->aabbExtents);
 				}
 			}

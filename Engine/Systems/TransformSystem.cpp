@@ -1,8 +1,9 @@
 #include "TransformSystem.h"
+#include "Engine/Components/TransformComponent.h"
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform2.hpp>
-#include "Engine/Vulkan/Buffer.h"
-#include "Engine/Components/TransformComponent.h"
+#include <glm/gtx/matrix_decompose.hpp>
 
 void TransformSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, float deltaTime)
 {
@@ -17,6 +18,7 @@ void TransformSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_p
 				auto index = transformPool->GetIndex(entity);
 				auto transformComponent = transformPool->GetComponent(entity);
 
+				
 				transformComponent->transform = glm::mat4(1.0f);
 				transformComponent->transform = glm::translate(transformComponent->transform, transformComponent->translation);
 				transformComponent->transform = glm::rotate(transformComponent->transform, glm::radians(transformComponent->rotation.z), glm::vec3(0, 0, 1));
@@ -30,6 +32,40 @@ void TransformSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_p
 			}
 		}
 	);
+	
+	/*
+	//Might be better to use glm::decompose at the end in another foreach, when parent-child relation will affect transforms;
+	std::for_each(std::execution::par, transformPool->GetDenseEntities().begin(), transformPool->GetDenseEntities().end(),
+		[&](const Entity& entity) -> void {
+			if (transformPool->GetBitset(entity).test(CHANGED_BIT))
+			{
+				auto index = transformPool->GetIndex(entity);
+				auto transformComponent = transformPool->GetComponent(entity);
+				
+				glm::vec3 scale, translation, skew;
+				glm::vec4 perspective;
+				glm::quat rotation;
+				glm::decompose(transformComponent->transform, scale, rotation, translation, skew, perspective);
+
+				transformComponent->fullTranslation = translation;
+				transformComponent->fullRotation = glm::degrees(glm::eulerAngles(rotation));
+				transformComponent->fullScale = scale;
+
+				//Translation
+				transformComponent->fullTranslationMatrix = glm::translate(glm::mat4(1.0f), transformComponent->fullTranslation);
+		
+				//Rotation
+				transformComponent->fullRotationMatrix = glm::mat4(1.0f);
+				transformComponent->fullRotationMatrix = glm::rotate(transformComponent->fullRotationMatrix, glm::radians(transformComponent->fullRotation.z), glm::vec3(0, 0, 1));
+				transformComponent->fullRotationMatrix = glm::rotate(transformComponent->fullRotationMatrix, glm::radians(transformComponent->fullRotation.y), glm::vec3(0, 1, 0));
+				transformComponent->fullRotationMatrix = glm::rotate(transformComponent->fullRotationMatrix, glm::radians(transformComponent->fullRotation.x), glm::vec3(1, 0, 0));
+				
+				//Scale
+				transformComponent->fullScaleMatrix = glm::scale(glm::mat4(1.0f), transformComponent->fullScale);
+			}
+		}
+	);
+	*/
 }
 
 void TransformSystem::OnFinish(std::shared_ptr<Registry> registry)

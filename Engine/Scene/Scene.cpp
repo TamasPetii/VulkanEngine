@@ -42,7 +42,7 @@ void Scene::InitializeRegistry()
 		registry->GetComponent<CameraComponent>(entity)->isMain = true;
 	}
 
-	for (uint32_t i = 0; i < 25000; ++i)
+	for (uint32_t i = 0; i < 100000; ++i)
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, MaterialComponent, ShapeComponent, DefaultColliderComponent>(entity);
@@ -89,20 +89,6 @@ void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
 				auto transformComponent = transformPool->GetComponent(entity);
 				transformComponent->scale = glm::vec3(glm::sin(frameTimer->GetFrameElapsedTime() * 2 * glm::pi<float>()) + 2);
 				transformPool->GetBitset(entity).set(UPDATE_BIT, true);
-			}
-		);
-	}
-
-	if (auto materialPool = registry->GetPool<MaterialComponent>())
-	{
-		std::for_each(std::execution::par,
-			materialPool->GetDenseEntities().begin(),
-			materialPool->GetDenseEntities().end(),
-			[&](Entity entity) -> void
-			{
-				auto materialComponent = materialPool->GetComponent(entity);
-				materialComponent->color = glm::vec4(glm::vec3(glm::sin(frameTimer->GetFrameElapsedTime() * 2 * glm::pi<float>()) + 2), 1);
-				materialPool->GetBitset(entity).set(UPDATE_BIT, true);
 			}
 		);
 	}
@@ -229,7 +215,7 @@ void Scene::UpdateSystemsGPU(uint32_t frameIndex)
 	LaunchSystemUpdateGpuAsync.template operator() < ShapeSystem > ();
 	LaunchSystemUpdateGpuAsync.template operator() < ModelSystem > ();
 	LaunchSystemUpdateGpuAsync.template operator() < InstanceSystem > ();
-	LaunchSystemUpdateGpuAsync.template operator() < DefaultColliderSystem > ();
+	//LaunchSystemUpdateGpuAsync.template operator() < DefaultColliderSystem > ();
 
 	for (auto& [_, future] : futures) {
 		if (future.valid())

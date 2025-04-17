@@ -18,7 +18,7 @@ void FrustumCullingSystem::OnUpdate(std::shared_ptr<Registry> registry, std::sha
 	Entity cameraEntity = CameraSystem::GetMainCameraEntity(registry);
 	auto cameraComponent = cameraPool->GetComponent(cameraEntity);
 
-	DefaultColliderComponent frustumCollider;
+	DefaultCameraCollider frustumCollider;
 	glm::vec3 cameraAabbMin = glm::vec3(std::numeric_limits<float>::max());
 	glm::vec3 cameraAabbMax = glm::vec3(std::numeric_limits<float>::lowest());
 
@@ -55,7 +55,7 @@ void FrustumCullingSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std
 {
 }
 
-void FrustumCullingSystem::DefaultColliderCulling(std::shared_ptr<Registry> registry, DefaultColliderComponent* cameraCollider)
+void FrustumCullingSystem::DefaultColliderCulling(std::shared_ptr<Registry> registry, DefaultCameraCollider* cameraCollider)
 {
 	auto [defaultColliderPool, transformPool, shapePool, modelPool] = registry->GetPools<DefaultColliderComponent, TransformComponent, ShapeComponent, ModelComponent>();
 	if (!defaultColliderPool || !transformPool)
@@ -71,7 +71,7 @@ void FrustumCullingSystem::DefaultColliderCulling(std::shared_ptr<Registry> regi
 				auto defaultColliderComponent = defaultColliderPool->GetComponent(entity);
 
 				Simplex simplex;
-				if (TesterAABB::Test(*defaultColliderComponent, *cameraCollider) && TesterGJK::Test(defaultColliderComponent, static_cast<ColliderOBB*>(cameraCollider), simplex))
+				if (TesterAABB::Test(cameraCollider, defaultColliderComponent) && TesterGJK::Test(cameraCollider, defaultColliderComponent, simplex))
 				{
 					RenderComponent* renderComponent = hasShape ? static_cast<RenderComponent*>(shapePool->GetComponent(entity)) : static_cast<RenderComponent*>(modelPool->GetComponent(entity));
 					renderComponent->toRender = true;
