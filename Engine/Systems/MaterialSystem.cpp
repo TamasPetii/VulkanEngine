@@ -10,6 +10,7 @@ void MaterialSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_pt
 	std::for_each(std::execution::par, materialPool->GetDenseIndices().begin(), materialPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void
 		{
+			[[unlikely]]
 			if (materialPool->IsBitSet<UPDATE_BIT>(entity))
 			{
 				auto materialComponent = materialPool->GetData(entity);
@@ -49,6 +50,7 @@ void MaterialSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shar
 			auto materialComponent = materialPool->GetData(entity);
 			auto materialIndex = materialPool->GetDenseIndex(entity);
 
+			[[unlikely]]
 			if (componentBuffer->versions[materialIndex] != materialComponent->versionID)
 			{
 				componentBuffer->versions[materialIndex] = materialComponent->versionID;

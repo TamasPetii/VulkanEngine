@@ -12,6 +12,7 @@ void ModelSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<R
 
 	std::for_each(std::execution::par, modelPool->GetDenseIndices().begin(), modelPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
+			[[unlikely]]
 			if (modelPool->IsBitSet<UPDATE_BIT>(entity) ||
 				(transformPool && transformPool->HasComponent(entity) && transformPool->IsBitSet<INDEX_CHANGED_BIT>(entity)))
 			{
@@ -52,6 +53,7 @@ void ModelSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared_
 			auto modelIndex = modelPool->GetDenseIndex(entity);
 			auto modelComponent = modelPool->GetData(entity);
 
+			[[unlikely]]
 			if (componentBuffer->versions[modelIndex] != modelComponent->versionID)
 			{
 				componentBuffer->versions[modelIndex] = modelComponent->versionID;

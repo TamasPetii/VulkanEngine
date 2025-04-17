@@ -13,6 +13,7 @@ void ShapeSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<R
 
 	std::for_each(std::execution::par, shapePool->GetDenseIndices().begin(), shapePool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
+			[[unlikely]]
 			if (shapePool->IsBitSet<UPDATE_BIT>(entity) ||
 				(transformPool && transformPool->HasComponent(entity) && transformPool->IsBitSet<INDEX_CHANGED_BIT>(entity)) ||
 				(materialPool && materialPool->HasComponent(entity) && materialPool->IsBitSet<INDEX_CHANGED_BIT>(entity))
@@ -54,6 +55,7 @@ void ShapeSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared_
 			auto shapeIndex = shapePool->GetDenseIndex(entity);
 			auto shapeComponent = shapePool->GetData(entity);
 
+			[[unlikely]]
 			if (componentBuffer->versions[shapeIndex] != shapeComponent->versionID)
 			{
 				componentBuffer->versions[shapeIndex] = shapeComponent->versionID;

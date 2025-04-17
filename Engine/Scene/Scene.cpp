@@ -43,7 +43,10 @@ void Scene::InitializeRegistry()
 		registry->GetComponent<CameraComponent>(entity)->isMain = true;
 	}
 
-	for (uint32_t i = 0; i < 250000; ++i)
+	std::array<std::string, 5> shapes = { "Cube", "Sphere", "Cone", "Pyramid", "Cylinder" };
+	std::uniform_int_distribution<size_t> shapeDist(0, shapes.size() - 1); // for shape selection
+
+	for (uint32_t i = 0; i < 50000; ++i)
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, MaterialComponent, ShapeComponent, DefaultColliderComponent>(entity);
@@ -59,7 +62,7 @@ void Scene::InitializeRegistry()
 		shapeComponent->shape = resourceManager->GetGeometryManager()->GetShape("Cube");
 	}
 
-	for (uint32_t i = 0; i < 0; ++i)
+	for (uint32_t i = 0; i < 1; ++i)
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
@@ -82,6 +85,7 @@ void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
 	std::mt19937 rng(dev());
 	std::uniform_real_distribution<float> dist(0, 1);
 
+	/*
 	if (auto transformPool = registry->GetPool<TransformComponent>())
 	{
 		std::for_each(std::execution::par,
@@ -95,6 +99,7 @@ void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
 			}
 		);
 	}
+	*/
 
 	//Update Camera Size
 	auto viewPortSize = resourceManager->GetVulkanManager()->GetFrameDependentFrameBuffer("Main", frameIndex)->GetSize();
