@@ -31,6 +31,8 @@ layout( push_constant ) uniform constants
 
 void main() 
 {
+	//TODO: CHECK FOR INVALID MATERIAL INDEX -> LOAD INVALID MATERIAL 
+
 	MaterialBuffer materialBuffer = MaterialBuffer(PushConstants.materialBuffer);
 	uint materialIndex = fs_in_index.y;
 

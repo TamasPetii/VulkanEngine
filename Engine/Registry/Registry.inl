@@ -2,6 +2,29 @@
 #include "Registry.h"
 #include "Relationship.h"
 
+template<typename ...T>
+inline std::vector<Entity>& Registry::View()
+{
+	ComponentBitsetMask bitMask = GenerateMask<T...>();
+
+	if (views.find(bitMask) == views.end())
+	{
+		static std::vector<Entity> defaultView{};
+		return defaultView;
+	}
+
+	return views.at(bitMask).GetDenseEntities();
+}
+
+template<typename ...T>
+inline void Registry::RegisterView()
+{
+	ComponentBitsetMask bitMask = GenerateMask<T...>();
+
+	if (views.find(bitMask) == views.end())
+		views[bitMask];
+}
+
 template<typename T>
 inline std::shared_ptr<Pool<T>> Registry::GetPool()
 {
@@ -49,16 +72,8 @@ inline std::tuple<T*...> Registry::GetComponents(Entity entity)
 }
 
 template<typename T>
-inline void Registry::AddComponent(Entity entity)
-{
-	AddComponent<T>(entity, T{});
-}
-
-template<typename T>
 inline void Registry::AddComponent(Entity entity, const T& component)
 {
-	static_assert(std::is_default_constructible<T>::value, "T must be default constructible.");
-
 	if (HasComponent<T>(entity))
 		return;
 
@@ -73,13 +88,24 @@ inline void Registry::AddComponent(Entity entity, const T& component)
 template<typename ...T>
 inline void Registry::AddComponents(Entity entity)
 {
-	(AddComponent<T>(entity), ...);
+	static_assert((std::is_default_constructible_v<T> && ...), "All types must be default constructible.");
+	AddComponents<T...>(entity, T{}...);
 }
 
 template<typename ...T>
 inline void Registry::AddComponents(Entity entity, const T & ...component)
 {
 	(AddComponent<T>(entity, component), ...);
+
+	auto& entityBitSet = *GetComponent<ComponentBitsetMask>(entity);
+
+	(SetBitMaskBit<T>(entityBitSet), ...);
+
+	for (auto& [viewBitMask, entityPool] : views)
+	{
+		if ((viewBitMask & entityBitSet) == viewBitMask)
+			entityPool.AddComponent(entity);
+	}
 }
 
 template<typename T>
@@ -95,5 +121,33 @@ inline void Registry::RemoveComponent(Entity entity)
 template<typename ...T>
 inline void Registry::RemoveComponents(Entity entity)
 {
+	auto prevEntityBitset = *GetComponent<ComponentBitsetMask>(entity);
+	
 	(RemoveComponent<T>(entity), ...);
+
+	auto& entityBitset = *GetComponent<ComponentBitsetMask>(entity);
+
+	(SetBitMaskBit<T>(entityBitset, false), ...);
+
+	for (auto& [viewBitMask, entityPool] : views)
+	{
+		if ((viewBitMask & prevEntityBitset) == viewBitMask && (viewBitMask & entityBitset) != viewBitMask)
+			entityPool.RemoveComponent(entity);
+	}
+}
+
+template<typename T>
+inline void Registry::SetBitMaskBit(ComponentBitsetMask& bitMask, bool valid)
+{
+	bitMask.set(Unique::typeIndex<T>(), valid);
+}
+
+template<typename ...T>
+inline ComponentBitsetMask Registry::GenerateMask()
+{
+	ComponentBitsetMask bitmask;
+
+	(SetBitMaskBit<T>(bitmask), ...);
+
+	return bitmask;
 }

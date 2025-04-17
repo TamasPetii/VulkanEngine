@@ -29,6 +29,7 @@ void Scene::Initialize()
 void Scene::InitializeRegistry()
 {
 	registry = std::make_shared<Registry>();
+	registry->RegisterView<TransformComponent, ShapeComponent, DefaultColliderComponent>();
 
 	std::random_device dev;
 	std::mt19937 rng(dev());
@@ -70,6 +71,8 @@ void Scene::InitializeRegistry()
 
 		modelComponent->model = resourceManager->GetModelManager()->LoadModel("../Assets/Sponza/Sponza.obj");
 	}
+
+	auto& entities = registry->View<TransformComponent, ShapeComponent, DefaultColliderComponent>();
 }
 
 void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)

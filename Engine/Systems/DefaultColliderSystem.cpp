@@ -7,34 +7,8 @@
 
 void DefaultColliderSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, float deltaTime)
 {
-	auto [defaultColliderPool, transformPool, shapePool, modelPool] = registry->GetPools<DefaultColliderComponent, TransformComponent, ShapeComponent, ModelComponent>();
-
-	if (!defaultColliderPool || !transformPool)
-		return;
-
-	std::for_each(std::execution::par, defaultColliderPool->GetDenseEntities().begin(), defaultColliderPool->GetDenseEntities().end(),
-		[&](const Entity& entity) -> void 
-		{
-			bool isShape = shapePool && shapePool->HasComponent(entity) && shapePool->GetComponent(entity)->shape != nullptr;
-			bool isModel = modelPool && modelPool->HasComponent(entity) && modelPool->GetComponent(entity)->model != nullptr;
-			bool shapeChanged = isShape && shapePool->GetBitset(entity).test(CHANGED_BIT);
-			bool modelChanged = isModel && modelPool->GetBitset(entity).test(CHANGED_BIT);
-
-			if (transformPool->HasComponent(entity) && (isShape || modelPool) && (defaultColliderPool->GetBitset(entity).test(UPDATE_BIT) || transformPool->GetBitset(entity).test(CHANGED_BIT) || shapeChanged || modelChanged))
-			{
-				auto defaultColliderComponent = defaultColliderPool->GetComponent(entity);
-				auto transformComponent = transformPool->GetComponent(entity);
-
-				std::shared_ptr<BoundingVolume> boundingVolume = isShape ? std::static_pointer_cast<BoundingVolume>(shapePool->GetComponent(entity)->shape) : std::static_pointer_cast<BoundingVolume>(modelPool->GetComponent(entity)->model);
-				
-				defaultColliderComponent->origin = transformComponent->transform * glm::vec4(boundingVolume->aabbOrigin, 1);
-				defaultColliderComponent->radius = glm::max(glm::max(transformComponent->scale.x, transformComponent->scale.y), transformComponent->scale.z) * glm::length(boundingVolume->aabbExtents);
-
-				defaultColliderPool->GetBitset(entity).set(CHANGED_BIT, true);
-				defaultColliderComponent->versionID++;
-			}
-		}
-	);
+	UpdateDefaultComponentsWithShapes(registry, resourceManager);
+	UpdateDefaultComponentsWithModels(registry, resourceManager);
 }
 
 void DefaultColliderSystem::OnFinish(std::shared_ptr<Registry> registry)
@@ -83,6 +57,64 @@ void DefaultColliderSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, st
 					
 					bufferHandlerAabb[defaultColliderIndex] = glm::translate(defaultColliderComponent->origin) * glm::scale(glm::vec3(defaultColliderComponent->radius));
 					bufferHandlerObb[defaultColliderIndex] = transformComponent->transform * glm::translate(boundingVolume->aabbOrigin) * glm::scale(boundingVolume->aabbExtents);
+				}
+			}
+		}
+	);
+}
+
+void DefaultColliderSystem::UpdateDefaultComponentsWithShapes(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager)
+{
+	auto [defaultColliderPool, transformPool, shapePool] = registry->GetPools<DefaultColliderComponent, TransformComponent, ShapeComponent>();
+
+	if (!defaultColliderPool || !transformPool || !shapePool)
+		return;
+
+	auto& entityView = registry->View<DefaultColliderComponent, TransformComponent, ShapeComponent>();
+	std::for_each(std::execution::par, entityView.begin(), entityView.end(),
+		[&](const Entity& entity) -> void
+		{
+			if (defaultColliderPool->GetBitset(entity).test(UPDATE_BIT) || transformPool->GetBitset(entity).test(CHANGED_BIT) || shapePool->GetBitset(entity).test(CHANGED_BIT))
+			{
+				if (auto shape = shapePool->GetComponent(entity)->shape)
+				{
+					auto defaultColliderComponent = defaultColliderPool->GetComponent(entity);
+					auto transformComponent = transformPool->GetComponent(entity);
+
+					defaultColliderComponent->origin = transformComponent->transform * glm::vec4(shape->aabbOrigin, 1);
+					defaultColliderComponent->radius = glm::max(glm::max(transformComponent->scale.x, transformComponent->scale.y), transformComponent->scale.z) * glm::length(shape->aabbExtents);
+
+					defaultColliderPool->GetBitset(entity).set(CHANGED_BIT, true);
+					defaultColliderComponent->versionID++;
+				}
+			}
+		}
+	);
+}
+
+void DefaultColliderSystem::UpdateDefaultComponentsWithModels(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager)
+{
+	auto [defaultColliderPool, transformPool, modelPool] = registry->GetPools<DefaultColliderComponent, TransformComponent, ModelComponent>();
+
+	if (!defaultColliderPool || !transformPool || !modelPool)
+		return;
+
+	auto& entityView = registry->View<DefaultColliderComponent, TransformComponent, ModelComponent>();
+	std::for_each(std::execution::par, entityView.begin(), entityView.end(),
+		[&](const Entity& entity) -> void
+		{
+			if (defaultColliderPool->GetBitset(entity).test(UPDATE_BIT) || transformPool->GetBitset(entity).test(CHANGED_BIT) || modelPool->GetBitset(entity).test(CHANGED_BIT))
+			{
+				if (auto model = modelPool->GetComponent(entity)->model)
+				{
+					auto defaultColliderComponent = defaultColliderPool->GetComponent(entity);
+					auto transformComponent = transformPool->GetComponent(entity);
+
+					defaultColliderComponent->origin = transformComponent->transform * glm::vec4(model->aabbOrigin, 1);
+					defaultColliderComponent->radius = glm::max(glm::max(transformComponent->scale.x, transformComponent->scale.y), transformComponent->scale.z) * glm::length(model->aabbExtents);
+
+					defaultColliderPool->GetBitset(entity).set(CHANGED_BIT, true);
+					defaultColliderComponent->versionID++;
 				}
 			}
 		}

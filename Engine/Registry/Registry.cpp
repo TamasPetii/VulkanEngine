@@ -19,7 +19,7 @@ Entity Registry::CreateEntity()
 		destroyedEntities.erase(it);
 	}
 
-	AddComponent<Relationship>(entity);
+	AddComponents<ComponentBitsetMask, Relationship>(entity);
 	return entity;
 }
 

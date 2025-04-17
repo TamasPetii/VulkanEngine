@@ -92,7 +92,6 @@ inline void Pool<T>::RemoveComponent(Entity entity)
 	denseBitsets[swapDenseIndex].set(REGENERATE_BIT, true);
 	denseBitsets[swapDenseIndex].set(UPDATE_BIT, true);
 	denseBitsets[swapDenseIndex].set(INDEX_CHANGED_BIT, true);
-	
 
 	//Set the swapped entity sparse index to the new dense location (Which is the delete index of the current entity)
 	sparseEntityPages[swapIndices.first][swapIndices.second] = deleteDenseIndex;
