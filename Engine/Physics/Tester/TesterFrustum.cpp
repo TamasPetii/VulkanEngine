@@ -17,7 +17,7 @@ bool TesterFrustum::Test(const FrustumCollider* frustum, const SphereColliderGJK
 {
     for (const auto& face : frustum->faces)
     {
-        if (GetSignedDistance(face, sphere->origin) > sphere->radius)
+        if (!(GetSignedDistance(face, sphere->origin) > -sphere->radius))
             return false;
     }
 
@@ -26,5 +26,5 @@ bool TesterFrustum::Test(const FrustumCollider* frustum, const SphereColliderGJK
 
 float TesterFrustum::GetSignedDistance(const FrustumFace& face, const glm::vec3& point)
 {
-    return glm::dot(face.normal, point) + face.distance;
+    return glm::dot(face.normal, point) - face.distance;
 }
