@@ -3,6 +3,10 @@
 #include "Editor/Gui/Windows/ComponentWindow.h"
 #include "Editor/Gui/Windows/EntityWindow.h"
 #include "Editor/Gui/Windows/GlobalSettingsWindow.h"
+#include <ImGui_Glfw/ImGuizmo.h>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include "Engine/Systems/CameraSystem.h"
 
 Gui::Gui(GLFWwindow* window)
 {
@@ -121,6 +125,8 @@ void Gui::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Registry> regist
 
 		ImGui::Image((ImTextureID)image, viewPortSize);
 
+		RenderGizmo(registry);
+
 		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 		{
 			int mouseX = ImGui::GetMousePos().x - ImGui::GetWindowContentRegionMin().x - ImGui::GetWindowPos().x;
@@ -131,12 +137,39 @@ void Gui::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Registry> regist
 
 			if (mouseX >= 0 && mouseX < contentRegionX &&
 				mouseY >= 0 && mouseY < contentRegionY &&
-				ImGui::IsWindowHovered()
-				/*  && !ImGuizmo::IsUsing()*/)
+				ImGui::IsWindowHovered() &&
+				!ImGuizmo::IsUsing())
 			{
+				VkDeviceSize bufferSize = sizeof(uint32_t);
+
+				Vk::BufferConfig stagingConfig;
+				stagingConfig.size = bufferSize;
+				stagingConfig.usage = VK_BUFFER_USAGE_2_TRANSFER_DST_BIT;
+				stagingConfig.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+				Vk::Buffer stagingBuffer{ stagingConfig };
+
+				Vk::VulkanContext::GetContext()->GetImmediateQueue()->Submit(
+					[&](VkCommandBuffer commandBuffer) -> void 
+					{
+						Vk::Image::TransitionImageLayoutDynamic(commandBuffer, frameBuffer->GetImage("Entity")->Value(),
+							VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
+							VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_READ_BIT);
+
+						Vk::Buffer::CopyImageToBuffer(commandBuffer, frameBuffer->GetImage("Entity")->Value(), stagingBuffer.Value(), 1, 1, mouseX, frameBuffer->GetSize().height - mouseY);
+					}
+				);
+
+				uint32_t entityID;
+				void* mappedBuffer = stagingBuffer.MapMemory();
+				memcpy(&entityID, mappedBuffer, (size_t)bufferSize);
+				stagingBuffer.UnmapMemory();
+
+				registry->SetActiveEntity(entityID);
+				std::cout << std::format("Clicked on position ({},{}) found entity {}", mouseX, mouseY, entityID) << "\n";
 			}
 		}
 	}
+
 	ImGui::End();
 	ImGui::PopStyleVar();
 
@@ -218,4 +251,71 @@ void Gui::SetStyle()
 	colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
 	colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
 	colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+}
+
+void Gui::RenderGizmo(std::shared_ptr<Registry> registry)
+{
+	auto [cameraPool, transformPool] = registry->GetPools<CameraComponent, TransformComponent>();
+
+	if (!cameraPool || !transformPool)
+		return;
+
+	auto cameraEntity = CameraSystem::GetMainCameraEntity(registry);
+	auto cameraComponent = cameraPool->GetData(cameraEntity);
+	auto activeEntity = registry->GetActiveEntity();
+
+	if (activeEntity != NULL_ENTITY && transformPool->HasComponent(activeEntity))
+	{
+		static ImGuizmo::OPERATION currentOperation = ImGuizmo::TRANSLATE;
+		static ImGuizmo::MODE currentMode = ImGuizmo::WORLD;
+
+		glm::mat4 viewMatrix = cameraComponent->view;
+		glm::mat4 projectionMatrix = cameraComponent->proj;
+		projectionMatrix[1][1] *= -1;
+		auto transformComponent = registry->GetComponent<TransformComponent>(activeEntity);
+		auto transform = transformComponent->transform;
+
+		ImGuizmo::SetOrthographic(false);
+		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
+		ImGuizmo::SetDrawlist();
+		ImGuizmo::Manipulate(glm::value_ptr(viewMatrix), glm::value_ptr(projectionMatrix), currentOperation, currentMode, glm::value_ptr(transform), NULL, NULL, NULL);
+
+		if (ImGuizmo::IsUsing())
+		{
+			glm::vec3 translation, scale, rotation;
+			ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(transform), glm::value_ptr(translation), glm::value_ptr(rotation), glm::value_ptr(scale));
+
+			glm::vec3 lastTranslation, lastScale, lastRotation;
+			ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(transformComponent->transform), glm::value_ptr(lastTranslation), glm::value_ptr(lastRotation), glm::value_ptr(lastScale));
+
+			switch (currentOperation)
+			{
+			case ImGuizmo::TRANSLATE:
+				transformComponent->translation += translation - lastTranslation;
+				transformPool->SetBit<UPDATE_BIT>(activeEntity);
+				break;
+			case ImGuizmo::ROTATE:
+				transformComponent->rotation += rotation - lastRotation;
+				transformPool->SetBit<UPDATE_BIT>(activeEntity);
+				break;
+			case ImGuizmo::SCALE:
+				transformComponent->scale += scale - lastScale;
+				transformPool->SetBit<UPDATE_BIT>(activeEntity);
+				break;
+			}
+		}
+
+		if (ImGui::IsKeyPressed(ImGuiKey_1))
+		{
+			currentOperation = ImGuizmo::TRANSLATE;
+		}
+		else if (ImGui::IsKeyPressed(ImGuiKey_2))
+		{
+			currentOperation = ImGuizmo::ROTATE;
+		}
+		else if (ImGui::IsKeyPressed(ImGuiKey_3))
+		{
+			currentOperation = ImGuizmo::SCALE;
+		}
+	}
 }

@@ -3,7 +3,7 @@
 #include "BitsetPool.h"
 #include "Engine/Registry/Entity.h"
 
-class IComponentPool
+class ENGINE_API IComponentPool
 {
 public:
 	virtual ~IComponentPool() = default;

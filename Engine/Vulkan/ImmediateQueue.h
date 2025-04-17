@@ -6,7 +6,7 @@
 
 namespace Vk
 {
-	class ImmediateQueue
+	class ENGINE_API ImmediateQueue
 	{
 	public:
 		ImmediateQueue(const PhysicalDevice* const physicalDevice, const Device* const device);

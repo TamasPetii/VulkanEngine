@@ -164,6 +164,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
+    <ClInclude Include="Gui\ImGui\GraphEditor.h" />
+    <ClInclude Include="Gui\ImGui\ImCurveEdit.h" />
+    <ClInclude Include="Gui\ImGui\ImGradient.h" />
+    <ClInclude Include="Gui\ImGui\ImGuizmo.h" />
+    <ClInclude Include="Gui\ImGui\ImSequencer.h" />
+    <ClInclude Include="Gui\ImGui\ImZoomSlider.h" />
     <ClInclude Include="Gui\Windows\BenchmarkWindow.h" />
     <ClInclude Include="Gui\Windows\GlobalSettingsWindow.h" />
     <ClInclude Include="Gui\Windows\EntityWindow.h" />
@@ -182,6 +188,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp" />
+    <ClCompile Include="Gui\ImGui\GraphEditor.cpp" />
+    <ClCompile Include="Gui\ImGui\ImCurveEdit.cpp" />
+    <ClCompile Include="Gui\ImGui\ImGradient.cpp" />
+    <ClCompile Include="Gui\ImGui\ImGuizmo.cpp" />
+    <ClCompile Include="Gui\ImGui\ImSequencer.cpp" />
     <ClCompile Include="Gui\Windows\BenchmarkWindow.cpp" />
     <ClCompile Include="Gui\Windows\GlobalSettingsWindow.cpp" />
     <ClCompile Include="Gui\Windows\EntityWindow.cpp" />

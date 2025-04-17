@@ -9,7 +9,7 @@
 
 using ComponentBitsetMask = std::bitset<32>;
 
-class Registry
+class ENGINE_API Registry
 {
 public:
 	Registry();

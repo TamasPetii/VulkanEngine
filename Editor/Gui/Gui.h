@@ -25,6 +25,7 @@ private:
 	void Initialize(GLFWwindow* window);
 	void Cleanup();
 	void SetStyle();
+	void RenderGizmo(std::shared_ptr<Registry> registry);
 private:
 	VkImageView imageView;
 	VkDescriptorPool imguiPool;

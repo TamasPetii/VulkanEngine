@@ -9,7 +9,7 @@ constexpr uint32_t INDEX_CHANGED_BIT = 3;
 
 using BitsetFlag = std::bitset<8>;
 
-class BitsetPool : public virtual SparseSet
+class ENGINE_API BitsetPool : public virtual SparseSet
 {
 public:
 	virtual ~BitsetPool() = default;

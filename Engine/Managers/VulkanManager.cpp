@@ -320,7 +320,7 @@ void VulkanManager::InitFrameBuffers()
 	entityImageSpec.viewType = VK_IMAGE_VIEW_TYPE_2D;
 	entityImageSpec.format = VK_FORMAT_R32_UINT;
 	entityImageSpec.tiling = VK_IMAGE_TILING_OPTIMAL;
-	entityImageSpec.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	entityImageSpec.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 	entityImageSpec.aspectFlag = VK_IMAGE_ASPECT_COLOR_BIT;
 	entityImageSpec.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
