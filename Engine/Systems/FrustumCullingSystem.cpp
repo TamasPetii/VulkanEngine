@@ -31,16 +31,16 @@ void FrustumCullingSystem::OnUpdate(std::shared_ptr<Registry> registry, std::sha
 	frustumCollider.faces[0] = FrustumFace(-cameraComponent->direction, cameraComponent->position + cameraComponent->direction * cameraComponent->nearPlane);
 	
 	//RightFace
-	frustumCollider.faces[1] = FrustumFace(glm::cross(cameraComponent->direction * cameraComponent->farPlane + cameraComponent->right * halfH, cameraComponent->up), cameraComponent->position);
+	frustumCollider.faces[1] = FrustumFace(glm::cross(glm::normalize(cameraComponent->direction * cameraComponent->farPlane + cameraComponent->right * halfH), cameraComponent->up), cameraComponent->position);
 
 	//LeftFace
-	frustumCollider.faces[2] = FrustumFace(glm::cross(cameraComponent->up, cameraComponent->direction * cameraComponent->farPlane - cameraComponent->right * halfH), cameraComponent->position);
+	frustumCollider.faces[2] = FrustumFace(glm::cross(cameraComponent->up, glm::normalize(cameraComponent->direction * cameraComponent->farPlane - cameraComponent->right * halfH)), cameraComponent->position);
 
 	//TopFace
-	frustumCollider.faces[3] = FrustumFace(glm::cross(cameraComponent->right, cameraComponent->direction * cameraComponent->farPlane + cameraComponent->up * halfV), cameraComponent->position);
+	frustumCollider.faces[3] = FrustumFace(glm::cross(cameraComponent->right, glm::normalize(cameraComponent->direction * cameraComponent->farPlane + cameraComponent->up * halfV)), cameraComponent->position);
 
 	//BottomFace
-	frustumCollider.faces[4] = FrustumFace(glm::cross(cameraComponent->direction * cameraComponent->farPlane - cameraComponent->up * halfV, cameraComponent->right), cameraComponent->position);
+	frustumCollider.faces[4] = FrustumFace(glm::cross(glm::normalize(cameraComponent->direction * cameraComponent->farPlane - cameraComponent->up * halfV), cameraComponent->right), cameraComponent->position);
 
 	//FarFace
 	frustumCollider.faces[5] = FrustumFace(cameraComponent->direction, cameraComponent->position + cameraComponent->direction * cameraComponent->farPlane);
