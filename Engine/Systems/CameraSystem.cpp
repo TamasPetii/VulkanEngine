@@ -50,12 +50,15 @@ void CameraSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<
 					glm::sin(glm::radians(cameraComponent->yaw)) * glm::cos(glm::radians(cameraComponent->pitch))
 				};
 
+				constexpr glm::vec3 worldUp = glm::vec3(0, 1, 0);
+
 				cameraComponent->direction = glm::normalize(direction);
-				cameraComponent->right = glm::normalize(glm::cross(cameraComponent->direction, cameraComponent->up));
+				cameraComponent->right = glm::normalize(glm::cross(cameraComponent->direction, worldUp));
+				cameraComponent->up = glm::normalize(glm::cross(cameraComponent->right, cameraComponent->direction));
 				cameraComponent->position += (forward * cameraComponent->direction + sideways * cameraComponent->right) * cameraComponent->speed * deltaTime;
 				cameraComponent->target = cameraComponent->position + cameraComponent->direction;
 
-				cameraComponent->view = glm::lookAt(cameraComponent->position, cameraComponent->target, cameraComponent->up);
+				cameraComponent->view = glm::lookAt(cameraComponent->position, cameraComponent->target, worldUp);
 				cameraComponent->viewInv = glm::inverse(cameraComponent->view);
 
 				cameraComponent->proj = glm::perspective(glm::radians(cameraComponent->fov), cameraComponent->width / cameraComponent->height, cameraComponent->nearPlane, cameraComponent->farPlane);

@@ -23,10 +23,11 @@ void Instanceable::UploadInstanceDataToGPU(uint32_t maxInstanceCount, uint32_t f
 			config.usage = VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT;
 			config.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;	
 			instanceIndexBuffers[frameIndex] = std::make_pair(std::make_shared<Vk::Buffer>(config), requiredSize);
+			instanceIndexBuffers[frameIndex].first->MapMemory();
 		}
 
 		VkDeviceSize bufferSize = sizeof(uint32_t) * instanceIndices.size();
-		auto mappedBuffer = instanceIndexBuffers[frameIndex].first->MapMemory();
+		auto mappedBuffer = instanceIndexBuffers[frameIndex].first->GetHandler();
 		memcpy(mappedBuffer, instanceIndices.data(), (size_t)bufferSize);
 		instanceIndices.clear();
 	}

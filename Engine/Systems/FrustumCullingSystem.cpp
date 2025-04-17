@@ -4,9 +4,11 @@
 #include "Engine/Components/ShapeComponent.h"
 #include "Engine/Components/ModelComponent.h"
 #include "Engine/Components/TransformComponent.h"
+#include "Engine/Physics/Collider/FrustumCollider.h"
 #include "Engine/Physics/Simplex.h"
 #include "Engine/Physics/Tester/TesterAABB.h"
 #include "Engine/Physics/Tester/TesterGJK.h"
+#include "Engine/Physics/Tester/TesterFrustum.h"
 #include "Engine/Systems/CameraSystem.h"
 
 void FrustumCullingSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, float deltaTime)
@@ -18,31 +20,30 @@ void FrustumCullingSystem::OnUpdate(std::shared_ptr<Registry> registry, std::sha
 	Entity cameraEntity = CameraSystem::GetMainCameraEntity(registry);
 	auto cameraComponent = cameraPool->GetComponent(cameraEntity);
 
-	DefaultCameraCollider frustumCollider;
-	glm::vec3 cameraAabbMin = glm::vec3(std::numeric_limits<float>::max());
-	glm::vec3 cameraAabbMax = glm::vec3(std::numeric_limits<float>::lowest());
+	FrustumCollider frustumCollider{};
 
-	int index = 0;
-	for (int x = 0; x < 2; ++x)
-	{
-		for (int y = 0; y < 2; ++y)
-		{
-			for (int z = 0; z < 2; ++z)
-			{
-				float x_ncd = 2.0f * x - 1.0f;
-				float y_ncd = 2.0f * y - 1.0f;
-				float z_ncd = 2.0f * z - 1.0f;
-				glm::vec4 pt = cameraComponent->viewProjInv * glm::vec4(x_ncd, y_ncd, z_ncd, 1.0f);
-				pt /= pt.w;
-				frustumCollider.obbPositions[index++] = pt;
-				cameraAabbMin = glm::min(cameraAabbMin, glm::vec3(pt));
-				cameraAabbMax = glm::max(cameraAabbMax, glm::vec3(pt));
-			}
-		}
-	}
+	float fovY = glm::radians(cameraComponent->fov);
+	float aspectRatio = cameraComponent->width / cameraComponent->height;
+	float halfV = cameraComponent->farPlane * tanf(fovY * 0.5f);
+	float halfH = halfV * aspectRatio;
 
-	frustumCollider.aabbMin = cameraAabbMin;
-	frustumCollider.aabbMax = cameraAabbMax;
+	//NearFace
+	frustumCollider.faces[0] = FrustumFace(-cameraComponent->direction, cameraComponent->position + cameraComponent->direction * cameraComponent->nearPlane);
+	
+	//RightFace
+	frustumCollider.faces[1] = FrustumFace(glm::cross(cameraComponent->direction * cameraComponent->farPlane + cameraComponent->right * halfH, cameraComponent->up), cameraComponent->position);
+
+	//LeftFace
+	frustumCollider.faces[2] = FrustumFace(glm::cross(cameraComponent->up, cameraComponent->direction * cameraComponent->farPlane - cameraComponent->right * halfH), cameraComponent->position);
+
+	//TopFace
+	frustumCollider.faces[3] = FrustumFace(glm::cross(cameraComponent->right, cameraComponent->direction * cameraComponent->farPlane + cameraComponent->up * halfV), cameraComponent->position);
+
+	//BottomFace
+	frustumCollider.faces[4] = FrustumFace(glm::cross(cameraComponent->direction * cameraComponent->farPlane - cameraComponent->up * halfV, cameraComponent->right), cameraComponent->position);
+
+	//FarFace
+	frustumCollider.faces[5] = FrustumFace(cameraComponent->direction, cameraComponent->position + cameraComponent->direction * cameraComponent->farPlane);
 
 	DefaultColliderCulling(registry, &frustumCollider);
 }
@@ -55,7 +56,7 @@ void FrustumCullingSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std
 {
 }
 
-void FrustumCullingSystem::DefaultColliderCulling(std::shared_ptr<Registry> registry, DefaultCameraCollider* cameraCollider)
+void FrustumCullingSystem::DefaultColliderCulling(std::shared_ptr<Registry> registry, FrustumCollider* cameraCollider)
 {
 	auto [defaultColliderPool, transformPool, shapePool, modelPool] = registry->GetPools<DefaultColliderComponent, TransformComponent, ShapeComponent, ModelComponent>();
 	if (!defaultColliderPool || !transformPool)
@@ -71,7 +72,7 @@ void FrustumCullingSystem::DefaultColliderCulling(std::shared_ptr<Registry> regi
 				auto defaultColliderComponent = defaultColliderPool->GetComponent(entity);
 
 				Simplex simplex;
-				if (TesterAABB::Test(cameraCollider, defaultColliderComponent) && TesterGJK::Test(cameraCollider, defaultColliderComponent, simplex))
+				if (TesterFrustum::Test(cameraCollider, defaultColliderComponent))
 				{
 					RenderComponent* renderComponent = hasShape ? static_cast<RenderComponent*>(shapePool->GetComponent(entity)) : static_cast<RenderComponent*>(modelPool->GetComponent(entity));
 					renderComponent->toRender = true;

@@ -300,6 +300,12 @@
     <ClInclude Include="Systems\FrustumCullingSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Physics\Collider\FrustumCollider.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Tester\TesterFrustum.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -561,6 +567,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Systems\FrustumCullingSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collider\FrustumCollider.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Tester\TesterFrustum.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

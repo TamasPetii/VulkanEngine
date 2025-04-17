@@ -163,6 +163,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Physics\Collider\FrustumCollider.h" />
     <ClInclude Include="Systems\FrustumCullingSystem.h" />
     <ClInclude Include="Render\Renderers\BoundingVolumeRenderer.h" />
     <ClInclude Include="Systems\DefaultColliderSystem.h" />
@@ -221,6 +222,7 @@
     <ClInclude Include="Systems\TransformSystem.h" />
     <ClInclude Include="Systems\System.h" />
     <ClInclude Include="Managers\ImageManager.h" />
+    <ClInclude Include="Physics\Tester\TesterFrustum.h" />
     <ClInclude Include="Timer\Timer.h" />
     <ClInclude Include="Managers\VulkanManager.h" />
     <ClInclude Include="Vulkan\ImmediateQueue.h" />
@@ -260,6 +262,7 @@
     <ClInclude Include="Logger\Logger.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Physics\Collider\FrustumCollider.cpp" />
     <ClCompile Include="Systems\FrustumCullingSystem.cpp" />
     <ClCompile Include="Render\Renderers\BoundingVolumeRenderer.cpp" />
     <ClCompile Include="Systems\DefaultColliderSystem.cpp" />
@@ -315,6 +318,7 @@
     <ClCompile Include="Systems\TransformSystem.cpp" />
     <ClCompile Include="Systems\System.cpp" />
     <ClCompile Include="Managers\ImageManager.cpp" />
+    <ClCompile Include="Physics\Tester\TesterFrustum.cpp" />
     <ClCompile Include="Timer\Timer.cpp" />
     <ClCompile Include="Managers\VulkanManager.cpp" />
     <ClCompile Include="Vulkan\ImmediateQueue.cpp" />
