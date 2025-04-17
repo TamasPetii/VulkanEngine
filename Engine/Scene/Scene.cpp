@@ -43,7 +43,7 @@ void Scene::InitializeRegistry()
 		registry->GetComponent<CameraComponent>(entity)->isMain = true;
 	}
 
-	for (uint32_t i = 0; i < 25000; ++i)
+	for (uint32_t i = 0; i < 250000; ++i)
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, MaterialComponent, ShapeComponent, DefaultColliderComponent>(entity);
@@ -218,7 +218,7 @@ void Scene::UpdateSystemsGPU(uint32_t frameIndex)
 	LaunchSystemUpdateGpuAsync.template operator() < ShapeSystem > ();
 	LaunchSystemUpdateGpuAsync.template operator() < ModelSystem > ();
 	LaunchSystemUpdateGpuAsync.template operator() < InstanceSystem > ();
-	LaunchSystemUpdateGpuAsync.template operator() < DefaultColliderSystem > ();
+	//LaunchSystemUpdateGpuAsync.template operator() < DefaultColliderSystem > ();
 
 	for (auto& [_, future] : futures) {
 		if (future.valid())

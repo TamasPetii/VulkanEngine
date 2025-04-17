@@ -44,6 +44,13 @@ public:
 	auto& GetSparseEntityPages() { return sparseEntityPages; }
 	auto& GetDenseEntities() { return denseEntities; }
 	auto& GetDenseComponents() { return denseComponents; }
+
+	template<uint32_t... index>
+	bool IsBitSet(Entity entity);
+	template<uint32_t... index>
+	void SetBit(Entity entity);
+	template<uint32_t... index>
+	void ResetBit(Entity entity);
 	virtual std::bitset<8>& GetBitset(Entity entity) override;
 protected:
 	void RegisterEntity(Entity entity);

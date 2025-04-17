@@ -122,3 +122,27 @@ inline std::pair<Index, Index> Pool<T>::GetPageIndices(Entity entity)
 {
 	return std::make_pair(entity / PAGE_SIZE, entity % PAGE_SIZE);
 }
+
+template<typename T>
+template<uint32_t ...index>
+inline bool Pool<T>::IsBitSet(Entity entity)
+{
+	auto& bitset = GetBitset(entity);
+	return (bitset.test(index) && ...);
+}
+
+template<typename T>
+template<uint32_t ...index>
+inline void Pool<T>::ResetBit(Entity entity)
+{
+	auto& bitset = GetBitset(entity);
+	(bitset.set(index, false), ...);
+}
+
+template<typename T>
+template<uint32_t ...index>
+inline void Pool<T>::SetBit(Entity entity)
+{
+	auto& bitset = GetBitset(entity);
+	(bitset.set(index, true), ...);
+}
