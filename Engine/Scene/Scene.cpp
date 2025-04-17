@@ -85,13 +85,13 @@ void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
 	if (auto transformPool = registry->GetPool<TransformComponent>())
 	{
 		std::for_each(std::execution::par,
-			transformPool->GetDenseEntities().begin(),
-			transformPool->GetDenseEntities().end(),
+			transformPool->GetDenseIndices().begin(),
+			transformPool->GetDenseIndices().end(),
 			[&](Entity entity) -> void
 			{
-				auto transformComponent = transformPool->GetComponent(entity);
+				auto transformComponent = transformPool->GetData(entity);
 				transformComponent->scale = glm::vec3(glm::sin(frameTimer->GetFrameElapsedTime() * 2 * glm::pi<float>()) + 2);
-				transformPool->GetBitset(entity).set(UPDATE_BIT, true);
+				transformPool->SetBit<UPDATE_BIT>(entity);
 			}
 		);
 	}
@@ -103,7 +103,7 @@ void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
 	{
 		cameraComponent->width = viewPortSize.width;
 		cameraComponent->height = viewPortSize.height;
-		registry->GetPool<CameraComponent>()->GetBitset(0).set(UPDATE_BIT, true);
+		registry->GetPool<CameraComponent>()->GetBitset(0)->set(UPDATE_BIT, true);
 	}
 
 	UpdateSystems(frameTimer->GetFrameDeltaTime());

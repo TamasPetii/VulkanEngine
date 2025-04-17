@@ -13,16 +13,16 @@ void CameraSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<
 	if (!transformPool || !cameraPool)
 		return;
 
-	std::for_each(std::execution::par, cameraPool->GetDenseEntities().begin(), cameraPool->GetDenseEntities().end(),
+	std::for_each(std::execution::par, cameraPool->GetDenseIndices().begin(), cameraPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void
 		{
 			if (inputManager->IsKeyHeld(KEY_W) || inputManager->IsKeyHeld(KEY_S) || inputManager->IsKeyHeld(KEY_A) || inputManager->IsKeyHeld(KEY_D) || inputManager->IsButtonHeld(BUTTON_RIGHT))
-				cameraPool->GetBitset(entity).set(UPDATE_BIT, true);
+				cameraPool->SetBit<UPDATE_BIT>(entity);
 
-			if (cameraPool->GetBitset(entity).test(UPDATE_BIT))
+			if (cameraPool->IsBitSet<UPDATE_BIT>(entity))
 			{
-				auto transformComponent = transformPool->GetComponent(entity);
-				auto cameraComponent = cameraPool->GetComponent(entity);
+				auto transformComponent = transformPool->GetData(entity);
+				auto cameraComponent = cameraPool->GetData(entity);
 
 				float forward = 0;
 				float sideways = 0;
@@ -68,7 +68,7 @@ void CameraSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<
 				cameraComponent->viewProj = cameraComponent->proj * cameraComponent->view;
 				cameraComponent->viewProjInv = glm::inverse(cameraComponent->viewProj);
 
-				cameraPool->GetBitset(entity).set(CHANGED_BIT, true);
+				cameraPool->SetBit<CHANGED_BIT>(entity);
 				cameraComponent->versionID++;
 			}
 		}
@@ -82,9 +82,9 @@ void CameraSystem::OnFinish(std::shared_ptr<Registry> registry)
 	if (!cameraPool)
 		return;
 
-	std::for_each(std::execution::par, cameraPool->GetDenseEntities().begin(), cameraPool->GetDenseEntities().end(),
+	std::for_each(std::execution::par, cameraPool->GetDenseIndices().begin(), cameraPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
-			cameraPool->GetBitset(entity).reset();
+			cameraPool->GetBitset(entity)->reset();
 		}
 	);
 }
@@ -99,10 +99,10 @@ void CameraSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared
 	auto componentBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("CameraData", frameIndex);
 	auto bufferHandler = static_cast<CameraComponentGPU*>(componentBuffer->buffer->GetHandler());
 
-	std::for_each(std::execution::par, cameraPool->GetDenseEntities().begin(), cameraPool->GetDenseEntities().end(),
+	std::for_each(std::execution::par, cameraPool->GetDenseIndices().begin(), cameraPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
-			auto cameraComponent = cameraPool->GetComponent(entity);
-			auto cameraIndex = cameraPool->GetIndex(entity);
+			auto cameraComponent = cameraPool->GetData(entity);
+			auto cameraIndex = cameraPool->GetDenseIndex(entity);
 
 			if (componentBuffer->versions[cameraIndex] != cameraComponent->versionID)
 			{
@@ -120,9 +120,9 @@ Entity CameraSystem::GetMainCameraEntity(std::shared_ptr<Registry> registry)
 	if (!cameraPool)
 		return NULL_ENTITY;;
 
-	for (Entity entity : cameraPool->GetDenseEntities())
+	for (Entity entity : cameraPool->GetDenseIndices())
 	{
-		if (cameraPool->GetComponent(entity)->isMain)
+		if (cameraPool->GetData(entity)->isMain)
 			return entity;
 	}
 

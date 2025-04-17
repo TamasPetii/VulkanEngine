@@ -1,6 +1,6 @@
 #pragma once
-#include "../EngineApi.h"
-#include "Pool.h"
+#include "Engine/EngineApi.h"
+#include "Pools/ComponentPool.h"
 #include "Unique.h"
 
 #include <set>
@@ -19,13 +19,13 @@ public:
 	Entity GetActiveEntity();
 public:
 	template<typename... T>
-	std::vector<Entity>& View();
-	template<typename... T>
 	void RegisterView();
+	template<typename... T>
+	const std::vector<Entity>& View();
 	template<typename T>
-	std::shared_ptr<Pool<T>> GetPool();
+	std::shared_ptr<ComponentPool<T>> GetPool();
 	template <typename... T>
-	std::tuple<std::shared_ptr<Pool<T>>...> GetPools();
+	std::tuple<std::shared_ptr<ComponentPool<T>>...> GetPools();
 	template <typename T>
 	bool HasComponent(Entity entity);
 	template <typename... T>
@@ -53,8 +53,8 @@ private:
 	Entity counter = 0;
 	Entity activeEntity = NULL_ENTITY;
 	std::set<Entity> destroyedEntities;
-	Pool<std::shared_ptr<PoolBase>> pools;
-	std::unordered_map<ComponentBitsetMask, Pool<uint32_t>> views;
+	DataPool<std::shared_ptr<IComponentPool>> pools;
+	std::unordered_map<ComponentBitsetMask, SparseSet> views;
 };
 
 #include "Registry.inl"

@@ -7,13 +7,13 @@ void MaterialSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_pt
 	if (!materialPool)
 		return;
 
-	std::for_each(std::execution::par, materialPool->GetDenseEntities().begin(), materialPool->GetDenseEntities().end(),
+	std::for_each(std::execution::par, materialPool->GetDenseIndices().begin(), materialPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void
 		{
-			if (materialPool->GetBitset(entity).test(UPDATE_BIT))
+			if (materialPool->IsBitSet<UPDATE_BIT>(entity))
 			{
-				auto materialComponent = materialPool->GetComponent(entity);
-				materialPool->GetBitset(entity).set(CHANGED_BIT, true);
+				auto materialComponent = materialPool->GetData(entity);
+				materialPool->SetBit<CHANGED_BIT>(entity);
 				materialComponent->versionID++;
 			}
 		}
@@ -27,9 +27,9 @@ void MaterialSystem::OnFinish(std::shared_ptr<Registry> registry)
 	if (!materialPool)
 		return;
 
-	std::for_each(std::execution::par, materialPool->GetDenseEntities().begin(), materialPool->GetDenseEntities().end(),
+	std::for_each(std::execution::par, materialPool->GetDenseIndices().begin(), materialPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
-			materialPool->GetBitset(entity).reset();
+			materialPool->GetBitset(entity)->reset();
 		}
 	);
 }
@@ -44,10 +44,10 @@ void MaterialSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shar
 	auto componentBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("MaterialData", frameIndex);
 	auto bufferHandler = static_cast<MaterialComponentGPU*>(componentBuffer->buffer->GetHandler());
 
-	std::for_each(std::execution::par, materialPool->GetDenseEntities().begin(), materialPool->GetDenseEntities().end(),
+	std::for_each(std::execution::par, materialPool->GetDenseIndices().begin(), materialPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
-			auto materialComponent = materialPool->GetComponent(entity);
-			auto materialIndex = materialPool->GetIndex(entity);
+			auto materialComponent = materialPool->GetData(entity);
+			auto materialIndex = materialPool->GetDenseIndex(entity);
 
 			if (componentBuffer->versions[materialIndex] != materialComponent->versionID)
 			{

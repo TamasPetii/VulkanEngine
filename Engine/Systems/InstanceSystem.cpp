@@ -44,12 +44,12 @@ void InstanceSystem::UpdateShapeInstances(std::shared_ptr<Registry> registry, st
 	if (!shapePool)
 		return;
 
-	std::for_each(std::execution::seq, shapePool->GetDenseEntities().begin(), shapePool->GetDenseEntities().end(),
+	std::for_each(std::execution::seq, shapePool->GetDenseIndices().begin(), shapePool->GetDenseIndices().end(),
 		[&](Entity entity) -> void {
-			auto shapeComponent = shapePool->GetComponent(entity);
+			auto shapeComponent = shapePool->GetData(entity);
 
 			if (shapeComponent->toRender && shapeComponent->shape)
-				shapeComponent->shape->AddIndex(shapePool->GetIndex(entity));
+				shapeComponent->shape->AddIndex(shapePool->GetDenseIndex(entity));
 		}
 	);
 
@@ -80,12 +80,12 @@ void InstanceSystem::UpdateModelInstances(std::shared_ptr<Registry> registry, st
 	if (!modelPool)
 		return;
 
-	std::for_each(std::execution::seq, modelPool->GetDenseEntities().begin(), modelPool->GetDenseEntities().end(), 
+	std::for_each(std::execution::seq, modelPool->GetDenseIndices().begin(), modelPool->GetDenseIndices().end(),
 		[&](Entity entity) -> void 	{
-			auto modelComponent = modelPool->GetComponent(entity);
+			auto modelComponent = modelPool->GetData(entity);
 
 			if (modelComponent->toRender && modelComponent->model)
-				modelComponent->model->AddIndex(modelPool->GetIndex(entity));
+				modelComponent->model->AddIndex(modelPool->GetDenseIndex(entity));
 		}
 	);
 

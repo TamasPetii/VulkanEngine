@@ -3,7 +3,7 @@
 #include "Relationship.h"
 
 template<typename ...T>
-inline std::vector<Entity>& Registry::View()
+inline const std::vector<Entity>& Registry::View()
 {
 	ComponentBitsetMask bitMask = GenerateMask<T...>();
 
@@ -13,7 +13,7 @@ inline std::vector<Entity>& Registry::View()
 		return defaultView;
 	}
 
-	return views.at(bitMask).GetDenseEntities();
+	return views.at(bitMask).GetDenseIndices();
 }
 
 template<typename ...T>
@@ -26,18 +26,18 @@ inline void Registry::RegisterView()
 }
 
 template<typename T>
-inline std::shared_ptr<Pool<T>> Registry::GetPool()
+inline std::shared_ptr<ComponentPool<T>> Registry::GetPool()
 {
 	UniqueID type_index = Unique::typeIndex<T>();
 
-	if (!pools.HasComponent(type_index))
+	if (!pools.ContainsIndex(type_index))
 		return nullptr;
 
-	return std::static_pointer_cast<Pool<T>>(*pools.GetComponent(type_index));
+	return std::static_pointer_cast<ComponentPool<T>>(*pools.GetData(type_index));
 }
 
 template<typename ...T>
-inline std::tuple<std::shared_ptr<Pool<T>>...> Registry::GetPools()
+inline std::tuple<std::shared_ptr<ComponentPool<T>>...> Registry::GetPools()
 {
 	return { GetPool<T>()... };
 }
@@ -46,7 +46,7 @@ template <typename T>
 inline bool Registry::HasComponent(Entity entity)
 {
 	UniqueID type_index = Unique::typeIndex<T>();
-	return pools.HasComponent(type_index) && (*pools.GetComponent(type_index))->HasComponent(entity);
+	return pools.ContainsIndex(type_index) && (*pools.GetData(type_index))->HasComponent(entity);
 }
 
 template<typename... T>
@@ -62,7 +62,7 @@ inline T* Registry::GetComponent(Entity entity)
 		return nullptr;
 
 	UniqueID type_index = Unique::typeIndex<T>();
-	return std::static_pointer_cast<Pool<T>>(*pools.GetComponent(type_index))->GetComponent(entity);
+	return std::static_pointer_cast<ComponentPool<T>>(*pools.GetData(type_index))->GetData(entity);
 }
 
 template<typename ...T>
@@ -79,10 +79,10 @@ inline void Registry::AddComponent(Entity entity, const T& component)
 
 	UniqueID type_index = Unique::typeIndex<T>();
 
-	if (!pools.HasComponent(type_index))
-		pools.AddComponent(type_index, std::make_shared<Pool<T>>());
+	if (!pools.ContainsIndex(type_index))
+		pools.Add(type_index, std::make_shared<ComponentPool<T>>());
 
-	std::static_pointer_cast<Pool<T>>(*pools.GetComponent(type_index))->AddComponent(entity, component);
+	std::static_pointer_cast<ComponentPool<T>>(*pools.GetData(type_index))->Add(entity, component);
 }
 
 template<typename ...T>
@@ -104,7 +104,7 @@ inline void Registry::AddComponents(Entity entity, const T & ...component)
 	for (auto& [viewBitMask, entityPool] : views)
 	{
 		if ((viewBitMask & entityBitSet) == viewBitMask)
-			entityPool.AddComponent(entity);
+			entityPool.Add(entity);
 	}
 }
 
@@ -115,7 +115,7 @@ inline void Registry::RemoveComponent(Entity entity)
 		return;
 
 	UniqueID type_index = Unique::typeIndex<T>();
-	(*pools.GetComponent(type_index))->RemoveComponent(entity);
+	(*pools.GetData(type_index))->RemoveComponent(entity);
 }
 
 template<typename ...T>
@@ -132,7 +132,7 @@ inline void Registry::RemoveComponents(Entity entity)
 	for (auto& [viewBitMask, entityPool] : views)
 	{
 		if ((viewBitMask & prevEntityBitset) == viewBitMask && (viewBitMask & entityBitset) != viewBitMask)
-			entityPool.RemoveComponent(entity);
+			entityPool.Remove(entity);
 	}
 }
 

@@ -18,7 +18,7 @@ void FrustumCullingSystem::OnUpdate(std::shared_ptr<Registry> registry, std::sha
 		return;
 
 	Entity cameraEntity = CameraSystem::GetMainCameraEntity(registry);
-	auto cameraComponent = cameraPool->GetComponent(cameraEntity);
+	auto cameraComponent = cameraPool->GetData(cameraEntity);
 
 	FrustumCollider frustumCollider{};
 
@@ -62,19 +62,19 @@ void FrustumCullingSystem::DefaultColliderCulling(std::shared_ptr<Registry> regi
 	if (!defaultColliderPool || !transformPool)
 		return;
 
-	std::for_each(std::execution::par, defaultColliderPool->GetDenseEntities().begin(), defaultColliderPool->GetDenseEntities().end(),
+	std::for_each(std::execution::par, defaultColliderPool->GetDenseIndices().begin(), defaultColliderPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
-			bool hasShape = shapePool && shapePool->HasComponent(entity) && shapePool->GetComponent(entity)->shape != nullptr;
-			bool hasModel = modelPool && modelPool->HasComponent(entity) && modelPool->GetComponent(entity)->model != nullptr;
+			bool hasShape = shapePool && shapePool->HasComponent(entity) && shapePool->GetData(entity)->shape != nullptr;
+			bool hasModel = modelPool && modelPool->HasComponent(entity) && modelPool->GetData(entity)->model != nullptr;
 
 			if (transformPool->HasComponent(entity) && (hasShape || hasModel))
 			{
-				auto defaultColliderComponent = defaultColliderPool->GetComponent(entity);
+				auto defaultColliderComponent = defaultColliderPool->GetData(entity);
 
 				Simplex simplex;
 				if (TesterFrustum::Test(cameraCollider, defaultColliderComponent))
 				{
-					RenderComponent* renderComponent = hasShape ? static_cast<RenderComponent*>(shapePool->GetComponent(entity)) : static_cast<RenderComponent*>(modelPool->GetComponent(entity));
+					RenderComponent* renderComponent = hasShape ? static_cast<RenderComponent*>(shapePool->GetData(entity)) : static_cast<RenderComponent*>(modelPool->GetData(entity));
 					renderComponent->toRender = true;
 				}
 			}

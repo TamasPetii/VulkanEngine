@@ -28,8 +28,8 @@ void Registry::DestroyEntity(Entity entity)
 	//Remove the parent-child relations
 
 	//Remove from all the component pools
-	for (auto& pool : pools.GetDenseComponents())
-			pool->RemoveEntity(entity);
+	for (auto& pool : pools.GetDenseData())
+			pool->RemoveComponent(entity);
 
 	destroyedEntities.insert(entity);
 }

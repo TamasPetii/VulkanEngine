@@ -11,14 +11,13 @@ void TransformSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_p
 	if (!transformPool)
 		return;
 
-	std::for_each(std::execution::par, transformPool->GetDenseEntities().begin(), transformPool->GetDenseEntities().end(),
+	std::for_each(std::execution::par, transformPool->GetDenseIndices().begin(), transformPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
-			if (transformPool->GetBitset(entity).test(UPDATE_BIT))
+			if (transformPool->IsBitSet<UPDATE_BIT>(entity))
 			{
-				auto index = transformPool->GetIndex(entity);
-				auto transformComponent = transformPool->GetComponent(entity);
-
-				
+				auto index = transformPool->GetDenseIndex(entity);
+				auto transformComponent = transformPool->GetData(entity);
+	
 				transformComponent->transform = glm::mat4(1.0f);
 				transformComponent->transform = glm::translate(transformComponent->transform, transformComponent->translation);
 				transformComponent->transform = glm::rotate(transformComponent->transform, glm::radians(transformComponent->rotation.z), glm::vec3(0, 0, 1));
@@ -27,7 +26,7 @@ void TransformSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_p
 				transformComponent->transform = glm::scale(transformComponent->transform, transformComponent->scale);	
 				transformComponent->transformIT = glm::inverse(glm::transpose(transformComponent->transform));
 
-				transformPool->GetBitset(entity).set(CHANGED_BIT, true);
+				transformPool->SetBit<CHANGED_BIT>(entity);
 				transformComponent->versionID++;
 			}
 		}
@@ -75,9 +74,9 @@ void TransformSystem::OnFinish(std::shared_ptr<Registry> registry)
 	if (!transformPool)
 		return;
 
-	std::for_each(std::execution::par, transformPool->GetDenseEntities().begin(), transformPool->GetDenseEntities().end(),
+	std::for_each(std::execution::par, transformPool->GetDenseIndices().begin(), transformPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
-			transformPool->GetBitset(entity).reset();
+			transformPool->GetBitset(entity)->reset();
 		}
 	);
 }
@@ -92,10 +91,10 @@ void TransformSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::sha
 	auto componentBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("TransformData", frameIndex);
 	auto bufferHandler = static_cast<TransformComponentGPU*>(componentBuffer->buffer->GetHandler());
 
-	std::for_each(std::execution::par, transformPool->GetDenseEntities().begin(), transformPool->GetDenseEntities().end(),
+	std::for_each(std::execution::par, transformPool->GetDenseIndices().begin(), transformPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
-			auto transformIndex = transformPool->GetIndex(entity);
-			auto transformComponent = transformPool->GetComponent(entity);
+			auto transformIndex = transformPool->GetDenseIndex(entity);
+			auto transformComponent = transformPool->GetData(entity);
 
 			if (componentBuffer->versions[transformIndex] != transformComponent->versionID)
 			{

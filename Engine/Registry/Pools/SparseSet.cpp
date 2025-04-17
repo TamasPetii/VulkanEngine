@@ -60,7 +60,7 @@ inline std::optional<SparseSet::RemoveContext> SparseSet::GetRemoveContext(uint3
 
 inline std::optional<SparseSet::AddContext> SparseSet::GetAddContext(uint32_t index)
 {
-	if (!ContainsIndex(index))
+	if (ContainsIndex(index))
 		return std::nullopt;
 
 	return AddContext{ GetPageIndices(index), index };

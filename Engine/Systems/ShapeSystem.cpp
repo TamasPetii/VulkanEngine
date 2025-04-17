@@ -11,14 +11,14 @@ void ShapeSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<R
 	if (!shapePool)
 		return;
 
-	std::for_each(std::execution::par, shapePool->GetDenseEntities().begin(), shapePool->GetDenseEntities().end(),
+	std::for_each(std::execution::par, shapePool->GetDenseIndices().begin(), shapePool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
-			if (shapePool->GetBitset(entity).test(UPDATE_BIT) ||
-				(transformPool && transformPool->HasComponent(entity) && transformPool->GetBitset(entity).test(INDEX_CHANGED_BIT)) ||
-				(materialPool && materialPool->HasComponent(entity) && materialPool->GetBitset(entity).test(INDEX_CHANGED_BIT))
+			if (shapePool->IsBitSet<UPDATE_BIT>(entity) ||
+				(transformPool && transformPool->HasComponent(entity) && transformPool->IsBitSet<INDEX_CHANGED_BIT>(entity)) ||
+				(materialPool && materialPool->HasComponent(entity) && materialPool->IsBitSet<INDEX_CHANGED_BIT>(entity))
 			){
-				shapePool->GetBitset(entity).set(CHANGED_BIT, true);
-				shapePool->GetComponent(entity)->versionID++;
+				shapePool->SetBit<CHANGED_BIT>(entity);
+				shapePool->GetData(entity)->versionID++;
 			}
 		}
 	);
@@ -31,10 +31,10 @@ void ShapeSystem::OnFinish(std::shared_ptr<Registry> registry)
 	if (!shapePool)
 		return;
 
-	std::for_each(std::execution::par, shapePool->GetDenseEntities().begin(), shapePool->GetDenseEntities().end(),
+	std::for_each(std::execution::par, shapePool->GetDenseIndices().begin(), shapePool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
-			shapePool->GetComponent(entity)->toRender = false;
-			shapePool->GetBitset(entity).reset();
+			shapePool->GetData(entity)->toRender = false;
+			shapePool->GetBitset(entity)->reset();
 		}
 	);
 }
@@ -49,10 +49,10 @@ void ShapeSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared_
 	auto componentBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("ShapeRenderIndicesData", frameIndex);
 	auto bufferHandler = static_cast<RenderIndicesGPU*>(componentBuffer->buffer->GetHandler());
 
-	std::for_each(std::execution::par, shapePool->GetDenseEntities().begin(), shapePool->GetDenseEntities().end(),
+	std::for_each(std::execution::par, shapePool->GetDenseIndices().begin(), shapePool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
-			auto shapeIndex = shapePool->GetIndex(entity);
-			auto shapeComponent = shapePool->GetComponent(entity);
+			auto shapeIndex = shapePool->GetDenseIndex(entity);
+			auto shapeComponent = shapePool->GetData(entity);
 
 			if (componentBuffer->versions[shapeIndex] != shapeComponent->versionID)
 			{
@@ -60,8 +60,8 @@ void ShapeSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared_
 
 				bufferHandler[shapeIndex] = RenderIndicesGPU{
 					.entityIndex = entity,
-					.transformIndex = transformPool && transformPool->HasComponent(entity) ? transformPool->GetIndex(entity) : NULL_ENTITY,
-					.materialIndex = materialPool && materialPool->HasComponent(entity) ? materialPool->GetIndex(entity) : NULL_ENTITY,
+					.transformIndex = transformPool && transformPool->HasComponent(entity) ? transformPool->GetDenseIndex(entity) : NULL_ENTITY,
+					.materialIndex = materialPool && materialPool->HasComponent(entity) ? materialPool->GetDenseIndex(entity) : NULL_ENTITY,
 					.receiveShadow = shapeComponent->receiveShadow ? 1u : 0u
 				};
 			}
