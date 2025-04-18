@@ -45,7 +45,7 @@ void Scene::InitializeRegistry()
 	std::array<std::string, 5> shapes = { "Cube", "Sphere", "Cone", "Pyramid", "Cylinder" };
 	std::uniform_int_distribution<size_t> shapeDist(0, shapes.size() - 1); // for shape selection
 
-	for (uint32_t i = 0; i < 2000; ++i)
+	for (uint32_t i = 0; i < 0; ++i)
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, MaterialComponent, ShapeComponent, DefaultColliderComponent>(entity);
@@ -61,17 +61,22 @@ void Scene::InitializeRegistry()
 		shapeComponent->shape = resourceManager->GetGeometryManager()->GetShape("Cube");
 	}
 
-	for (uint32_t i = 0; i < 1; ++i)
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
-
 		auto [transformComponent, modelComponent] = registry->GetComponents<TransformComponent, ModelComponent>(entity);
-		transformComponent->rotation = 180.f * glm::vec3(dist(rng), dist(rng), dist(rng));
-		transformComponent->translation = 100.f * glm::vec3(dist(rng), dist(rng), dist(rng));
-		transformComponent->scale = glm::vec3(0.01);
+		transformComponent->rotation.x = -90.f;
+		transformComponent->scale = glm::vec3(0.05);
+		modelComponent->model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Bistro_v5_2/BistroExterior.fbx");
+	}
 
-		modelComponent->model = resourceManager->GetModelManager()->LoadModel("../Assets/Sponza/Sponza.obj");
+	{
+		auto entity = registry->CreateEntity();
+		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
+		auto [transformComponent, modelComponent] = registry->GetComponents<TransformComponent, ModelComponent>(entity);
+		transformComponent->rotation.x = -90.f;
+		transformComponent->scale = glm::vec3(0.05);
+		modelComponent->model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Bistro_v5_2/BistroInterior.fbx");
 	}
 
 	auto& entities = registry->View<TransformComponent, ShapeComponent, DefaultColliderComponent>();
@@ -79,6 +84,7 @@ void Scene::InitializeRegistry()
 
 void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
 {
+	/*
 	//Update Registry Transforms
 	std::random_device dev;
 	std::mt19937 rng(dev());
@@ -97,6 +103,7 @@ void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
 			}
 		);
 	}
+	*/
 
 	//Update Camera Size
 	auto viewPortSize = resourceManager->GetVulkanManager()->GetFrameDependentFrameBuffer("Main", frameIndex)->GetSize();

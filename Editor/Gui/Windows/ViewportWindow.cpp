@@ -18,7 +18,8 @@ void ViewportWindow::Render(std::shared_ptr<Registry> registry, std::shared_ptr<
 		{
 			if (ImGui::BeginMenuBar())
 			{
-				RenderGizmoConfigMenu();
+				GizmoConfigMenu();
+				ViewportImageMenu();
 				ImGui::EndMenuBar();
 			}
 
@@ -33,7 +34,7 @@ void ViewportWindow::Render(std::shared_ptr<Registry> registry, std::shared_ptr<
 				resourceManager->GetVulkanManager()->MarkFrameBufferToResize("Main", nextFrameIndex, static_cast<uint32_t>(viewPortSize.x), static_cast<uint32_t>(viewPortSize.y));
 
 			auto sampler = resourceManager->GetVulkanManager()->GetSampler("Nearest")->Value();
-			auto imageView = frameBuffer->GetImage("Main")->GetImageView();
+			auto imageView = frameBuffer->GetImage(GetViewportImageName())->GetImageView();
 
 			VkDescriptorSet image = ImGui_ImplVulkan_AddTexture(sampler, imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 			textureSet.insert(image);
@@ -48,7 +49,17 @@ void ViewportWindow::Render(std::shared_ptr<Registry> registry, std::shared_ptr<
 	ImGui::PopStyleVar();
 }
 
-void ViewportWindow::RenderGizmoConfigMenu()
+std::string ViewportWindow::GetViewportImageName()
+{
+	switch (viewportImage)
+	{
+	case 0: return "Color"; break;
+	case 1: return "Normal"; break;
+	default: return "Main";
+	}
+}
+
+void ViewportWindow::GizmoConfigMenu()
 {
 	if (ImGui::BeginMenu("Gizmo"))
 	{
@@ -85,6 +96,25 @@ void ViewportWindow::RenderGizmoConfigMenu()
 			ImGui::EndChild();
 		}
 		ImGui::PopStyleVar();
+		ImGui::EndMenu();
+	}
+}
+
+void ViewportWindow::ViewportImageMenu()
+{
+	if (ImGui::BeginMenu("Image"))
+	{
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.0f, 0.0f));
+		if (ImGui::BeginChild("##ViewportImage", ImVec2(255, 210), ImGuiChildFlags_AlwaysUseWindowPadding))
+		{
+			ImGui::RadioButton("Color", &viewportImage, 0);
+			ImGui::RadioButton("Normal", &viewportImage, 1);
+			ImGui::RadioButton("Main", &viewportImage, 2);
+
+			ImGui::EndChild();
+		}
+		ImGui::PopStyleVar();
+
 		ImGui::EndMenu();
 	}
 }

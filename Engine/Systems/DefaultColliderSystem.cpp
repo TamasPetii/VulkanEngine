@@ -30,7 +30,7 @@ void DefaultColliderSystem::OnUpdate(std::shared_ptr<Registry> registry, std::sh
 
 				for (unsigned int i = 0; i < 8; ++i)
 				{
-					defaultColliderComponent->obbPositions[i] = transformComponent->transform * glm::vec4(boundingVolume->obbPositions[i], 1);
+					defaultColliderComponent->obbPositions[i] = glm::vec3(transformComponent->transform * glm::vec4(boundingVolume->obbPositions[i], 1));
 
 					maxPosition = glm::max(maxPosition, defaultColliderComponent->obbPositions[i]);
 					minPosition = glm::min(minPosition, defaultColliderComponent->obbPositions[i]);

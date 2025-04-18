@@ -131,7 +131,7 @@ void Model::ProcessGeometry(aiMesh* mesh, const aiScene* scene, uint32_t& curren
                 aiString path;
                 material->GetTexture(aiTextureType_NORMALS, 0, &path);
                 std::string real_path = directory + "/" + std::string(path.C_Str());
-                materialComponent.normal = imageManager->LoadImage(real_path, false);
+                materialComponent.normal = imageManager->LoadImage(real_path);
             }
 
             //Height texture
@@ -140,7 +140,7 @@ void Model::ProcessGeometry(aiMesh* mesh, const aiScene* scene, uint32_t& curren
                 aiString path;
                 material->GetTexture(aiTextureType_HEIGHT, 0, &path);
                 std::string real_path = directory + "/" + std::string(path.C_Str());
-                materialComponent.normal = imageManager->LoadImage(real_path, false);
+                materialComponent.normal = imageManager->LoadImage(real_path);
             }
 
             //Displacement
@@ -149,7 +149,7 @@ void Model::ProcessGeometry(aiMesh* mesh, const aiScene* scene, uint32_t& curren
                 aiString path;
                 material->GetTexture(aiTextureType_DISPLACEMENT, 0, &path);
                 std::string real_path = directory + "/" + std::string(path.C_Str());
-                materialComponent.normal = imageManager->LoadImage(real_path, false);
+                materialComponent.normal = imageManager->LoadImage(real_path);
             }
 
             aiColor3D diffuseColor(1.f, 1.f, 1.f);

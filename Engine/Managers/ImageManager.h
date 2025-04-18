@@ -19,6 +19,7 @@ private:
 	void Initialize();
 	void Cleanup();
 	uint32_t GetAvailableIndex();
+	std::shared_ptr<Vk::Image> CreateVulkanImage(VkFormat format, VkDeviceSize size, int width, int height, bool useMipMap, void* data);
 private:
 	uint32_t counter = 0;
 	std::set<uint32_t> availableIndices;

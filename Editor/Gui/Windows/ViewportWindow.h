@@ -16,9 +16,12 @@ protected:
 		float snapAngle = 5.0f;
 		float snapScale = 0.1f;
 	};
+	inline static int viewportImage = 2;
 	inline static GizmoConfig gizmoConfig;
 private:
-	void RenderGizmoConfigMenu();
+	std::string GetViewportImageName();
+	void GizmoConfigMenu();
+	void ViewportImageMenu();
 	void RenderGizmo(std::shared_ptr<Registry> registry);
 	void GetClickedActiveEntity(std::shared_ptr<Registry> registry, std::shared_ptr<Vk::FrameBuffer> frameBuffer);
 };
