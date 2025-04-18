@@ -62,7 +62,6 @@ void CameraSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<
 				cameraComponent->viewInv = glm::inverse(cameraComponent->view);
 
 				cameraComponent->proj = glm::perspective(glm::radians(cameraComponent->fov), cameraComponent->width / cameraComponent->height, cameraComponent->nearPlane, cameraComponent->farPlane);
-				cameraComponent->proj[1][1] *= -1;
 				cameraComponent->projInv = glm::inverse(cameraComponent->proj);
 
 				cameraComponent->viewProj = cameraComponent->proj * cameraComponent->view;
@@ -106,8 +105,15 @@ void CameraSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared
 
 			if (componentBuffer->versions[cameraIndex] != cameraComponent->versionID)
 			{
+				CameraComponent component = *cameraComponent;
+
+				component.proj[1][1] *= -1;
+				component.projInv = glm::inverse(component.proj);
+				component.viewProj = component.proj * component.view;
+				component.viewProjInv = glm::inverse(component.viewProj);
+
 				componentBuffer->versions[cameraIndex] = cameraComponent->versionID;
-				bufferHandler[cameraIndex] = CameraComponentGPU(*cameraComponent);
+				bufferHandler[cameraIndex] = CameraComponentGPU(component);
 			}
 		}
 	);

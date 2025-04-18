@@ -247,7 +247,6 @@
     <ClInclude Include="Vulkan\RenderPass.h" />
     <ClInclude Include="Vulkan\GraphicsPipeline.h" />
     <ClInclude Include="Registry\Entity.h" />
-    <ClInclude Include="Registry\Pool.h" />
     <ClInclude Include="Registry\Registry.h" />
     <ClInclude Include="Registry\Relationship.h" />
     <ClInclude Include="Registry\Unique.h" />
@@ -361,7 +360,6 @@
     <ClCompile Include="Logger\Logger.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Registry\Pool.inl" />
     <None Include="Registry\Registry.inl" />
     <None Include="Shaders\Basic.frag" />
     <None Include="Shaders\Basic.vert" />

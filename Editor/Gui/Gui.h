@@ -2,6 +2,7 @@
 #include "Imgui/imgui.h"
 #include "Imgui/imgui_impl_glfw.h"
 #include "Imgui/imgui_impl_vulkan.h"
+#include "ImGui/ImGuizmo.h"
 #include "Engine/Config.h"
 
 #include <set>

@@ -2,7 +2,6 @@
 #include "Editor/Gui/ImGui/imgui.h"
 #include "Engine/Registry/Registry.h"
 #include "Engine/Managers/ResourceManager.h"
-
 #include "Editor/Gui/Utils/Window.h"
 #include "Editor/Gui/Utils/Panel.h"
 

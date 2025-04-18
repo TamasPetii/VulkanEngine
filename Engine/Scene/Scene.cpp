@@ -30,6 +30,7 @@ void Scene::InitializeRegistry()
 {
 	registry = std::make_shared<Registry>();
 	registry->RegisterView<TransformComponent, ShapeComponent, DefaultColliderComponent>();
+	registry->RegisterView<TransformComponent, ModelComponent, DefaultColliderComponent>();
 
 	std::random_device dev;
 	std::mt19937 rng(dev());
@@ -46,7 +47,7 @@ void Scene::InitializeRegistry()
 	std::array<std::string, 5> shapes = { "Cube", "Sphere", "Cone", "Pyramid", "Cylinder" };
 	std::uniform_int_distribution<size_t> shapeDist(0, shapes.size() - 1); // for shape selection
 
-	for (uint32_t i = 0; i < 1; ++i)
+	for (uint32_t i = 0; i < 100000; ++i)
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, MaterialComponent, ShapeComponent, DefaultColliderComponent>(entity);
@@ -80,12 +81,12 @@ void Scene::InitializeRegistry()
 
 void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
 {
+	/*
 	//Update Registry Transforms
 	std::random_device dev;
 	std::mt19937 rng(dev());
 	std::uniform_real_distribution<float> dist(0, 1);
 
-	/*
 	if (auto transformPool = registry->GetPool<TransformComponent>())
 	{
 		std::for_each(std::execution::par,
@@ -223,7 +224,7 @@ void Scene::UpdateSystemsGPU(uint32_t frameIndex)
 	LaunchSystemUpdateGpuAsync.template operator() < ShapeSystem > ();
 	LaunchSystemUpdateGpuAsync.template operator() < ModelSystem > ();
 	LaunchSystemUpdateGpuAsync.template operator() < InstanceSystem > ();
-	//LaunchSystemUpdateGpuAsync.template operator() < DefaultColliderSystem > ();
+	LaunchSystemUpdateGpuAsync.template operator() < DefaultColliderSystem > ();
 
 	for (auto& [_, future] : futures) {
 		if (future.valid())
@@ -242,4 +243,5 @@ void Scene::UpdateComponentBuffers(uint32_t frameIndex)
 	RecalculateGpuBufferSize<ModelComponent, RenderIndicesGPU>("ModelRenderIndicesData", frameIndex);
 	RecalculateGpuBufferSize<DefaultColliderComponent, glm::mat4>("DefaultColliderAabbData", frameIndex);
 	RecalculateGpuBufferSize<DefaultColliderComponent, glm::mat4>("DefaultColliderObbData", frameIndex);
+	RecalculateGpuBufferSize<DefaultColliderComponent, glm::mat4>("DefaultColliderSphereData", frameIndex);
 }

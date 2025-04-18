@@ -1,11 +1,11 @@
 #include "Gui.h"
 #include <GLFW/glfw3.h>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/quaternion.hpp>
+
 #include "Editor/Gui/Windows/ComponentWindow.h"
 #include "Editor/Gui/Windows/EntityWindow.h"
 #include "Editor/Gui/Windows/GlobalSettingsWindow.h"
-#include <ImGui_Glfw/ImGuizmo.h>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtc/quaternion.hpp>
 #include "Engine/Systems/CameraSystem.h"
 
 Gui::Gui(GLFWwindow* window)
@@ -127,7 +127,7 @@ void Gui::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Registry> regist
 
 		RenderGizmo(registry);
 
-		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsWindowHovered() && !ImGuizmo::IsUsing())
 		{
 			int mouseX = ImGui::GetMousePos().x - ImGui::GetWindowContentRegionMin().x - ImGui::GetWindowPos().x;
 			int mouseY = ImGui::GetMousePos().y - ImGui::GetWindowContentRegionMin().y - ImGui::GetWindowPos().y;
@@ -136,9 +136,7 @@ void Gui::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Registry> regist
 			mouseY = contentRegionY - mouseY;
 
 			if (mouseX >= 0 && mouseX < contentRegionX &&
-				mouseY >= 0 && mouseY < contentRegionY &&
-				ImGui::IsWindowHovered() &&
-				!ImGuizmo::IsUsing())
+				mouseY >= 0 && mouseY < contentRegionY)
 			{
 				VkDeviceSize bufferSize = sizeof(uint32_t);
 
@@ -271,10 +269,11 @@ void Gui::RenderGizmo(std::shared_ptr<Registry> registry)
 
 		glm::mat4 viewMatrix = cameraComponent->view;
 		glm::mat4 projectionMatrix = cameraComponent->proj;
-		projectionMatrix[1][1] *= -1;
 		auto transformComponent = registry->GetComponent<TransformComponent>(activeEntity);
 		auto transform = transformComponent->transform;
 
+		ImGuizmo::BeginFrame();
+		ImGuizmo::Enable(true);
 		ImGuizmo::SetOrthographic(false);
 		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
 		ImGuizmo::SetDrawlist();

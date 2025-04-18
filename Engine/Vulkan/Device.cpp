@@ -50,6 +50,8 @@ void Vk::Device::Init(std::span<const char*> deviceExtensions)
 	VkPhysicalDeviceFeatures deviceFeatures{};
 	deviceFeatures.samplerAnisotropy = VK_TRUE;
 	deviceFeatures.multiDrawIndirect = VK_TRUE;
+	deviceFeatures.fillModeNonSolid = VK_TRUE;
+	deviceFeatures.wideLines = VK_TRUE;
 
 	VkPhysicalDeviceVulkan11Features deviceFeatures11{};
 	deviceFeatures11.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;

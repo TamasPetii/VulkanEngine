@@ -72,7 +72,7 @@ void FrustumCullingSystem::DefaultColliderCulling(std::shared_ptr<Registry> regi
 				auto defaultColliderComponent = defaultColliderPool->GetData(entity);
 
 				Simplex simplex;
-				if (TesterFrustum::Test(cameraCollider, defaultColliderComponent))
+				if (TesterFrustum::Test(cameraCollider, static_cast<SphereColliderGJK*>(defaultColliderComponent)))
 				{
 					RenderComponent* renderComponent = hasShape ? static_cast<RenderComponent*>(shapePool->GetData(entity)) : static_cast<RenderComponent*>(modelPool->GetData(entity));
 					renderComponent->toRender = true;
