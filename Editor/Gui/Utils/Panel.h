@@ -1,7 +1,8 @@
 #pragma once
 #include <string>
-#include <functional>
 #include <memory>
+#include <functional>
+#include <optional>
 #include "Editor/Gui/ImGui/imgui.h"
 
 class Panel
@@ -9,11 +10,8 @@ class Panel
 public:
     struct Config
     {
-        Config();
-        Config(const std::string& name, std::unique_ptr<bool> isOpen = nullptr, ImGuiWindowFlags flags = ImGuiTreeNodeFlags_DefaultOpen);
-
         std::string name;
-        std::unique_ptr<bool> isOpen;
+        std::optional<bool> isVisible;
         ImGuiTreeNodeFlags flags;
     };
 public:

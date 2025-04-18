@@ -48,9 +48,6 @@
     <ClInclude Include="Gui\Windows\ComponentWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Gui\Utils\Window.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Gui\Utils\Panel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -79,6 +76,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Gui\ImGui\ImZoomSlider.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Gui\Windows\ViewportWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Gui\Windows\Window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -116,9 +119,6 @@
     <ClCompile Include="Gui\Windows\ComponentWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Gui\Utils\Window.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Gui\Utils\Panel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -144,6 +144,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Gui\ImGui\ImSequencer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Gui\Windows\ViewportWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Gui\Windows\Window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

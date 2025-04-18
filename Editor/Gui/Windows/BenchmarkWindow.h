@@ -1,12 +1,9 @@
 #pragma once
-#include <memory>
+#include "Window.h"
 
-class Registry;
-class ResourceManager;
-
-class BenchmarkWindow
+class BenchmarkWindow : public Window
 {
 public:
-	static void Render(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex);
+	virtual void Render(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, std::set<VkDescriptorSet>& textureSet, uint32_t frameIndex) override;
 };
 

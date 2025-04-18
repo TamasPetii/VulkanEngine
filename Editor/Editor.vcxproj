@@ -183,8 +183,9 @@
     <ClInclude Include="Gui\ImGui\imstb_rectpack.h" />
     <ClInclude Include="Gui\ImGui\imstb_textedit.h" />
     <ClInclude Include="Gui\ImGui\imstb_truetype.h" />
-    <ClInclude Include="Gui\Utils\Window.h" />
     <ClInclude Include="Gui\Utils\Panel.h" />
+    <ClInclude Include="Gui\Windows\ViewportWindow.h" />
+    <ClInclude Include="Gui\Windows\Window.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp" />
@@ -206,8 +207,9 @@
     <ClCompile Include="Gui\ImGui\imgui_tables.cpp" />
     <ClCompile Include="Gui\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="Gui\Utils\Window.cpp" />
     <ClCompile Include="Gui\Utils\Panel.cpp" />
+    <ClCompile Include="Gui\Windows\ViewportWindow.cpp" />
+    <ClCompile Include="Gui\Windows\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Engine\Engine.vcxproj">
