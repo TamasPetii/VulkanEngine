@@ -12,7 +12,7 @@
 layout (location = 0) out vec3 vs_out_pos;
 layout (location = 1) out vec3 vs_out_normal;
 layout (location = 2) out vec2 vs_out_tex;
-layout (location = 3) out flat uvec2 vs_out_index;
+layout (location = 3) out flat uvec3 vs_out_index;
 layout (location = 4) out mat3 vs_out_tbn;
 
 layout( push_constant ) uniform constants
@@ -41,8 +41,9 @@ void main()
 
 	vs_out_pos = v.position;
 	vs_out_normal = normal;
-	vs_out_tex = vec2(v.uv_x, v.uv_y);
+	vs_out_tex = vec2(v.uv_x, 1.0 - v.uv_y);
 	vs_out_index.x = indices.entityIndex; //Entity ID
 	vs_out_index.y = PushConstants.renderMode == SHAPE_INSTANCED ? indices.materialIndex : v.index; //Material Index
+	vs_out_index.z = indices.flag;
 	vs_out_tbn = mat3(tangent, bitangent, normal);
 }

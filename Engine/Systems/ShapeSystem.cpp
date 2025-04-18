@@ -60,11 +60,14 @@ void ShapeSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared_
 			{
 				componentBuffer->versions[shapeIndex] = shapeComponent->versionID;
 
+				uint32_t flags = 0;
+				flags |= (shapeComponent->receiveShadow ? 1u : 0u) << 0;       // Bit 0
+
 				bufferHandler[shapeIndex] = RenderIndicesGPU{
 					.entityIndex = entity,
 					.transformIndex = transformPool && transformPool->HasComponent(entity) ? transformPool->GetDenseIndex(entity) : NULL_ENTITY,
 					.materialIndex = materialPool && materialPool->HasComponent(entity) ? materialPool->GetDenseIndex(entity) : NULL_ENTITY,
-					.receiveShadow = shapeComponent->receiveShadow ? 1u : 0u
+					.receiveShadow = flags
 				};
 			}
 		}

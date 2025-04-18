@@ -5,7 +5,7 @@ struct RenderIndices
 	uint entityIndex;
 	uint transformIndex;
 	uint materialIndex;
-	uint receiveShadow;
+	uint flag;
 };
 
 layout(buffer_reference, std430) readonly buffer RenderIndicesBuffer {

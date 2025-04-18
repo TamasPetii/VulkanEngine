@@ -12,5 +12,6 @@ class ENGINE_API BoundingVolume : public ColliderAABB, public ColliderOBB, publi
 {
 protected:
 	virtual void PopulateSurfacePoints() = 0;
-	void GenerateBoundingVolume();
+	void GenerateBoundingVolume(const glm::vec3& minPosition, const glm::vec3& maxPosition);
+	void GenerateBoundingVolumeFromSurfacePoints();
 };

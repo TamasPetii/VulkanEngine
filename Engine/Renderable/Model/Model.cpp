@@ -18,8 +18,8 @@ bool Model::Load(const std::string& path)
 
     PreFetch(scene->mRootNode, scene);
     Process(scene->mRootNode, scene);
-    PopulateSurfacePoints();
-    GenerateBoundingVolume();
+    //PopulateSurfacePoints();
+    GenerateBoundingVolume(aabbMin, aabbMax);
     UploadToGpu();
     return true;
 }
@@ -122,7 +122,7 @@ void Model::ProcessGeometry(aiMesh* mesh, const aiScene* scene, uint32_t& curren
                 aiString path;
                 material->GetTexture(aiTextureType_DIFFUSE, 0, &path);
                 std::string real_path = directory + "/" + std::string(path.C_Str());
-                materialComponent.albedo = imageManager->LoadImage(real_path);
+                materialComponent.albedo = imageManager->LoadImage(real_path, true);
             }
 
             //Normals texture
@@ -131,7 +131,7 @@ void Model::ProcessGeometry(aiMesh* mesh, const aiScene* scene, uint32_t& curren
                 aiString path;
                 material->GetTexture(aiTextureType_NORMALS, 0, &path);
                 std::string real_path = directory + "/" + std::string(path.C_Str());
-                materialComponent.normal = imageManager->LoadImage(real_path);
+                materialComponent.normal = imageManager->LoadImage(real_path, true);
             }
 
             //Height texture
@@ -140,7 +140,7 @@ void Model::ProcessGeometry(aiMesh* mesh, const aiScene* scene, uint32_t& curren
                 aiString path;
                 material->GetTexture(aiTextureType_HEIGHT, 0, &path);
                 std::string real_path = directory + "/" + std::string(path.C_Str());
-                materialComponent.normal = imageManager->LoadImage(real_path);
+                materialComponent.normal = imageManager->LoadImage(real_path, true);
             }
 
             //Displacement
@@ -149,7 +149,7 @@ void Model::ProcessGeometry(aiMesh* mesh, const aiScene* scene, uint32_t& curren
                 aiString path;
                 material->GetTexture(aiTextureType_DISPLACEMENT, 0, &path);
                 std::string real_path = directory + "/" + std::string(path.C_Str());
-                materialComponent.normal = imageManager->LoadImage(real_path);
+                materialComponent.normal = imageManager->LoadImage(real_path, true);
             }
 
             aiColor3D diffuseColor(1.f, 1.f, 1.f);
@@ -167,7 +167,11 @@ void Model::ProcessGeometry(aiMesh* mesh, const aiScene* scene, uint32_t& curren
         //Position
         glm::vec3 position{ 0,0,0 };
         if (mesh->mVertices)
+        {
             position = Assimp::ConvertAssimpToGlm(mesh->mVertices[i]);
+            aabbMax = glm::max(aabbMax, position);
+            aabbMin = glm::min(aabbMin, position);
+        }
 
         //Normals
         glm::vec3 normal{ 0,0,0 };

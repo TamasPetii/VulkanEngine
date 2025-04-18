@@ -6,7 +6,7 @@ void Shape::Initialize()
 	GenerateVertices();
 	GenerateIndices();
 	GenerateTangents();
-	GenerateBoundingVolume();
+	GenerateBoundingVolumeFromSurfacePoints();
 	UploadToGpu();
 }
 

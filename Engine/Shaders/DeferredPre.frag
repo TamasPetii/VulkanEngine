@@ -9,7 +9,7 @@
 layout (location = 0) in vec3 fs_in_pos;
 layout (location = 1) in vec3 fs_in_normal;
 layout (location = 2) in vec2 fs_in_tex;
-layout (location = 3) in flat uvec2 fs_in_index;
+layout (location = 3) in flat uvec3 fs_in_index;
 layout (location = 4) in mat3 fs_in_tbn;
 
 //Outputs
@@ -38,7 +38,7 @@ void main()
 
 	vec4 albedo = materialBuffer.materials[materialIndex].color;
 	if(materialBuffer.materials[materialIndex].albedoIndex != uint(INVALID_IMAGE_INDEX))
-		albedo *= sampleTexture2D(materialBuffer.materials[materialIndex].albedoIndex, NEAREST_SAMPLER_ID, fs_in_tex);
+		albedo *= sampleTexture2D(materialBuffer.materials[materialIndex].albedoIndex, LINEAR_ANISOTROPY_SAMPLER_ID, fs_in_tex);
 	
 	if(albedo.w < 0.1)
 		discard;
@@ -46,9 +46,10 @@ void main()
 	vec3 normal = vec3(normalize(fs_in_normal));
 	if(materialBuffer.materials[materialIndex].normalIndex != uint(INVALID_IMAGE_INDEX))
 	{
-		normal = sampleTexture2D(materialBuffer.materials[materialIndex].normalIndex, NEAREST_SAMPLER_ID, fs_in_tex).xyz;
-        normal = normal * 2.0 - 1.0;   
+		normal = sampleTexture2D(materialBuffer.materials[materialIndex].normalIndex, LINEAR_ANISOTROPY_SAMPLER_ID, fs_in_tex).xyz;
+		normal = normal * 2.0 - 1.0;   
         normal = normalize(fs_in_tbn * normal); 
+		normal *= (0.5 - ((fs_in_index.z >> DIRECTX_NORMALS_BIT_INDEX) & 1)) * 2.0;
 	}
 
 	fs_out_color = albedo;

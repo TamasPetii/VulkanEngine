@@ -58,11 +58,15 @@ void ModelSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared_
 			{
 				componentBuffer->versions[modelIndex] = modelComponent->versionID;
 
+				uint32_t flags = 0;
+				flags |= (modelComponent->receiveShadow ? 1u : 0u) << 0;       // Bit 0
+				flags |= (modelComponent->hasDirectxNormals ? 1u : 0u) << 1;    // Bit 1
+
 				bufferHandler[modelIndex] = RenderIndicesGPU{
 					.entityIndex = entity,
 					.transformIndex = transformPool && transformPool->HasComponent(entity) ? transformPool->GetDenseIndex(entity) : NULL_ENTITY,
 					.materialIndex = NULL_ENTITY,
-					.receiveShadow = modelComponent->receiveShadow ? 1u : 0u
+					.receiveShadow = flags
 				};
 			}
 		}

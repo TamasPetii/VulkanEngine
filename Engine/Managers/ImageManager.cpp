@@ -102,7 +102,6 @@ std::shared_ptr<Vk::Image> ImageManager::LoadImage(const std::string& path, bool
 	if (extension == ".dds")
 	{
 		gli::texture texture = gli::load(path);
-		texture = gli::flip(texture);
 
 		if (!texture.empty() && texture.target() == gli::target::TARGET_2D && texture.layers() == 1)
 			image = CreateVulkanImage(GliFormatToVulkan(texture.format()), texture.size(0), texture.extent().x, texture.extent().y, false, texture.data(0, 0, 0));
@@ -110,7 +109,6 @@ std::shared_ptr<Vk::Image> ImageManager::LoadImage(const std::string& path, bool
 	else
 	{
 		int texWidth, texHeight, texChannels;
-		stbi_set_flip_vertically_on_load(true);
 		stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
 		if (!pixels)
