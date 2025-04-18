@@ -16,6 +16,16 @@
 
 struct GLFWwindow;
 
+struct GizmoConfig
+{
+	ImGuizmo::OPERATION operation = ImGuizmo::TRANSLATE;
+	ImGuizmo::MODE mode = ImGuizmo::WORLD;
+	bool useSnap = false;
+	float snapTranslate[3] = { 1.0f, 1.0f, 1.0f };
+	float snapAngle = 1.0f;
+	float snapScale = 0.25f;
+};
+
 class Gui
 {
 public:
@@ -28,6 +38,8 @@ private:
 	void SetStyle();
 	void RenderGizmo(std::shared_ptr<Registry> registry);
 private:
+	inline static GizmoConfig gizmoConfig;
+
 	VkImageView imageView;
 	VkDescriptorPool imguiPool;
 	std::array<std::set<VkDescriptorSet>, Settings::MAX_FRAMES_IN_FLIGHTS> imguiDescriptorSets;

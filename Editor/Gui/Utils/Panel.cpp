@@ -15,5 +15,7 @@ void Panel::Render(Config& config, const std::function<void()>& renderFunction)
 {
 	if (ImGui::CollapsingHeader(config.name.c_str(), config.isOpen.get(), config.flags))
 	{
+		if (renderFunction)
+			renderFunction();
 	}
 }

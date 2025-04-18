@@ -14,7 +14,7 @@ void ComponentWindow::Render(std::shared_ptr<Registry> registry, std::shared_ptr
 			static Panel::Config config = Panel::Config("TransformComponent", std::make_unique<bool>(true));
 			Panel::Render(config, [&]() -> void
 				{
-
+					ImGui::SeparatorText("Asd");
 				}
 			);
 		}

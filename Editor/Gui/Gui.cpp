@@ -105,8 +105,53 @@ void Gui::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Registry> regist
 	ImGui::ShowDemoWindow();
 
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-	if (ImGui::Begin("Main", nullptr, ImGuiWindowFlags_NoTitleBar))
+	if (ImGui::Begin("Main", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_MenuBar))
 	{
+		if (ImGui::BeginMenuBar())
+		{
+			if (ImGui::BeginMenu("Gizmo")) 
+			{
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.0f, 0.0f));
+				if (ImGui::BeginChild("##GizmoWindow", ImVec2(255, 210), ImGuiChildFlags_AlwaysUseWindowPadding))
+				{
+					ImGui::SeparatorText("Operation");
+
+					int mode = static_cast<int>(gizmoConfig.mode);
+					ImGui::RadioButton("Local", &mode, static_cast<int>(ImGuizmo::LOCAL)); ImGui::SameLine();
+					ImGui::RadioButton("World", &mode, static_cast<int>(ImGuizmo::WORLD));
+					gizmoConfig.mode = static_cast<ImGuizmo::MODE>(mode);
+
+					int operation = static_cast<int>(gizmoConfig.operation);
+					ImGui::RadioButton("Trasnlate", &operation, static_cast<int>(ImGuizmo::TRANSLATE)); ImGui::SameLine();
+					ImGui::RadioButton("Rotate", &operation, static_cast<int>(ImGuizmo::ROTATE)); ImGui::SameLine();
+					ImGui::RadioButton("Scale", &operation, static_cast<int>(ImGuizmo::SCALE));
+					gizmoConfig.operation = static_cast<ImGuizmo::OPERATION>(operation);
+
+					ImGui::SeparatorText("Snapping");
+
+					ImGui::Text("Enable"); ImGui::SameLine(80);
+					ImGui::Checkbox("##EnableSnap", &gizmoConfig.useSnap);
+
+					ImGui::Text("Translate"); ImGui::SameLine(80);
+					ImGui::DragFloat3("##TranslateSnap", gizmoConfig.snapTranslate);
+
+					ImGui::Text("Rotate"); ImGui::SameLine(80);
+					ImGui::DragFloat("##RotateSnap", &gizmoConfig.snapAngle);
+
+					ImGui::Text("Scale"); ImGui::SameLine(80);
+					ImGui::DragFloat("##ScaleSnap", &gizmoConfig.snapScale);
+
+					ImGui::EndChild();
+				}
+				ImGui::PopStyleVar();
+
+				ImGui::EndMenu();
+			}
+
+			ImGui::EndMenuBar();
+		}
+
+
 		auto viewPortSize = ImGui::GetContentRegionAvail();
 		
 		uint32_t nextFrameIndex = (frameIndex + 1) % Settings::FRAMES_IN_FLIGHT;
@@ -187,68 +232,120 @@ void Gui::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Registry> regist
 void Gui::SetStyle()
 {
 	ImGuiStyle& style = ImGui::GetStyle();
-	ImVec4* colors = style.Colors;
-
-	// Corners
-	style.WindowRounding = 8.0f;
-	style.ChildRounding = 8.0f;
-	style.FrameRounding = 6.0f;
-	style.PopupRounding = 6.0f;
-	style.ScrollbarRounding = 6.0f;
-	style.GrabRounding = 6.0f;
-	style.TabRounding = 6.0f;
-
-	// Colors
-	colors[ImGuiCol_Text] = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
-	colors[ImGuiCol_TextDisabled] = ImVec4(0.36f, 0.42f, 0.47f, 1.00f);
-	colors[ImGuiCol_WindowBg] = ImVec4(0.11f, 0.15f, 0.17f, 1.00f);
-	colors[ImGuiCol_ChildBg] = ImVec4(0.15f, 0.18f, 0.22f, 1.00f);
-	colors[ImGuiCol_PopupBg] = ImVec4(0.08f, 0.08f, 0.08f, 0.94f);
-	colors[ImGuiCol_Border] = ImVec4(0.43f, 0.50f, 0.56f, 0.50f);
+	ImVec4* colors = ImGui::GetStyle().Colors;
+	colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+	colors[ImGuiCol_TextDisabled] = ImVec4(0.51f, 0.51f, 0.51f, 1.00f);
+	colors[ImGuiCol_WindowBg] = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
+	colors[ImGuiCol_ChildBg] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
+	colors[ImGuiCol_PopupBg] = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
+	colors[ImGuiCol_Border] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
 	colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-	colors[ImGuiCol_FrameBg] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
-	colors[ImGuiCol_FrameBgHovered] = ImVec4(0.12f, 0.20f, 0.28f, 1.00f);
-	colors[ImGuiCol_FrameBgActive] = ImVec4(0.09f, 0.12f, 0.14f, 1.00f);
-	colors[ImGuiCol_TitleBg] = ImVec4(0.09f, 0.12f, 0.14f, 1.00f);
-	colors[ImGuiCol_TitleBgActive] = ImVec4(0.12f, 0.20f, 0.28f, 1.00f);
-	colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.00f, 0.00f, 0.00f, 0.51f);
-	colors[ImGuiCol_MenuBarBg] = ImVec4(0.15f, 0.18f, 0.22f, 1.00f);
-	colors[ImGuiCol_ScrollbarBg] = ImVec4(0.02f, 0.02f, 0.02f, 0.53f);
-	colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.31f, 0.31f, 0.31f, 1.00f);
-	colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
-	colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.51f, 0.51f, 0.51f, 1.00f);
-	colors[ImGuiCol_CheckMark] = ImVec4(0.28f, 0.56f, 1.00f, 1.00f);
-	colors[ImGuiCol_SliderGrab] = ImVec4(0.28f, 0.56f, 1.00f, 1.00f);
-	colors[ImGuiCol_SliderGrabActive] = ImVec4(0.37f, 0.61f, 1.00f, 1.00f);
-	colors[ImGuiCol_Button] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
-	colors[ImGuiCol_ButtonHovered] = ImVec4(0.28f, 0.56f, 1.00f, 1.00f);
-	colors[ImGuiCol_ButtonActive] = ImVec4(0.37f, 0.61f, 1.00f, 1.00f);
-	colors[ImGuiCol_Header] = ImVec4(0.20f, 0.25f, 0.29f, 0.55f);
-	colors[ImGuiCol_HeaderHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.80f);
-	colors[ImGuiCol_HeaderActive] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
-	colors[ImGuiCol_Separator] = ImVec4(0.43f, 0.50f, 0.56f, 0.50f);
-	colors[ImGuiCol_SeparatorHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.78f);
-	colors[ImGuiCol_SeparatorActive] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
-	colors[ImGuiCol_ResizeGrip] = ImVec4(0.26f, 0.59f, 0.98f, 0.25f);
-	colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.67f);
-	colors[ImGuiCol_ResizeGripActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.95f);
-	colors[ImGuiCol_Tab] = ImVec4(0.11f, 0.15f, 0.17f, 1.00f);
-	colors[ImGuiCol_TabHovered] = ImVec4(0.28f, 0.56f, 1.00f, 0.80f);
-	colors[ImGuiCol_TabActive] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
-	colors[ImGuiCol_TabUnfocused] = ImVec4(0.07f, 0.10f, 0.15f, 0.97f);
-	colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.14f, 0.22f, 0.36f, 1.00f);
-	colors[ImGuiCol_DockingPreview] = ImVec4(0.26f, 0.59f, 0.98f, 0.70f);
-	colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
-	colors[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
-	colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
-	colors[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
-	colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
-	colors[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
-	colors[ImGuiCol_DragDropTarget] = ImVec4(1.00f, 0.00f, 0.00f, 0.90f);
-	colors[ImGuiCol_NavHighlight] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+	colors[ImGuiCol_FrameBg] = ImVec4(0.27f, 0.27f, 0.27f, 1.00f);
+	colors[ImGuiCol_FrameBgHovered] = ImVec4(0.29f, 0.29f, 0.29f, 1.00f);
+	colors[ImGuiCol_FrameBgActive] = ImVec4(0.31f, 0.31f, 0.31f, 1.00f);
+	colors[ImGuiCol_TitleBg] = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
+	colors[ImGuiCol_TitleBgActive] = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
+	colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
+	colors[ImGuiCol_MenuBarBg] = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
+	colors[ImGuiCol_ScrollbarBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+	colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
+	colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.45f, 0.45f, 0.45f, 1.00f);
+	colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.55f, 0.55f, 0.55f, 1.00f);
+	colors[ImGuiCol_CheckMark] = ImVec4(0.00f, 1.00f, 1.00f, 1.00f);
+	colors[ImGuiCol_SliderGrab] = ImVec4(0.39f, 0.39f, 0.39f, 1.00f);
+	colors[ImGuiCol_SliderGrabActive] = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
+	colors[ImGuiCol_Button] = ImVec4(0.24f, 0.24f, 0.24f, 1.00f);
+	colors[ImGuiCol_ButtonHovered] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
+	colors[ImGuiCol_ButtonActive] = ImVec4(0.27f, 0.27f, 0.27f, 1.00f);
+	colors[ImGuiCol_Header] = ImVec4(0.22f, 0.22f, 0.22f, 1.00f);
+	colors[ImGuiCol_HeaderHovered] = ImVec4(0.24f, 0.24f, 0.24f, 0.95f);
+	colors[ImGuiCol_HeaderActive] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
+	colors[ImGuiCol_Separator] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
+	colors[ImGuiCol_SeparatorHovered] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+	colors[ImGuiCol_SeparatorActive] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+	colors[ImGuiCol_ResizeGrip] = ImVec4(0.39f, 0.39f, 0.39f, 1.00f);
+	colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.47f, 0.47f, 0.47f, 1.00f);
+	colors[ImGuiCol_ResizeGripActive] = ImVec4(0.55f, 0.55f, 0.55f, 1.00f);
+	colors[ImGuiCol_TabHovered] = ImVec4(0.27f, 0.27f, 0.27f, 1.00f);
+	colors[ImGuiCol_Tab] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+	colors[ImGuiCol_TabSelected] = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
+	colors[ImGuiCol_TabSelectedOverline] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
+	colors[ImGuiCol_TabDimmed] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+	colors[ImGuiCol_TabDimmedSelected] = ImVec4(0.24f, 0.24f, 0.24f, 1.00f);
+	colors[ImGuiCol_TabDimmedSelectedOverline] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+	colors[ImGuiCol_DockingPreview] = ImVec4(0.00f, 0.59f, 1.00f, 1.00f);
+	colors[ImGuiCol_DockingEmptyBg] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
+	colors[ImGuiCol_PlotLines] = ImVec4(0.00f, 1.00f, 1.00f, 1.00f);
+	colors[ImGuiCol_PlotLinesHovered] = ImVec4(0.00f, 0.57f, 1.00f, 1.00f);
+	colors[ImGuiCol_PlotHistogram] = ImVec4(0.00f, 1.00f, 1.00f, 1.00f);
+	colors[ImGuiCol_PlotHistogramHovered] = ImVec4(0.00f, 0.57f, 1.00f, 1.00f);
+	colors[ImGuiCol_TableHeaderBg] = ImVec4(0.19f, 0.19f, 0.20f, 1.00f);
+	colors[ImGuiCol_TableBorderStrong] = ImVec4(0.31f, 0.31f, 0.35f, 1.00f);
+	colors[ImGuiCol_TableBorderLight] = ImVec4(0.23f, 0.23f, 0.25f, 1.00f);
+	colors[ImGuiCol_TableRowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+	colors[ImGuiCol_TableRowBgAlt] = ImVec4(0.00f, 0.00f, 0.00f, 0.12f);
+	colors[ImGuiCol_TextLink] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+	colors[ImGuiCol_TextSelectedBg] = ImVec4(0.00f, 0.47f, 0.83f, 0.35f);
+	colors[ImGuiCol_DragDropTarget] = ImVec4(0.00f, 0.47f, 0.83f, 0.90f);
+	colors[ImGuiCol_NavCursor] = ImVec4(0.00f, 0.47f, 0.83f, 1.00f);
 	colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
 	colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
 	colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+
+	// Sizes
+	style.WindowPadding = ImVec2(8.0f, 8.0f);
+	style.FramePadding = ImVec2(6.0f, 4.0f);
+	style.ItemSpacing = ImVec2(8.0f, 6.0f);
+	style.ItemInnerSpacing = ImVec2(8.0f, 6.0f);
+	style.TouchExtraPadding = ImVec2(0.0f, 0.0f);
+	style.IndentSpacing = 12.0f;
+	style.ScrollbarSize = 12.0f;
+	style.GrabMinSize = 12.0f;
+
+	// Borders
+	style.WindowBorderSize = 1.0f;
+	style.ChildBorderSize = 1.0f;
+	style.PopupBorderSize = 1.0f;
+	style.FrameBorderSize = 1.0f;
+
+	// Rounding
+	style.WindowRounding = 4.0f;
+	style.ChildRounding = 4.0f;
+	style.FrameRounding = 4.0f;
+	style.PopupRounding = 4.0f;
+	style.ScrollbarRounding = 4.0f;
+	style.GrabRounding = 2.0f;
+
+	// Tabs
+	style.TabBorderSize = 1.0f;
+	style.TabBarBorderSize = 2.0f;
+	style.TabCloseButtonMinWidthSelected = -1.0f; // Always
+	style.TabCloseButtonMinWidthUnselected = -1.0f; // Always
+	style.TabRounding = 4.0f;
+
+	// Tables
+	style.CellPadding = ImVec2(4.0f, 4.0f);
+	style.TableAngledHeadersAngle = 25.0f * (3.1415926535f / 180.0f); // Convert degrees to radians
+	style.TableAngledHeadersTextAlign = ImVec2(0.5f, 0.0f);
+
+	// Windows
+	style.WindowTitleAlign = ImVec2(0.0f, 0.5f);
+	style.WindowMenuButtonPosition = ImGuiDir_Right;
+
+	// Widgets
+	style.ButtonTextAlign = ImVec2(0.5f, 0.5f);
+	style.SelectableTextAlign = ImVec2(0.0f, 0.0f);
+	style.SeparatorTextBorderSize = 2.0f;
+	style.SeparatorTextAlign = ImVec2(0.00f, 0.5f);
+	style.SeparatorTextPadding = ImVec2(20.f, 2.0f);
+	style.LogSliderDeadzone = 4.0f;
+
+	// Docking
+	style.DockingSeparatorSize = 2.0f;
+
+	// Tooltips
+	style.DisplayWindowPadding = ImVec2(15.0f, 15.0f);
+	style.DisplaySafeAreaPadding = ImVec2(3.0f, 3.0f);
 }
 
 void Gui::RenderGizmo(std::shared_ptr<Registry> registry)
@@ -264,8 +361,19 @@ void Gui::RenderGizmo(std::shared_ptr<Registry> registry)
 
 	if (activeEntity != NULL_ENTITY && transformPool->HasComponent(activeEntity))
 	{
-		static ImGuizmo::OPERATION currentOperation = ImGuizmo::TRANSLATE;
-		static ImGuizmo::MODE currentMode = ImGuizmo::WORLD;
+		float* snapValue = nullptr;
+
+		switch (gizmoConfig.operation) {
+		case ImGuizmo::TRANSLATE:
+			snapValue = gizmoConfig.snapTranslate;
+			break;
+		case ImGuizmo::ROTATE:
+			snapValue = &gizmoConfig.snapAngle;
+			break;
+		case ImGuizmo::SCALE:
+			snapValue = &gizmoConfig.snapScale;
+			break;
+		}
 
 		glm::mat4 viewMatrix = cameraComponent->view;
 		glm::mat4 projectionMatrix = cameraComponent->proj;
@@ -277,7 +385,7 @@ void Gui::RenderGizmo(std::shared_ptr<Registry> registry)
 		ImGuizmo::SetOrthographic(false);
 		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
 		ImGuizmo::SetDrawlist();
-		ImGuizmo::Manipulate(glm::value_ptr(viewMatrix), glm::value_ptr(projectionMatrix), currentOperation, currentMode, glm::value_ptr(transform), NULL, NULL, NULL);
+		ImGuizmo::Manipulate(glm::value_ptr(viewMatrix), glm::value_ptr(projectionMatrix), gizmoConfig.operation, gizmoConfig.mode, glm::value_ptr(transform), NULL, gizmoConfig.useSnap ? snapValue : NULL, NULL, NULL);
 
 		if (ImGuizmo::IsUsing())
 		{
@@ -287,7 +395,7 @@ void Gui::RenderGizmo(std::shared_ptr<Registry> registry)
 			glm::vec3 lastTranslation, lastScale, lastRotation;
 			ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(transformComponent->transform), glm::value_ptr(lastTranslation), glm::value_ptr(lastRotation), glm::value_ptr(lastScale));
 
-			switch (currentOperation)
+			switch (gizmoConfig.operation)
 			{
 			case ImGuizmo::TRANSLATE:
 				transformComponent->translation += translation - lastTranslation;
@@ -306,15 +414,15 @@ void Gui::RenderGizmo(std::shared_ptr<Registry> registry)
 
 		if (ImGui::IsKeyPressed(ImGuiKey_1))
 		{
-			currentOperation = ImGuizmo::TRANSLATE;
+			gizmoConfig.operation = ImGuizmo::TRANSLATE;
 		}
 		else if (ImGui::IsKeyPressed(ImGuiKey_2))
 		{
-			currentOperation = ImGuizmo::ROTATE;
+			gizmoConfig.operation = ImGuizmo::ROTATE;
 		}
 		else if (ImGui::IsKeyPressed(ImGuiKey_3))
 		{
-			currentOperation = ImGuizmo::SCALE;
+			gizmoConfig.operation = ImGuizmo::SCALE;
 		}
 	}
 }
