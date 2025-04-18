@@ -29,8 +29,6 @@ void Scene::Initialize()
 void Scene::InitializeRegistry()
 {
 	registry = std::make_shared<Registry>();
-	registry->RegisterView<TransformComponent, ShapeComponent, DefaultColliderComponent>();
-	registry->RegisterView<TransformComponent, ModelComponent, DefaultColliderComponent>();
 
 	std::random_device dev;
 	std::mt19937 rng(dev());
@@ -47,7 +45,7 @@ void Scene::InitializeRegistry()
 	std::array<std::string, 5> shapes = { "Cube", "Sphere", "Cone", "Pyramid", "Cylinder" };
 	std::uniform_int_distribution<size_t> shapeDist(0, shapes.size() - 1); // for shape selection
 
-	for (uint32_t i = 0; i < 100000; ++i)
+	for (uint32_t i = 0; i < 2000; ++i)
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, MaterialComponent, ShapeComponent, DefaultColliderComponent>(entity);
@@ -81,7 +79,6 @@ void Scene::InitializeRegistry()
 
 void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
 {
-	/*
 	//Update Registry Transforms
 	std::random_device dev;
 	std::mt19937 rng(dev());
@@ -100,7 +97,6 @@ void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
 			}
 		);
 	}
-	*/
 
 	//Update Camera Size
 	auto viewPortSize = resourceManager->GetVulkanManager()->GetFrameDependentFrameBuffer("Main", frameIndex)->GetSize();
