@@ -4,7 +4,7 @@
 
 namespace Vk
 {
-	constexpr uint32_t MAX_SAMPLER_MIMAP_LEVEL = 8;
+	constexpr uint32_t MAX_SAMPLER_MIMAP_LEVEL = 12;
 
 	struct ENGINE_API ImageSamplerConfig
 	{

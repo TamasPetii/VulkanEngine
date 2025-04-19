@@ -60,7 +60,6 @@ void Scene::InitializeRegistry()
 
 		shapeComponent->shape = resourceManager->GetGeometryManager()->GetShape("Cube");
 	}
-
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
@@ -81,7 +80,6 @@ void Scene::InitializeRegistry()
 		modelComponent->hasDirectxNormals = true;
 	}
 
-	/*
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
@@ -89,7 +87,6 @@ void Scene::InitializeRegistry()
 		transformComponent->scale = glm::vec3(0.05);
 		modelComponent->model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/VulkanEngine/Assets/Sponza/sponza.obj");
 	}
-	*/
 
 	auto& entities = registry->View<TransformComponent, ShapeComponent, DefaultColliderComponent>();
 }

@@ -100,24 +100,9 @@ std::shared_ptr<Vk::Image> ImageManager::LoadImage(const std::string& path, bool
 	std::shared_ptr<Vk::Image> image = nullptr;
 
 	if (extension == ".dds")
-	{
-		gli::texture texture = gli::load(path);
-
-		if (!texture.empty() && texture.target() == gli::target::TARGET_2D && texture.layers() == 1)
-			image = CreateVulkanImage(GliFormatToVulkan(texture.format()), texture.size(0), texture.extent().x, texture.extent().y, false, texture.data(0, 0, 0));
-	}
+		image = CreateVulkanImageWithGli(path);
 	else
-	{
-		int texWidth, texHeight, texChannels;
-		stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-
-		if (!pixels)
-			return nullptr;
-
-		image = CreateVulkanImage(VK_FORMAT_R8G8B8A8_UNORM, texWidth * texHeight * 4, texWidth, texHeight, useMipMap, pixels);
-
-		stbi_image_free(pixels);
-	}
+		image = CreateVulkanImageWithStb(path, useMipMap);
 
 	if (!image)
 		return nullptr;
@@ -127,8 +112,122 @@ std::shared_ptr<Vk::Image> ImageManager::LoadImage(const std::string& path, bool
 	return images.at(path);
 }
 
-std::shared_ptr<Vk::Image> ImageManager::CreateVulkanImage(VkFormat format, VkDeviceSize size, int width, int height, bool useMipMap, void* data)
+std::shared_ptr<Vk::Image> ImageManager::CreateVulkanImageWithGli(const std::string& path)
 {
+	gli::texture texture = gli::load(path);
+
+	if (texture.empty() || texture.target() != gli::target::TARGET_2D || texture.layers() != 1)
+		return nullptr;
+
+	uint32_t texSize = texture.size();
+	uint32_t texWidth = texture.extent().x;
+	uint32_t texHeight = texture.extent().y;
+	uint32_t mipMapLevel = texture.levels();
+	VkFormat format = GliFormatToVulkan(texture.format());
+
+	Vk::ImageSpecification imageSpec;
+	imageSpec.width = texWidth;
+	imageSpec.height = texHeight;
+	imageSpec.type = VK_IMAGE_TYPE_2D;
+	imageSpec.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	imageSpec.format = format;
+	imageSpec.tiling = VK_IMAGE_TILING_OPTIMAL;
+	imageSpec.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	imageSpec.aspectFlag = VK_IMAGE_ASPECT_COLOR_BIT;
+	imageSpec.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+	imageSpec.mipmapLevel = mipMapLevel;
+	std::shared_ptr<Vk::Image> image = std::make_shared<Vk::Image>(imageSpec, GetAvailableIndex());
+
+	for (uint32_t level = 0; level < imageSpec.mipmapLevel; ++level)
+	{
+		Vk::BufferConfig stagingConfig;
+		stagingConfig.size = texSize;
+		stagingConfig.usage = VK_BUFFER_USAGE_2_TRANSFER_SRC_BIT;
+		stagingConfig.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+		Vk::Buffer stagingBuffer{ stagingConfig };
+
+		Vk::VulkanContext::GetContext()->GetImmediateQueue()->Submit(
+			[&](VkCommandBuffer commandBuffer) -> void 
+			{
+				Vk::Image::TransitionImageLayoutDynamic(commandBuffer, image->Value(),
+					VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, VK_ACCESS_2_NONE,
+					VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT, 1, level);
+
+				uint32_t mipWidth = texture.extent(level).x;
+				uint32_t mipHeight = texture.extent(level).y;
+				VkDeviceSize mipSize = texture.size(level);
+				void* data = texture.data(0, 0, level);
+
+				void* mappedBuffer = stagingBuffer.MapMemory();
+				memcpy(mappedBuffer, data, (size_t)mipSize);
+				stagingBuffer.UnmapMemory();
+
+				Vk::Buffer::CopyBufferToImage(commandBuffer, stagingBuffer.Value(), image->Value(), mipWidth, mipHeight, level);
+
+				Vk::Image::TransitionImageLayoutDynamic(commandBuffer, image->Value(),
+					VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, VK_ACCESS_2_SHADER_READ_BIT, 1, level);
+			}
+		);
+	}
+
+
+
+	/*
+	Vk::BufferConfig stagingConfig;
+	stagingConfig.size = texSize;
+	stagingConfig.usage = VK_BUFFER_USAGE_2_TRANSFER_SRC_BIT;
+	stagingConfig.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+	Vk::Buffer stagingBuffer{ stagingConfig };
+
+	Vk::VulkanContext::GetContext()->GetImmediateQueue()->Submit(
+		[&](VkCommandBuffer commandBuffer) -> void {
+			//Transition all image mipmap layers at once
+			Vk::Image::TransitionImageLayoutDynamic(commandBuffer, image->Value(),
+				VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, VK_ACCESS_2_NONE,
+				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT, imageSpec.mipmapLevel);
+
+			for (uint32_t level = 0; level < imageSpec.mipmapLevel; ++level)
+			{
+				uint32_t mipWidth = texture.extent(level).x;
+				uint32_t mipHeight = texture.extent(level).y;
+				VkDeviceSize mipSize = texture.size(level);
+				void* data = texture.data(0, 0, level);
+
+				void* mappedBuffer = stagingBuffer.MapMemory();
+				memcpy(mappedBuffer, data, (size_t)mipSize);
+				stagingBuffer.UnmapMemory();
+
+				Vk::Buffer::CopyBufferToImage(commandBuffer, stagingBuffer.Value(), image->Value(), mipWidth, mipHeight, level);
+
+				Vk::Image::TransitionImageLayoutDynamic(commandBuffer, image->Value(),
+					VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT,
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, VK_ACCESS_2_SHADER_READ_BIT, 1, level);
+			}
+		}
+	);
+	*/
+
+	return image;
+}
+
+std::shared_ptr<Vk::Image> ImageManager::CreateVulkanImageWithStb(const std::string& path, bool generateMipMap)
+{
+	int width, height, channels;
+	stbi_uc* data = stbi_load(path.c_str(), &width, &height, &channels, STBI_rgb_alpha);
+
+	if (!data)
+		return nullptr;
+
+	uint32_t texWidth = static_cast<uint32_t>(width);
+	uint32_t texHeight = static_cast<uint32_t>(height);
+	VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
+	VkDeviceSize size = texWidth * texHeight * 4;
+	uint32_t mipMapLevel = 1;
+
+	if(generateMipMap && Vk::Image::ImageFormatSupportsLinearMipMap(format))
+		mipMapLevel = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
+
 	Vk::BufferConfig stagingConfig;
 	stagingConfig.size = size;
 	stagingConfig.usage = VK_BUFFER_USAGE_2_TRANSFER_SRC_BIT;
@@ -139,9 +238,11 @@ std::shared_ptr<Vk::Image> ImageManager::CreateVulkanImage(VkFormat format, VkDe
 	memcpy(mappedBuffer, data, (size_t)size);
 	stagingBuffer.UnmapMemory();
 
+	stbi_image_free(data);
+
 	Vk::ImageSpecification imageSpec;
-	imageSpec.width = static_cast<uint32_t>(width);
-	imageSpec.height = static_cast<uint32_t>(height);
+	imageSpec.width = texWidth;
+	imageSpec.height = texHeight;
 	imageSpec.type = VK_IMAGE_TYPE_2D;
 	imageSpec.viewType = VK_IMAGE_VIEW_TYPE_2D;
 	imageSpec.format = format;
@@ -149,14 +250,12 @@ std::shared_ptr<Vk::Image> ImageManager::CreateVulkanImage(VkFormat format, VkDe
 	imageSpec.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 	imageSpec.aspectFlag = VK_IMAGE_ASPECT_COLOR_BIT;
 	imageSpec.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-
-	if (useMipMap && Vk::Image::ImageFormatSupportsLinearMipMap(imageSpec.format))
-		imageSpec.mipmapLevel = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
-
+	imageSpec.mipmapLevel = mipMapLevel;
 	std::shared_ptr<Vk::Image> image = std::make_shared<Vk::Image>(imageSpec, GetAvailableIndex());
 
 	Vk::VulkanContext::GetContext()->GetImmediateQueue()->Submit(
 		[&](VkCommandBuffer commandBuffer) -> void {
+			//Transition all image mipmap layers at once
 			Vk::Image::TransitionImageLayoutDynamic(commandBuffer, image->Value(),
 				VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, VK_ACCESS_2_NONE,
 				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT, imageSpec.mipmapLevel);
