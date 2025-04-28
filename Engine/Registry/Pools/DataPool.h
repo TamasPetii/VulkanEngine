@@ -1,5 +1,6 @@
 #pragma once
 #include "SparseSet.h"
+#include <stdexcept>
 
 template<typename T>
 class DataPool : public virtual SparseSet
@@ -9,7 +10,7 @@ public:
 	virtual void Remove(uint32_t index) override;
 	virtual void Add(uint32_t index) override;
 	virtual void Add(uint32_t index, const T& data);
-	T* GetData(uint32_t index);
+	T& GetData(uint32_t index);
 	const auto& GetDenseData() { return denseDatas; }
 protected:
 	void RemoveData(const RemoveContext& context);
@@ -50,12 +51,13 @@ inline void DataPool<T>::Add(uint32_t index, const T& data)
 }
 
 template<typename T>
-inline T* DataPool<T>::GetData(uint32_t index)
+inline T& DataPool<T>::GetData(uint32_t index)
 {
+	[[unlikely]]
 	if (!ContainsIndex(index))
-		return nullptr;
+		throw std::runtime_error("Invalid index for accesing bitset component!");
 
-	return &denseDatas[sparseIndices[GetPageIndex(index)][GetPageOffset(index)]];
+	return denseDatas[sparseIndices[GetPageIndex(index)][GetPageOffset(index)]];
 }
 
 template<typename T>

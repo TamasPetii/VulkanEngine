@@ -18,32 +18,32 @@ void FrustumCullingSystem::OnUpdate(std::shared_ptr<Registry> registry, std::sha
 		return;
 
 	Entity cameraEntity = CameraSystem::GetMainCameraEntity(registry);
-	auto cameraComponent = cameraPool->GetData(cameraEntity);
+	auto& cameraComponent = cameraPool->GetData(cameraEntity);
 
 	FrustumCollider frustumCollider{};
 
-	float fovY = glm::radians(cameraComponent->fov);
-	float aspectRatio = cameraComponent->width / cameraComponent->height;
-	float halfV = cameraComponent->farPlane * tanf(fovY * 0.5f);
+	float fovY = glm::radians(cameraComponent.fov);
+	float aspectRatio = cameraComponent.width / cameraComponent.height;
+	float halfV = cameraComponent.farPlane * tanf(fovY * 0.5f);
 	float halfH = halfV * aspectRatio;
 
 	//NearFace
-	frustumCollider.faces[0] = FrustumFace(cameraComponent->direction, cameraComponent->position + cameraComponent->direction * cameraComponent->nearPlane);
+	frustumCollider.faces[0] = FrustumFace(cameraComponent.direction, cameraComponent.position + cameraComponent.direction * cameraComponent.nearPlane);
 	
 	//RightFace
-	frustumCollider.faces[1] = FrustumFace(-glm::cross(glm::normalize(cameraComponent->direction * cameraComponent->farPlane + cameraComponent->right * halfH), cameraComponent->up), cameraComponent->position);
+	frustumCollider.faces[1] = FrustumFace(-glm::cross(glm::normalize(cameraComponent.direction * cameraComponent.farPlane + cameraComponent.right * halfH), cameraComponent.up), cameraComponent.position);
 
 	//LeftFace
-	frustumCollider.faces[2] = FrustumFace(-glm::cross(cameraComponent->up, glm::normalize(cameraComponent->direction * cameraComponent->farPlane - cameraComponent->right * halfH)), cameraComponent->position);
+	frustumCollider.faces[2] = FrustumFace(-glm::cross(cameraComponent.up, glm::normalize(cameraComponent.direction * cameraComponent.farPlane - cameraComponent.right * halfH)), cameraComponent.position);
 
 	//TopFace
-	frustumCollider.faces[3] = FrustumFace(-glm::cross(cameraComponent->right, glm::normalize(cameraComponent->direction * cameraComponent->farPlane + cameraComponent->up * halfV)), cameraComponent->position);
+	frustumCollider.faces[3] = FrustumFace(-glm::cross(cameraComponent.right, glm::normalize(cameraComponent.direction * cameraComponent.farPlane + cameraComponent.up * halfV)), cameraComponent.position);
 
 	//BottomFace
-	frustumCollider.faces[4] = FrustumFace(-glm::cross(glm::normalize(cameraComponent->direction * cameraComponent->farPlane - cameraComponent->up * halfV), cameraComponent->right), cameraComponent->position);
+	frustumCollider.faces[4] = FrustumFace(-glm::cross(glm::normalize(cameraComponent.direction * cameraComponent.farPlane - cameraComponent.up * halfV), cameraComponent.right), cameraComponent.position);
 
 	//FarFace
-	frustumCollider.faces[5] = FrustumFace(-cameraComponent->direction, cameraComponent->position + cameraComponent->direction * cameraComponent->farPlane);
+	frustumCollider.faces[5] = FrustumFace(-cameraComponent.direction, cameraComponent.position + cameraComponent.direction * cameraComponent.farPlane);
 
 	DefaultColliderCulling(registry, &frustumCollider);
 }
@@ -64,17 +64,17 @@ void FrustumCullingSystem::DefaultColliderCulling(std::shared_ptr<Registry> regi
 
 	std::for_each(std::execution::par, defaultColliderPool->GetDenseIndices().begin(), defaultColliderPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
-			bool hasShape = shapePool && shapePool->HasComponent(entity) && shapePool->GetData(entity)->shape != nullptr;
-			bool hasModel = modelPool && modelPool->HasComponent(entity) && modelPool->GetData(entity)->model != nullptr;
+			bool hasShape = shapePool && shapePool->HasComponent(entity) && shapePool->GetData(entity).shape != nullptr;
+			bool hasModel = modelPool && modelPool->HasComponent(entity) && modelPool->GetData(entity).model != nullptr;
 
 			if (transformPool->HasComponent(entity) && (hasShape || hasModel))
 			{
-				auto defaultColliderComponent = defaultColliderPool->GetData(entity);
+				auto& defaultColliderComponent = defaultColliderPool->GetData(entity);
 
 				Simplex simplex;
-				if (TesterFrustum::Test(cameraCollider, static_cast<SphereColliderGJK*>(defaultColliderComponent)))
+				if (TesterFrustum::Test(cameraCollider, static_cast<SphereColliderGJK*>(&defaultColliderComponent)))
 				{
-					RenderComponent* renderComponent = hasShape ? static_cast<RenderComponent*>(shapePool->GetData(entity)) : static_cast<RenderComponent*>(modelPool->GetData(entity));
+					RenderComponent* renderComponent = hasShape ? static_cast<RenderComponent*>(&shapePool->GetData(entity)) : static_cast<RenderComponent*>(&modelPool->GetData(entity));
 					renderComponent->toRender = true;
 				}
 			}

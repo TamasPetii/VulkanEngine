@@ -39,7 +39,7 @@ void Scene::InitializeRegistry()
 	{ //Camera
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, CameraComponent>(entity);
-		registry->GetComponent<CameraComponent>(entity)->isMain = true;
+		registry->GetComponent<CameraComponent>(entity).isMain = true;
 	}
 
 	std::array<std::string, 5> shapes = { "Cube", "Sphere", "Cone", "Pyramid", "Cylinder" };
@@ -51,14 +51,17 @@ void Scene::InitializeRegistry()
 		registry->AddComponents<TransformComponent, MaterialComponent, ShapeComponent, DefaultColliderComponent>(entity);
 
 		auto [transformComponent, materialComponent, shapeComponent] = registry->GetComponents<TransformComponent, MaterialComponent, ShapeComponent>(entity);
-		transformComponent->rotation = 180.f * glm::vec3(dist(rng), dist(rng), dist(rng));
-		transformComponent->translation = 100.f * glm::vec3(dist(rng), dist(rng), dist(rng));
-		transformComponent->scale = glm::vec3(1);
+		transformComponent.rotation = 180.f * glm::vec3(dist(rng), dist(rng), dist(rng));
+		transformComponent.translation = 100.f * glm::vec3(dist(rng), dist(rng), dist(rng));
+		transformComponent.scale = glm::vec3(1);
 
-		materialComponent->color = glm::vec4(dist(rng), dist(rng), dist(rng), 1);
-		materialComponent->albedo = resourceManager->GetImageManager()->LoadImage("../Assets/Texture.jpg");
+		materialComponent.color = glm::vec4(dist(rng), dist(rng), dist(rng), 1);
+		materialComponent.albedo = resourceManager->GetImageManager()->LoadImage("../Assets/Texture.jpg");
 
-		shapeComponent->shape = resourceManager->GetGeometryManager()->GetShape("Cube");
+		if (i > 50)
+			registry->SetParent(entity, (uint32_t)(1 + dist(rng) * 40));
+
+		shapeComponent.shape = resourceManager->GetGeometryManager()->GetShape("Cube");
 	}
 
 	/*
@@ -119,12 +122,12 @@ void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
 
 	//Update Camera Size
 	auto viewPortSize = resourceManager->GetVulkanManager()->GetFrameDependentFrameBuffer("Main", frameIndex)->GetSize();
-	auto cameraComponent = registry->GetComponent<CameraComponent>(0);
-	if (viewPortSize.width != cameraComponent->width || viewPortSize.height != cameraComponent->height)
+	auto& cameraComponent = registry->GetComponent<CameraComponent>(0);
+	if (viewPortSize.width != cameraComponent.width || viewPortSize.height != cameraComponent.height)
 	{
-		cameraComponent->width = viewPortSize.width;
-		cameraComponent->height = viewPortSize.height;
-		registry->GetPool<CameraComponent>()->GetBitset(0)->set(UPDATE_BIT, true);
+		cameraComponent.width = viewPortSize.width;
+		cameraComponent.height = viewPortSize.height;
+		registry->GetPool<CameraComponent>()->GetBitset(0).set(UPDATE_BIT, true);
 	}
 
 	UpdateSystems(frameTimer->GetFrameDeltaTime());

@@ -21,7 +21,7 @@ public:
 	void SetBit(uint32_t index);
 	template<uint32_t... bitIndex>
 	void ResetBit(uint32_t index);
-	virtual BitsetFlag* GetBitset(uint32_t index);
+	virtual BitsetFlag& GetBitset(uint32_t index);
 	const auto& GetDenseBitsets() { return denseBitsets; }
 protected:
 	void AddBitset();
@@ -33,20 +33,20 @@ protected:
 template<uint32_t ...bitIndex>
 inline bool BitsetPool::IsBitSet(uint32_t index)
 {
-	auto bitset = GetBitset(index);
-	return (bitset->test(bitIndex) && ...);
+	auto& bitset = GetBitset(index);
+	return (bitset.test(bitIndex) && ...);
 }
 
 template<uint32_t ...bitIndex>
 inline void BitsetPool::SetBit(uint32_t index)
 {
-	auto bitset = GetBitset(index);
-	(bitset->set(bitIndex, true), ...);
+	auto& bitset = GetBitset(index);
+	(bitset.set(bitIndex, true), ...);
 }
 
 template<uint32_t ...bitIndex>
 inline void BitsetPool::ResetBit(uint32_t index)
 {
-	auto bitset = GetBitset(index);
-	(bitset->set(bitIndex, false), ...);
+	auto& bitset = GetBitset(index);
+	(bitset.set(bitIndex, false), ...);
 }

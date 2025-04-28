@@ -13,9 +13,9 @@ void MaterialSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_pt
 			[[unlikely]]
 			if (materialPool->IsBitSet<UPDATE_BIT>(entity))
 			{
-				auto materialComponent = materialPool->GetData(entity);
+				auto& materialComponent = materialPool->GetData(entity);
 				materialPool->SetBit<CHANGED_BIT>(entity);
-				materialComponent->versionID++;
+				materialComponent.versionID++;
 			}
 		}
 	);
@@ -30,7 +30,7 @@ void MaterialSystem::OnFinish(std::shared_ptr<Registry> registry)
 
 	std::for_each(std::execution::par, materialPool->GetDenseIndices().begin(), materialPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
-			materialPool->GetBitset(entity)->reset();
+			materialPool->GetBitset(entity).reset();
 		}
 	);
 }
@@ -47,14 +47,14 @@ void MaterialSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shar
 
 	std::for_each(std::execution::par, materialPool->GetDenseIndices().begin(), materialPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
-			auto materialComponent = materialPool->GetData(entity);
+			auto& materialComponent = materialPool->GetData(entity);
 			auto materialIndex = materialPool->GetDenseIndex(entity);
 
 			[[unlikely]]
-			if (componentBuffer->versions[materialIndex] != materialComponent->versionID)
+			if (componentBuffer->versions[materialIndex] != materialComponent.versionID)
 			{
-				componentBuffer->versions[materialIndex] = materialComponent->versionID;
-				bufferHandler[materialIndex] = MaterialComponentGPU(*materialComponent);
+				componentBuffer->versions[materialIndex] = materialComponent.versionID;
+				bufferHandler[materialIndex] = MaterialComponentGPU(materialComponent);
 			}
 		}
 	);

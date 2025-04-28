@@ -21,6 +21,7 @@ private:
 template<typename T>
 UniqueID Unique::typeIndex()
 {
+    [[unlikely]]
     if (typeIndices.find(typeid(T)) == typeIndices.end())
     {
         static const UniqueID value = identifier();

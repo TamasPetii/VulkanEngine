@@ -1,14 +1,14 @@
 #pragma once
-#include "../EngineApi.h"
+#include "Engine/EngineApi.h"
 #include "Entity.h"
-#include <vector>
+#include <set>
 
-constexpr uint32_t MAX_RELATIONSHIP_DEPTH = 8;
+constexpr uint32_t MAX_RELATIONSHIP_DEPTH = 16;
 
 struct ENGINE_API Relationship
 {
 	uint32_t level = 0;
 	Parent parent = NULL_ENTITY;
-	std::vector<Child> children;
+	std::set<Child> children;
 };
 

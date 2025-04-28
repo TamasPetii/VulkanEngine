@@ -4,8 +4,10 @@
 #include "Unique.h"
 
 #include <set>
+#include <array>
 #include <memory>
 #include <unordered_map>
+#include "Relationship.h"
 
 using ComponentBitsetMask = std::bitset<32>;
 
@@ -17,6 +19,9 @@ public:
 	void DestroyEntity(Entity entity);
 	void SetActiveEntity(Entity entity);
 	Entity GetActiveEntity();
+	void SetParent(Entity entity, Parent parent);
+	bool IsDeepConnected(Entity entity, Parent parent);
+	auto& GetLevels() { return levels; }
 public:
 	template<typename... T>
 	void RegisterView();
@@ -31,9 +36,9 @@ public:
 	template <typename... T>
 	bool HasComponents(Entity entity);
 	template <typename T>
-	T* GetComponent(Entity entity);
+	T& GetComponent(Entity entity);
 	template <typename... T>
-	std::tuple<T*...> GetComponents(Entity entity);
+	std::tuple<T&...> GetComponents(Entity entity);
 	template <typename... T>
 	void AddComponents(Entity entity);
 	template <typename... T>
@@ -41,6 +46,7 @@ public:
 	template <typename... T>
 	void RemoveComponents(Entity entity);
 private:
+	void RefreshChildLevelDeep(Entity entity);
 	template <typename T>
 	void AddComponent(Entity entity, const T& component);
 	template <typename T>
@@ -55,6 +61,7 @@ private:
 	std::set<Entity> destroyedEntities;
 	DataPool<IComponentPool*> pools;
 	std::unordered_map<ComponentBitsetMask, SparseSet> views;
+	std::array<std::set<Entity>, MAX_RELATIONSHIP_DEPTH> levels;
 };
 
 #include "Registry.inl"

@@ -21,8 +21,8 @@ void CameraSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<
 
 			if (cameraPool->IsBitSet<UPDATE_BIT>(entity))
 			{
-				auto transformComponent = transformPool->GetData(entity);
-				auto cameraComponent = cameraPool->GetData(entity);
+				auto& transformComponent = transformPool->GetData(entity);
+				auto& cameraComponent = cameraPool->GetData(entity);
 
 				float forward = 0;
 				float sideways = 0;
@@ -39,36 +39,36 @@ void CameraSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<
 				if (inputManager->IsButtonHeld(BUTTON_RIGHT))
 				{
 					auto deltaPos = inputManager->GetMouseDelta();
-					cameraComponent->yaw += cameraComponent->sensitivity * deltaPos.first;
-					cameraComponent->pitch += cameraComponent->sensitivity * -1 * deltaPos.second;
-					cameraComponent->pitch = glm::clamp<float>(cameraComponent->pitch, -89.f, 89.f);
+					cameraComponent.yaw += cameraComponent.sensitivity * deltaPos.first;
+					cameraComponent.pitch += cameraComponent.sensitivity * -1 * deltaPos.second;
+					cameraComponent.pitch = glm::clamp<float>(cameraComponent.pitch, -89.f, 89.f);
 				}
 
 				glm::vec3 direction{
-					glm::cos(glm::radians(cameraComponent->yaw)) * glm::cos(glm::radians(cameraComponent->pitch)),
-					glm::sin(glm::radians(cameraComponent->pitch)),
-					glm::sin(glm::radians(cameraComponent->yaw)) * glm::cos(glm::radians(cameraComponent->pitch))
+					glm::cos(glm::radians(cameraComponent.yaw)) * glm::cos(glm::radians(cameraComponent.pitch)),
+					glm::sin(glm::radians(cameraComponent.pitch)),
+					glm::sin(glm::radians(cameraComponent.yaw)) * glm::cos(glm::radians(cameraComponent.pitch))
 				};
 
 				constexpr glm::vec3 worldUp = glm::vec3(0, 1, 0);
 
-				cameraComponent->direction = glm::normalize(direction);
-				cameraComponent->right = glm::normalize(glm::cross(cameraComponent->direction, worldUp));
-				cameraComponent->up = glm::normalize(glm::cross(cameraComponent->right, cameraComponent->direction));
-				cameraComponent->position += (forward * cameraComponent->direction + sideways * cameraComponent->right) * cameraComponent->speed * deltaTime;
-				cameraComponent->target = cameraComponent->position + cameraComponent->direction;
+				cameraComponent.direction = glm::normalize(direction);
+				cameraComponent.right = glm::normalize(glm::cross(cameraComponent.direction, worldUp));
+				cameraComponent.up = glm::normalize(glm::cross(cameraComponent.right, cameraComponent.direction));
+				cameraComponent.position += (forward * cameraComponent.direction + sideways * cameraComponent.right) * cameraComponent.speed * deltaTime;
+				cameraComponent.target = cameraComponent.position + cameraComponent.direction;
 
-				cameraComponent->view = glm::lookAt(cameraComponent->position, cameraComponent->target, worldUp);
-				cameraComponent->viewInv = glm::inverse(cameraComponent->view);
+				cameraComponent.view = glm::lookAt(cameraComponent.position, cameraComponent.target, worldUp);
+				cameraComponent.viewInv = glm::inverse(cameraComponent.view);
 
-				cameraComponent->proj = glm::perspective(glm::radians(cameraComponent->fov), cameraComponent->width / cameraComponent->height, cameraComponent->nearPlane, cameraComponent->farPlane);
-				cameraComponent->projInv = glm::inverse(cameraComponent->proj);
+				cameraComponent.proj = glm::perspective(glm::radians(cameraComponent.fov), cameraComponent.width / cameraComponent.height, cameraComponent.nearPlane, cameraComponent.farPlane);
+				cameraComponent.projInv = glm::inverse(cameraComponent.proj);
 
-				cameraComponent->viewProj = cameraComponent->proj * cameraComponent->view;
-				cameraComponent->viewProjInv = glm::inverse(cameraComponent->viewProj);
+				cameraComponent.viewProj = cameraComponent.proj * cameraComponent.view;
+				cameraComponent.viewProjInv = glm::inverse(cameraComponent.viewProj);
 
 				cameraPool->SetBit<CHANGED_BIT>(entity);
-				cameraComponent->versionID++;
+				cameraComponent.versionID++;
 			}
 		}
 	);
@@ -83,7 +83,7 @@ void CameraSystem::OnFinish(std::shared_ptr<Registry> registry)
 
 	std::for_each(std::execution::par, cameraPool->GetDenseIndices().begin(), cameraPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
-			cameraPool->GetBitset(entity)->reset();
+			cameraPool->GetBitset(entity).reset();
 		}
 	);
 }
@@ -100,19 +100,19 @@ void CameraSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared
 
 	std::for_each(std::execution::par, cameraPool->GetDenseIndices().begin(), cameraPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
-			auto cameraComponent = cameraPool->GetData(entity);
+			auto& cameraComponent = cameraPool->GetData(entity);
 			auto cameraIndex = cameraPool->GetDenseIndex(entity);
 
-			if (componentBuffer->versions[cameraIndex] != cameraComponent->versionID)
+			if (componentBuffer->versions[cameraIndex] != cameraComponent.versionID)
 			{
-				CameraComponent component = *cameraComponent;
+				CameraComponent component = cameraComponent;
 
 				component.proj[1][1] *= -1;
 				component.projInv = glm::inverse(component.proj);
 				component.viewProj = component.proj * component.view;
 				component.viewProjInv = glm::inverse(component.viewProj);
 
-				componentBuffer->versions[cameraIndex] = cameraComponent->versionID;
+				componentBuffer->versions[cameraIndex] = cameraComponent.versionID;
 				bufferHandler[cameraIndex] = CameraComponentGPU(component);
 			}
 		}
@@ -128,7 +128,7 @@ Entity CameraSystem::GetMainCameraEntity(std::shared_ptr<Registry> registry)
 
 	for (Entity entity : cameraPool->GetDenseIndices())
 	{
-		if (cameraPool->GetData(entity)->isMain)
+		if (cameraPool->GetData(entity).isMain)
 			return entity;
 	}
 

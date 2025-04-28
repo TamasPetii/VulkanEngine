@@ -1,4 +1,5 @@
 #include "BitsetPool.h"
+#include <stdexcept>
 
 void BitsetPool::Remove(uint32_t index)
 {
@@ -22,12 +23,13 @@ void BitsetPool::Add(uint32_t index)
 	}
 }
 
-BitsetFlag* BitsetPool::GetBitset(uint32_t index)
+BitsetFlag& BitsetPool::GetBitset(uint32_t index)
 {
+	[[unlikely]]
 	if (!ContainsIndex(index))
-		return nullptr;
+		throw std::runtime_error("Invalid index for accesing bitset component!");
 
-	return &denseBitsets[sparseIndices[GetPageIndex(index)][GetPageOffset(index)]];
+	return denseBitsets[sparseIndices[GetPageIndex(index)][GetPageOffset(index)]];
 }
 
 void BitsetPool::AddBitset()

@@ -127,7 +127,7 @@ void ViewportWindow::RenderGizmo(std::shared_ptr<Registry> registry)
 		return;
 
 	auto cameraEntity = CameraSystem::GetMainCameraEntity(registry);
-	auto cameraComponent = cameraPool->GetData(cameraEntity);
+	auto& cameraComponent = cameraPool->GetData(cameraEntity);
 	auto activeEntity = registry->GetActiveEntity();
 
 	if (activeEntity != NULL_ENTITY && transformPool->HasComponent(activeEntity))
@@ -146,10 +146,10 @@ void ViewportWindow::RenderGizmo(std::shared_ptr<Registry> registry)
 			break;
 		}
 
-		glm::mat4 viewMatrix = cameraComponent->view;
-		glm::mat4 projectionMatrix = cameraComponent->proj;
-		auto transformComponent = registry->GetComponent<TransformComponent>(activeEntity);
-		auto transform = transformComponent->transform;
+		glm::mat4 viewMatrix = cameraComponent.view;
+		glm::mat4 projectionMatrix = cameraComponent.proj;
+		auto& transformComponent = registry->GetComponent<TransformComponent>(activeEntity);
+		auto transform = transformComponent.transform;
 
 		ImGuizmo::BeginFrame();
 		ImGuizmo::Enable(true);
@@ -164,20 +164,20 @@ void ViewportWindow::RenderGizmo(std::shared_ptr<Registry> registry)
 			ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(transform), glm::value_ptr(translation), glm::value_ptr(rotation), glm::value_ptr(scale));
 
 			glm::vec3 lastTranslation, lastScale, lastRotation;
-			ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(transformComponent->transform), glm::value_ptr(lastTranslation), glm::value_ptr(lastRotation), glm::value_ptr(lastScale));
+			ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(transformComponent.transform), glm::value_ptr(lastTranslation), glm::value_ptr(lastRotation), glm::value_ptr(lastScale));
 
 			switch (gizmoConfig.operation)
 			{
 			case ImGuizmo::TRANSLATE:
-				transformComponent->translation += translation - lastTranslation;
+				transformComponent.translation += translation - lastTranslation;
 				transformPool->SetBit<UPDATE_BIT>(activeEntity);
 				break;
 			case ImGuizmo::ROTATE:
-				transformComponent->rotation += rotation - lastRotation;
+				transformComponent.rotation += rotation - lastRotation;
 				transformPool->SetBit<UPDATE_BIT>(activeEntity);
 				break;
 			case ImGuizmo::SCALE:
-				transformComponent->scale += scale - lastScale;
+				transformComponent.scale += scale - lastScale;
 				transformPool->SetBit<UPDATE_BIT>(activeEntity);
 				break;
 			}
