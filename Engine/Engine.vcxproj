@@ -163,6 +163,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Vulkan\ComputePipeline.h" />
     <ClInclude Include="Registry\Pools\ComponentPool.h" />
     <ClInclude Include="Registry\Pools\DataPool.h" />
     <ClInclude Include="Registry\Pools\BitsetPool.h" />
@@ -265,6 +266,7 @@
     <ClInclude Include="Logger\Logger.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Vulkan\ComputePipeline.cpp" />
     <ClCompile Include="Registry\Pools\ComponentPool.cpp" />
     <ClCompile Include="Registry\Pools\DataPool.cpp" />
     <ClCompile Include="Registry\Pools\BitsetPool.cpp" />

@@ -26,18 +26,18 @@ inline void Registry::RegisterView()
 }
 
 template<typename T>
-inline std::shared_ptr<ComponentPool<T>> Registry::GetPool()
+inline ComponentPool<T>* Registry::GetPool()
 {
 	UniqueID type_index = Unique::typeIndex<T>();
 
 	if (!pools.ContainsIndex(type_index))
 		return nullptr;
 
-	return std::static_pointer_cast<ComponentPool<T>>(*pools.GetData(type_index));
+	return static_cast<ComponentPool<T>*>(*pools.GetData(type_index));
 }
 
 template<typename ...T>
-inline std::tuple<std::shared_ptr<ComponentPool<T>>...> Registry::GetPools()
+inline std::tuple<ComponentPool<T>*...> Registry::GetPools()
 {
 	return { GetPool<T>()... };
 }
@@ -58,11 +58,11 @@ inline bool Registry::HasComponents(Entity entity)
 template<typename T>
 inline T* Registry::GetComponent(Entity entity)
 {
+#ifndef NDEBUG
 	if (!HasComponent<T>(entity))
 		return nullptr;
-
-	UniqueID type_index = Unique::typeIndex<T>();
-	return std::static_pointer_cast<ComponentPool<T>>(*pools.GetData(type_index))->GetData(entity);
+#endif
+	return static_cast<ComponentPool<T>*>(*pools.GetData(Unique::typeIndex<T>()))->GetData(entity);
 }
 
 template<typename ...T>
@@ -79,10 +79,11 @@ inline void Registry::AddComponent(Entity entity, const T& component)
 
 	UniqueID type_index = Unique::typeIndex<T>();
 
+	[[unlikely]]
 	if (!pools.ContainsIndex(type_index))
-		pools.Add(type_index, std::make_shared<ComponentPool<T>>());
+		pools.Add(type_index, new ComponentPool<T>);
 
-	std::static_pointer_cast<ComponentPool<T>>(*pools.GetData(type_index))->Add(entity, component);
+	static_cast<ComponentPool<T>*>(*pools.GetData(type_index))->Add(entity, component);
 }
 
 template<typename ...T>

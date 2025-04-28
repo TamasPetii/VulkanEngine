@@ -23,9 +23,9 @@ public:
 	template<typename... T>
 	const std::vector<Entity>& View();
 	template<typename T>
-	std::shared_ptr<ComponentPool<T>> GetPool();
+	ComponentPool<T>* GetPool();
 	template <typename... T>
-	std::tuple<std::shared_ptr<ComponentPool<T>>...> GetPools();
+	std::tuple<ComponentPool<T>*...> GetPools();
 	template <typename T>
 	bool HasComponent(Entity entity);
 	template <typename... T>
@@ -53,7 +53,7 @@ private:
 	Entity counter = 0;
 	Entity activeEntity = NULL_ENTITY;
 	std::set<Entity> destroyedEntities;
-	DataPool<std::shared_ptr<IComponentPool>> pools;
+	DataPool<IComponentPool*> pools;
 	std::unordered_map<ComponentBitsetMask, SparseSet> views;
 };
 

@@ -315,6 +315,9 @@
     <ClInclude Include="Registry\Pools\ComponentPool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Vulkan\ComputePipeline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -594,6 +597,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Registry\Pools\ComponentPool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Vulkan\ComputePipeline.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
