@@ -53,6 +53,7 @@ namespace Vk
 		Vk::GraphicsPipelineBuilder& ResetToDefault();
 
 		// Core pipeline stages
+		GraphicsPipelineBuilder& AddShaderStage(std::shared_ptr<ShaderModule> shader);
 		GraphicsPipelineBuilder& SetVertexInput(std::span<VkVertexInputBindingDescription> bindings, std::span<VkVertexInputAttributeDescription> attributes);
 		GraphicsPipelineBuilder& SetPrimitiveTopology(VkPrimitiveTopology topology, VkBool32 primitiveRestart = false);
 
