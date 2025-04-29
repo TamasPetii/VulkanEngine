@@ -16,6 +16,8 @@ void ViewportWindow::Render(std::shared_ptr<Registry> registry, std::shared_ptr<
 
 	Window::RenderWindow(windowConfig, [&]() -> void
 		{
+			auto viewPortSize = ImGui::GetContentRegionAvail();
+
 			if (ImGui::BeginMenuBar())
 			{
 				GizmoConfigMenu();
@@ -23,15 +25,15 @@ void ViewportWindow::Render(std::shared_ptr<Registry> registry, std::shared_ptr<
 				ImGui::EndMenuBar();
 			}
 
-			auto viewPortSize = ImGui::GetContentRegionAvail();
+			auto imageSize = ImGui::GetContentRegionAvail();
 
 			uint32_t nextFrameIndex = (frameIndex + 1) % Settings::FRAMES_IN_FLIGHT;
 
 			auto frameBuffer = resourceManager->GetVulkanManager()->GetFrameDependentFrameBuffer("Main", frameIndex);
 			auto nextFrameBuffer = resourceManager->GetVulkanManager()->GetFrameDependentFrameBuffer("Main", nextFrameIndex);
 
-			if (static_cast<uint32_t>(viewPortSize.x) != nextFrameBuffer->GetSize().width || static_cast<uint32_t>(viewPortSize.y) != nextFrameBuffer->GetSize().height)
-				resourceManager->GetVulkanManager()->MarkFrameBufferToResize("Main", nextFrameIndex, static_cast<uint32_t>(viewPortSize.x), static_cast<uint32_t>(viewPortSize.y));
+			if (static_cast<uint32_t>(imageSize.x) != nextFrameBuffer->GetSize().width || static_cast<uint32_t>(imageSize.y) != nextFrameBuffer->GetSize().height)
+				resourceManager->GetVulkanManager()->MarkFrameBufferToResize("Main", nextFrameIndex, static_cast<uint32_t>(imageSize.x), static_cast<uint32_t>(imageSize.y));
 
 			auto sampler = resourceManager->GetVulkanManager()->GetSampler("Nearest")->Value();
 			auto imageView = frameBuffer->GetImage(GetViewportImageName())->GetImageView();
@@ -39,9 +41,12 @@ void ViewportWindow::Render(std::shared_ptr<Registry> registry, std::shared_ptr<
 			VkDescriptorSet image = ImGui_ImplVulkan_AddTexture(sampler, imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 			textureSet.insert(image);
 
-			ImGui::Image((ImTextureID)image, viewPortSize);
+			ImVec2 imageStart = ImVec2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y + ImGui::GetWindowSize().y - imageSize.y);
+			ImVec2 imageEnd = imageSize;
 
-			RenderGizmo(registry);
+			ImGui::Image((ImTextureID)image, imageSize);
+
+			RenderGizmo(registry, imageStart, imageEnd);
 			GetClickedActiveEntity(registry, frameBuffer);		
 		}
 	);
@@ -119,7 +124,7 @@ void ViewportWindow::ViewportImageMenu()
 	}
 }
 
-void ViewportWindow::RenderGizmo(std::shared_ptr<Registry> registry)
+void ViewportWindow::RenderGizmo(std::shared_ptr<Registry> registry, ImVec2 viewPortStart, ImVec2 viewPortEnd)
 {
 	auto [cameraPool, transformPool] = registry->GetPools<CameraComponent, TransformComponent>();
 
@@ -149,35 +154,42 @@ void ViewportWindow::RenderGizmo(std::shared_ptr<Registry> registry)
 		glm::mat4 viewMatrix = cameraComponent.view;
 		glm::mat4 projectionMatrix = cameraComponent.proj;
 		auto& transformComponent = registry->GetComponent<TransformComponent>(activeEntity);
-		auto transform = transformComponent.transform;
+
+		glm::vec3 prevTranslation, prevScale, prevRotation;
+		ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(transformComponent.transform), glm::value_ptr(prevTranslation), glm::value_ptr(prevRotation), glm::value_ptr(prevScale));
+		glm::mat4 transform = transformComponent.transform;
 
 		ImGuizmo::BeginFrame();
 		ImGuizmo::Enable(true);
 		ImGuizmo::SetOrthographic(false);
-		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
+		ImGuizmo::SetRect(viewPortStart.x, viewPortStart.y, viewPortEnd.x, viewPortEnd.y);
 		ImGuizmo::SetDrawlist();
 		ImGuizmo::Manipulate(glm::value_ptr(viewMatrix), glm::value_ptr(projectionMatrix), gizmoConfig.operation, gizmoConfig.mode, glm::value_ptr(transform), NULL, gizmoConfig.useSnap ? snapValue : NULL, NULL, NULL);
 
 		if (ImGuizmo::IsUsing())
 		{
-			glm::vec3 translation, scale, rotation;
-			ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(transform), glm::value_ptr(translation), glm::value_ptr(rotation), glm::value_ptr(scale));
+			auto& relationShip = registry->GetComponent<Relationship>(activeEntity);
+			glm::mat4 localTransform = transform;
+			if (relationShip.parent != NULL_ENTITY && registry->HasComponent<TransformComponent>(relationShip.parent))
+			{
+				localTransform = glm::inverse(registry->GetComponent<TransformComponent>(relationShip.parent).transform) * transform;
+			}
 
-			glm::vec3 lastTranslation, lastScale, lastRotation;
-			ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(transformComponent.transform), glm::value_ptr(lastTranslation), glm::value_ptr(lastRotation), glm::value_ptr(lastScale));
+			glm::vec3 newTranslation, newScale, newRotation;
+			ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(localTransform), glm::value_ptr(newTranslation), glm::value_ptr(newRotation), glm::value_ptr(newScale));
 
 			switch (gizmoConfig.operation)
 			{
 			case ImGuizmo::TRANSLATE:
-				transformComponent.translation += translation - lastTranslation;
+				transformComponent.translation = newTranslation;
 				transformPool->SetBit<UPDATE_BIT>(activeEntity);
 				break;
 			case ImGuizmo::ROTATE:
-				transformComponent.rotation += rotation - lastRotation;
+				transformComponent.rotation = newRotation;
 				transformPool->SetBit<UPDATE_BIT>(activeEntity);
 				break;
 			case ImGuizmo::SCALE:
-				transformComponent.scale += scale - lastScale;
+				transformComponent.scale = newScale;
 				transformPool->SetBit<UPDATE_BIT>(activeEntity);
 				break;
 			}
