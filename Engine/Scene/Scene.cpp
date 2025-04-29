@@ -42,10 +42,38 @@ void Scene::InitializeRegistry()
 		registry->GetComponent<CameraComponent>(entity).isMain = true;
 	}
 
+	{
+		auto entity = registry->CreateEntity();
+		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
+		auto [transformComponent, modelComponent] = registry->GetComponents<TransformComponent, ModelComponent>(entity);
+		transformComponent.rotation.x = -90.f;
+		transformComponent.scale = glm::vec3(0.05);
+		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Bistro_v5_2/BistroExterior.fbx");
+		modelComponent.hasDirectxNormals = true;
+	}
+
+	{
+		auto entity = registry->CreateEntity();
+		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
+		auto [transformComponent, modelComponent] = registry->GetComponents<TransformComponent, ModelComponent>(entity);
+		transformComponent.rotation.x = -90.f;
+		transformComponent.scale = glm::vec3(0.05);
+		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Bistro_v5_2/BistroInterior.fbx");
+		modelComponent.hasDirectxNormals = true;
+	}
+
+	{
+		auto entity = registry->CreateEntity();
+		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
+		auto [transformComponent, modelComponent] = registry->GetComponents<TransformComponent, ModelComponent>(entity);
+		transformComponent.scale = glm::vec3(0.05);
+		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/VulkanEngine/Assets/Sponza/sponza.obj");
+	}
+
 	std::array<std::string, 5> shapes = { "Cube", "Sphere", "Cone", "Pyramid", "Cylinder" };
 	std::uniform_int_distribution<size_t> shapeDist(0, shapes.size() - 1); // for shape selection
 
-	for (uint32_t i = 0; i < 500; ++i)
+	for (uint32_t i = 0; i < 10; ++i)
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, MaterialComponent, ShapeComponent, DefaultColliderComponent>(entity);
@@ -58,41 +86,8 @@ void Scene::InitializeRegistry()
 		materialComponent.color = glm::vec4(dist(rng), dist(rng), dist(rng), 1);
 		materialComponent.albedo = resourceManager->GetImageManager()->LoadImage("../Assets/Texture.jpg");
 
-		if (i > 50)
-			registry->SetParent(entity, (uint32_t)(1 + dist(rng) * 40));
-
-		shapeComponent.shape = resourceManager->GetGeometryManager()->GetShape("Cube");
+		shapeComponent.shape = resourceManager->GetGeometryManager()->GetShape(shapes[shapeDist(rng)]);
 	}
-
-	/*
-	{
-		auto entity = registry->CreateEntity();
-		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
-		auto [transformComponent, modelComponent] = registry->GetComponents<TransformComponent, ModelComponent>(entity);
-		transformComponent->rotation.x = -90.f;
-		transformComponent->scale = glm::vec3(0.05);
-		modelComponent->model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Bistro_v5_2/BistroExterior.fbx");
-		modelComponent->hasDirectxNormals = true;
-	}
-
-	{
-		auto entity = registry->CreateEntity();
-		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
-		auto [transformComponent, modelComponent] = registry->GetComponents<TransformComponent, ModelComponent>(entity);
-		transformComponent->rotation.x = -90.f;
-		transformComponent->scale = glm::vec3(0.05);
-		modelComponent->model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Bistro_v5_2/BistroInterior.fbx");
-		modelComponent->hasDirectxNormals = true;
-	}
-
-	{
-		auto entity = registry->CreateEntity();
-		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
-		auto [transformComponent, modelComponent] = registry->GetComponents<TransformComponent, ModelComponent>(entity);
-		transformComponent->scale = glm::vec3(0.05);
-		modelComponent->model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/VulkanEngine/Assets/Sponza/sponza.obj");
-	}
-	*/
 
 	auto& entities = registry->View<TransformComponent, ShapeComponent, DefaultColliderComponent>();
 }

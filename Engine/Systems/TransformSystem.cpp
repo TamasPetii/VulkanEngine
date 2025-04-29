@@ -11,7 +11,38 @@ void TransformSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_p
 	if (!transformPool)
 		return;
 
+	// Iterating over all the entities, checking level depth of parent-child relation
+	// Optimisation: Get max depth in registry, probably less than MAX_RELATIONSHIP_DEPTH
+	for (uint32_t depth = 0; depth < MAX_RELATIONSHIP_DEPTH; ++depth)
+	{
+		std::for_each(std::execution::par, transformPool->GetDenseIndices().begin(), transformPool->GetDenseIndices().end(),
+			[&](const Entity& entity) -> void {
+				auto& relationShipComponent = relationShipPool->GetData(entity);
+				if (relationShipComponent.level == depth && (transformPool->IsBitSet<UPDATE_BIT>(entity) || (relationShipComponent.parent != NULL_ENTITY && transformPool->IsBitSet<CHANGED_BIT>(relationShipComponent.parent))))
+				{
+					auto& transformComponent = transformPool->GetData(entity);
+
+					transformComponent.transform = glm::mat4(1.0f);
+					transformComponent.transform = glm::translate(transformComponent.transform, transformComponent.translation);
+					transformComponent.transform = glm::rotate(transformComponent.transform, glm::radians(transformComponent.rotation.z), glm::vec3(0, 0, 1));
+					transformComponent.transform = glm::rotate(transformComponent.transform, glm::radians(transformComponent.rotation.y), glm::vec3(0, 1, 0));
+					transformComponent.transform = glm::rotate(transformComponent.transform, glm::radians(transformComponent.rotation.x), glm::vec3(1, 0, 0));
+					transformComponent.transform = glm::scale(transformComponent.transform, transformComponent.scale);
+
+					if (relationShipComponent.parent != NULL_ENTITY && transformPool->HasComponent(relationShipComponent.parent))
+						transformComponent.transform = transformPool->GetData(relationShipComponent.parent).transform * transformComponent.transform;
+
+					transformComponent.transformIT = glm::inverse(glm::transpose(transformComponent.transform));
+
+					transformPool->SetBit<CHANGED_BIT>(entity);
+					transformComponent.versionID++;
+				}
+			}
+		);
+	}
+
 	/*
+	// Entities with given level stored in std::set -> Much slower in release mode
 	for (uint32_t depth = 0; depth < MAX_RELATIONSHIP_DEPTH; ++depth)
 	{
 		auto& levelEntities = registry->GetLevels()[depth];
@@ -32,42 +63,11 @@ void TransformSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_p
 					transformComponent.transform = glm::rotate(transformComponent.transform, glm::radians(transformComponent.rotation.y), glm::vec3(0, 1, 0));
 					transformComponent.transform = glm::rotate(transformComponent.transform, glm::radians(transformComponent.rotation.x), glm::vec3(1, 0, 0));
 					transformComponent.transform = glm::scale(transformComponent.transform, transformComponent.scale);
-					
-					if(relationShipComponent.parent != NULL_ENTITY)
-						transformComponent.transform = transformPool->GetData(relationShipComponent.parent).transform * transformComponent.transform;
-					
-					transformComponent.transformIT = glm::inverse(glm::transpose(transformComponent.transform));
-
-					transformPool->SetBit<CHANGED_BIT>(entity);
-					transformComponent.versionID++;
-				}
-			}
-		);
-	}	
-	*/
-
-	for (uint32_t depth = 0; depth < MAX_RELATIONSHIP_DEPTH; ++depth)
-	{
-		std::for_each(std::execution::par, transformPool->GetDenseIndices().begin(), transformPool->GetDenseIndices().end(),
-			[&](const Entity& entity) -> void {
-				auto& relationShipComponent = relationShipPool->GetData(entity);
-				if (relationShipComponent.level == depth && (transformPool->IsBitSet<UPDATE_BIT>(entity) || (relationShipComponent.parent != NULL_ENTITY && transformPool->IsBitSet<CHANGED_BIT>(relationShipComponent.parent))))
-				{
-					auto& transformComponent = transformPool->GetData(entity);
-
-					transformComponent.transform = glm::mat4(1.0f);
-					transformComponent.transform = glm::translate(transformComponent.transform, transformComponent.translation);
-					transformComponent.transform = glm::rotate(transformComponent.transform, glm::radians(transformComponent.rotation.z), glm::vec3(0, 0, 1));
-					transformComponent.transform = glm::rotate(transformComponent.transform, glm::radians(transformComponent.rotation.y), glm::vec3(0, 1, 0));
-					transformComponent.transform = glm::rotate(transformComponent.transform, glm::radians(transformComponent.rotation.x), glm::vec3(1, 0, 0));
-					transformComponent.transform = glm::scale(transformComponent.transform, transformComponent.scale);
-					transformComponent.transformIT = glm::inverse(glm::transpose(transformComponent.transform));
 
 					if (relationShipComponent.parent != NULL_ENTITY && transformPool->HasComponent(relationShipComponent.parent))
-					{
 						transformComponent.transform = transformPool->GetData(relationShipComponent.parent).transform * transformComponent.transform;
-						transformComponent.transformIT = glm::inverse(glm::transpose(transformComponent.transform));
-					}
+
+					transformComponent.transformIT = glm::inverse(glm::transpose(transformComponent.transform));
 
 					transformPool->SetBit<CHANGED_BIT>(entity);
 					transformComponent.versionID++;
@@ -75,6 +75,7 @@ void TransformSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_p
 			}
 		);
 	}
+	*/
 	
 	/*
 	//Might be better to use glm::decompose at the end in another foreach, when parent-child relation will affect transforms;

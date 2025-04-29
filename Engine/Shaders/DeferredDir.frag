@@ -15,5 +15,5 @@ void main()
     vec3 lightDir = vec3(-0.9, -0.5, -0.8);
 	float cosa = clamp(dot(normal, -lightDir), 0, 1);
 
-	fs_out_col = vec4(color, 1);
+	fs_out_col = vec4(cosa * color, 1);
 }
