@@ -25,7 +25,7 @@ private:
 	virtual void PopulateSurfacePoints() override;
 	void PreFetch(aiNode* node, const aiScene* scene);
 	void Process(aiNode* node, const aiScene* scene);
-	void ProcessGeometry(aiMesh* mesh, const aiScene* scene, uint32_t& currentMeshCount, uint32_t& currentVertexCount, uint32_t& currentIndexCount);
+	void ProcessGeometry(aiMesh* mesh, const aiScene* scene, uint32_t& currentMeshCount, uint32_t& currentVertexCount, uint32_t& currentIndexCount, const glm::mat4& transform);
 private:
 	uint32_t meshCount = 0;
 	std::string path;

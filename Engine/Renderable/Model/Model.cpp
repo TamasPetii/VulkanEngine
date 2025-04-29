@@ -77,8 +77,8 @@ void Model::PreFetch(aiNode* node, const aiScene* scene)
 
 void Model::Process(aiNode* node, const aiScene* scene)
 {
-    std::queue<aiNode*> queue;
-    queue.push(node);
+    std::queue<std::pair<aiNode*, glm::mat4>> queue;
+    queue.push({ node, Assimp::ConvertAssimpToGlm(node->mTransformation) });
 
     uint32_t currentMeshCount = 0;
     uint32_t currentVertexCount = 0;
@@ -86,24 +86,29 @@ void Model::Process(aiNode* node, const aiScene* scene)
 
     while (!queue.empty())
     {
-        aiNode* currentNode = queue.front();
+        auto [currentNode, parentTransform] = queue.front();
         queue.pop();
+
+        glm::mat4 nodeTransform = Assimp::ConvertAssimpToGlm(currentNode->mTransformation);
+        glm::mat4 transform = parentTransform * nodeTransform;
 
         for (uint32_t i = 0; i < currentNode->mNumMeshes; ++i)
         {
             aiMesh* currentMesh = scene->mMeshes[currentNode->mMeshes[i]];
-            ProcessGeometry(currentMesh, scene, currentMeshCount, currentVertexCount, currentIndexCount);
+            ProcessGeometry(currentMesh, scene, currentMeshCount, currentVertexCount, currentIndexCount, transform);
         }
 
         for (uint32_t i = 0; i < currentNode->mNumChildren; ++i)
         {
-            queue.push(currentNode->mChildren[i]);
+            queue.push({ currentNode->mChildren[i], transform });
         }
     }
 }
 
-void Model::ProcessGeometry(aiMesh* mesh, const aiScene* scene, uint32_t& currentMeshCount, uint32_t& currentVertexCount, uint32_t& currentIndexCount)
+void Model::ProcessGeometry(aiMesh* mesh, const aiScene* scene, uint32_t& currentMeshCount, uint32_t& currentVertexCount, uint32_t& currentIndexCount, const glm::mat4& transform)
 {
+    glm::mat4 transformIT = glm::inverse(glm::transpose(transform));
+
     uint32_t meshVerticesCount = 0;
 
     std::string materialName = "";
@@ -169,6 +174,7 @@ void Model::ProcessGeometry(aiMesh* mesh, const aiScene* scene, uint32_t& curren
         if (mesh->mVertices)
         {
             position = Assimp::ConvertAssimpToGlm(mesh->mVertices[i]);
+            position = glm::vec3(transform * glm::vec4(position, 1.0f));
             aabbMax = glm::max(aabbMax, position);
             aabbMin = glm::min(aabbMin, position);
         }
@@ -176,12 +182,18 @@ void Model::ProcessGeometry(aiMesh* mesh, const aiScene* scene, uint32_t& curren
         //Normals
         glm::vec3 normal{ 0,0,0 };
         if (mesh->mNormals)
+        {
             normal = Assimp::ConvertAssimpToGlm(mesh->mNormals[i]);
+            normal = glm::vec3(transformIT * glm::vec4(normal, 0));
+        }
 
         //Tangents
         glm::vec3 tangent{ 0,0,0 };
         if (mesh->mTangents)
+        {
             tangent = Assimp::ConvertAssimpToGlm(mesh->mTangents[i]);
+            tangent = glm::vec3(transformIT * glm::vec4(tangent, 0));
+        }
 
         //Textures
         glm::vec2 texcoord{ 0,0 };

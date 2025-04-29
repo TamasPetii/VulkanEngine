@@ -42,13 +42,10 @@ void Scene::InitializeRegistry()
 		registry->GetComponent<CameraComponent>(entity).isMain = true;
 	}
 
-	/*
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
 		auto [transformComponent, modelComponent] = registry->GetComponents<TransformComponent, ModelComponent>(entity);
-		transformComponent.rotation.x = -90.f;
-		transformComponent.scale = glm::vec3(0.05);
 		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Bistro_v5_2/BistroExterior.fbx");
 		modelComponent.hasDirectxNormals = true;
 	}
@@ -57,8 +54,6 @@ void Scene::InitializeRegistry()
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
 		auto [transformComponent, modelComponent] = registry->GetComponents<TransformComponent, ModelComponent>(entity);
-		transformComponent.rotation.x = -90.f;
-		transformComponent.scale = glm::vec3(0.05);
 		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Bistro_v5_2/BistroInterior.fbx");
 		modelComponent.hasDirectxNormals = true;
 	}
@@ -70,8 +65,8 @@ void Scene::InitializeRegistry()
 		transformComponent.scale = glm::vec3(0.05);
 		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/VulkanEngine/Assets/Sponza/sponza.obj");
 	}
-	*/
 
+	/*
 	std::array<std::string, 5> shapes = { "Cube", "Sphere", "Cone", "Pyramid", "Cylinder" };
 	std::uniform_int_distribution<size_t> shapeDist(0, shapes.size() - 1); // for shape selection
 
@@ -90,8 +85,7 @@ void Scene::InitializeRegistry()
 
 		shapeComponent.shape = resourceManager->GetGeometryManager()->GetShape(shapes[shapeDist(rng)]);
 	}
-
-	auto& entities = registry->View<TransformComponent, ShapeComponent, DefaultColliderComponent>();
+	*/
 }
 
 void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
