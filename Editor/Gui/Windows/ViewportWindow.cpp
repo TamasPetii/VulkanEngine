@@ -27,7 +27,7 @@ void ViewportWindow::Render(std::shared_ptr<Registry> registry, std::shared_ptr<
 
 			auto imageSize = ImGui::GetContentRegionAvail();
 
-			uint32_t nextFrameIndex = (frameIndex + 1) % Settings::FRAMES_IN_FLIGHT;
+			uint32_t nextFrameIndex = (frameIndex + 1) % GlobalConfig::FrameConfig::framesInFlight;
 
 			auto frameBuffer = resourceManager->GetVulkanManager()->GetFrameDependentFrameBuffer("Main", frameIndex);
 			auto nextFrameBuffer = resourceManager->GetVulkanManager()->GetFrameDependentFrameBuffer("Main", nextFrameIndex);

@@ -83,11 +83,11 @@ private:
 	std::unordered_map<std::string, std::shared_ptr<Vk::DescriptorPool>> descriptorPools;
 	std::unordered_map<std::string, std::shared_ptr<Vk::GraphicsPipeline>> graphicsPipelines;
 	std::unordered_map<std::string, std::shared_ptr<Vk::DescriptorSet>> descriptorSets;
-	std::unordered_map<std::string, std::array<std::shared_ptr<Vk::FrameBuffer>, Settings::MAX_FRAMES_IN_FLIGHTS>> frameDependentBuffers;
-	std::unordered_map<std::string, std::array<std::shared_ptr<Vk::FrameBuffer>, Settings::MAX_FRAMES_IN_FLIGHTS>> frameDependentFrameBuffers;
-	std::unordered_map<std::string, std::array<std::shared_ptr<Vk::DescriptorSet>, Settings::MAX_FRAMES_IN_FLIGHTS>> frameDependentDescriptorSets;
-	std::unordered_map<std::string, std::array<std::shared_ptr<Vk::Fence>, Settings::MAX_FRAMES_IN_FLIGHTS>> frameDependentFences;
-	std::unordered_map<std::string, std::array<std::shared_ptr<Vk::Semaphore>, Settings::MAX_FRAMES_IN_FLIGHTS>> frameDependentSemaphores;
+	std::unordered_map<std::string, std::array<std::shared_ptr<Vk::FrameBuffer>, GlobalConfig::FrameConfig::maxFramesInFlights>> frameDependentBuffers;
+	std::unordered_map<std::string, std::array<std::shared_ptr<Vk::FrameBuffer>, GlobalConfig::FrameConfig::maxFramesInFlights>> frameDependentFrameBuffers;
+	std::unordered_map<std::string, std::array<std::shared_ptr<Vk::DescriptorSet>, GlobalConfig::FrameConfig::maxFramesInFlights>> frameDependentDescriptorSets;
+	std::unordered_map<std::string, std::array<std::shared_ptr<Vk::Fence>, GlobalConfig::FrameConfig::maxFramesInFlights>> frameDependentFences;
+	std::unordered_map<std::string, std::array<std::shared_ptr<Vk::Semaphore>, GlobalConfig::FrameConfig::maxFramesInFlights>> frameDependentSemaphores;
 	std::set<std::tuple<std::string, uint32_t, uint32_t, uint32_t>> frameBuffersToResize;
 };
 

@@ -89,19 +89,24 @@ void DefaultColliderSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, st
 				auto& transformComponent = transformPool->GetData(entity);
 				auto defaultColliderIndex = defaultColliderPool->GetDenseIndex(entity);
 
-				if (componentBufferAabb->versions[defaultColliderIndex] != defaultColliderComponent.versionID ||
-					componentBufferObb->versions[defaultColliderIndex] != defaultColliderComponent.versionID || 
-					componentBufferSphere->versions[defaultColliderIndex] != defaultColliderComponent.versionID)
+				if (GlobalConfig::WireframeConfig::showColliderAABB && componentBufferAabb->versions[defaultColliderIndex] != defaultColliderComponent.versionID)
+				{
+					componentBufferAabb->versions[defaultColliderIndex] = defaultColliderComponent.versionID;
+					bufferHandlerAabb[defaultColliderIndex] = glm::translate(defaultColliderComponent.aabbOrigin) * glm::scale(defaultColliderComponent.aabbExtents);
+				}
+
+				if (GlobalConfig::WireframeConfig::showColliderOBB && componentBufferObb->versions[defaultColliderIndex] != defaultColliderComponent.versionID)
 				{
 					bool isShape = shapePool && shapePool->HasComponent(entity) && shapePool->GetData(entity).shape != nullptr;
 					std::shared_ptr<BoundingVolume> boundingVolume = isShape ? std::static_pointer_cast<BoundingVolume>(shapePool->GetData(entity).shape) : std::static_pointer_cast<BoundingVolume>(modelPool->GetData(entity).model);
 
-					componentBufferAabb->versions[defaultColliderIndex] = defaultColliderComponent.versionID;
 					componentBufferObb->versions[defaultColliderIndex] = defaultColliderComponent.versionID;
-					componentBufferSphere->versions[defaultColliderIndex] = defaultColliderComponent.versionID;
-					
-					bufferHandlerAabb[defaultColliderIndex] = glm::translate(defaultColliderComponent.aabbOrigin) * glm::scale(defaultColliderComponent.aabbExtents);
 					bufferHandlerObb[defaultColliderIndex] = transformComponent.transform * glm::translate(boundingVolume->aabbOrigin) * glm::scale(boundingVolume->aabbExtents);
+				}
+
+				if (GlobalConfig::WireframeConfig::showColliderSphere && componentBufferSphere->versions[defaultColliderIndex] != defaultColliderComponent.versionID)
+				{
+					componentBufferSphere->versions[defaultColliderIndex] = defaultColliderComponent.versionID;
 					bufferHandlerSphere[defaultColliderIndex] = glm::translate(defaultColliderComponent.origin) * glm::scale(glm::vec3(defaultColliderComponent.radius));
 				}
 			}

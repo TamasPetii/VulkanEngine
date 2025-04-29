@@ -55,9 +55,14 @@ void BoundingVolumeRenderer::Render(VkCommandBuffer commandBuffer, std::shared_p
 			}
 		};
 
-	RenderBoundingVolume("Cube", "DefaultColliderAabbData", glm::vec4(1, 1, 1, 1));
-	RenderBoundingVolume("Cube", "DefaultColliderObbData", glm::vec4(1, 0, 0, 1));
-	RenderBoundingVolume("ProxySphere", "DefaultColliderSphereData", glm::vec4(1, 0, 1, 1));
+	if(GlobalConfig::WireframeConfig::showColliderAABB)
+		RenderBoundingVolume("Cube", "DefaultColliderAabbData", glm::vec4(1, 1, 1, 1));
+
+	if(GlobalConfig::WireframeConfig::showColliderOBB)
+		RenderBoundingVolume("Cube", "DefaultColliderObbData", glm::vec4(1, 0, 0, 1));
+
+	if(GlobalConfig::WireframeConfig::showColliderSphere)
+		RenderBoundingVolume("ProxySphere", "DefaultColliderSphereData", glm::vec4(1, 0, 1, 1));
 
 	vkCmdEndRendering(commandBuffer);
 }

@@ -128,7 +128,7 @@ void VulkanManager::ResizeMarkedFrameBuffers(uint32_t frameIndex)
 
 void VulkanManager::RegisterFrameDependentFrameBuffer(const std::string& name, std::shared_ptr<Vk::FrameBuffer> frameBuffer, uint32_t frameIndex)
 {
-	if (frameIndex >= Settings::MAX_FRAMES_IN_FLIGHTS)
+	if (frameIndex >= GlobalConfig::FrameConfig::maxFramesInFlights)
 		return;
 
 	frameDependentFrameBuffers[name][frameIndex] = frameBuffer;
@@ -136,7 +136,7 @@ void VulkanManager::RegisterFrameDependentFrameBuffer(const std::string& name, s
 
 std::shared_ptr<Vk::FrameBuffer> VulkanManager::GetFrameDependentFrameBuffer(const std::string& name, uint32_t frameIndex) const
 {
-	if (frameDependentFrameBuffers.find(name) == frameDependentFrameBuffers.end() || frameIndex >= Settings::MAX_FRAMES_IN_FLIGHTS)
+	if (frameDependentFrameBuffers.find(name) == frameDependentFrameBuffers.end() || frameIndex >= GlobalConfig::FrameConfig::maxFramesInFlights)
 		return nullptr;
 
 	return frameDependentFrameBuffers.at(name)[frameIndex];
@@ -157,7 +157,7 @@ std::shared_ptr<Vk::DescriptorPool> VulkanManager::GetDescriptorPool(const std::
 
 void VulkanManager::RegisterFrameDependentDescriptorSet(const std::string& name, std::shared_ptr<Vk::DescriptorSet> set, uint32_t frameIndex)
 {
-	if (frameIndex >= Settings::MAX_FRAMES_IN_FLIGHTS)
+	if (frameIndex >= GlobalConfig::FrameConfig::maxFramesInFlights)
 		return;
 
 	frameDependentDescriptorSets[name][frameIndex] = set;
@@ -165,7 +165,7 @@ void VulkanManager::RegisterFrameDependentDescriptorSet(const std::string& name,
 
 std::shared_ptr<Vk::DescriptorSet> VulkanManager::GetFrameDependentDescriptorSet(const std::string& name, uint32_t frameIndex) const
 {
-	if (frameDependentDescriptorSets.find(name) == frameDependentDescriptorSets.end() || frameIndex >= Settings::MAX_FRAMES_IN_FLIGHTS)
+	if (frameDependentDescriptorSets.find(name) == frameDependentDescriptorSets.end() || frameIndex >= GlobalConfig::FrameConfig::maxFramesInFlights)
 		return nullptr;
 
 	return frameDependentDescriptorSets.at(name)[frameIndex];
@@ -186,7 +186,7 @@ std::shared_ptr<Vk::DescriptorSet> VulkanManager::GetDescriptorSet(const std::st
 
 void VulkanManager::RegisterFrameDependentFence(const std::string& name, std::shared_ptr<Vk::Fence> fence, uint32_t frameIndex)
 {
-	if (frameIndex >= Settings::MAX_FRAMES_IN_FLIGHTS)
+	if (frameIndex >= GlobalConfig::FrameConfig::maxFramesInFlights)
 		return;
 
 	frameDependentFences[name][frameIndex] = fence;
@@ -194,7 +194,7 @@ void VulkanManager::RegisterFrameDependentFence(const std::string& name, std::sh
 
 std::shared_ptr<Vk::Fence> VulkanManager::GetFrameDependentFence(const std::string& name, uint32_t frameIndex)
 {
-	if (frameDependentFences.find(name) == frameDependentFences.end() || frameIndex >= Settings::MAX_FRAMES_IN_FLIGHTS)
+	if (frameDependentFences.find(name) == frameDependentFences.end() || frameIndex >= GlobalConfig::FrameConfig::maxFramesInFlights)
 		return nullptr;
 
 	return frameDependentFences.at(name)[frameIndex];
@@ -202,7 +202,7 @@ std::shared_ptr<Vk::Fence> VulkanManager::GetFrameDependentFence(const std::stri
 
 void VulkanManager::RegisterFrameDependentSemaphore(const std::string& name, std::shared_ptr<Vk::Semaphore> semaphore, uint32_t frameIndex)
 {
-	if (frameIndex >= Settings::MAX_FRAMES_IN_FLIGHTS)
+	if (frameIndex >= GlobalConfig::FrameConfig::maxFramesInFlights)
 		return;
 
 	frameDependentSemaphores[name][frameIndex] = semaphore;
@@ -210,7 +210,7 @@ void VulkanManager::RegisterFrameDependentSemaphore(const std::string& name, std
 
 std::shared_ptr<Vk::Semaphore> VulkanManager::GetFrameDependentSemaphore(const std::string& name, uint32_t frameIndex)
 {
-	if (frameDependentSemaphores.find(name) == frameDependentSemaphores.end() || frameIndex >= Settings::MAX_FRAMES_IN_FLIGHTS)
+	if (frameDependentSemaphores.find(name) == frameDependentSemaphores.end() || frameIndex >= GlobalConfig::FrameConfig::maxFramesInFlights)
 		return nullptr;
 
 	return frameDependentSemaphores.at(name)[frameIndex];
@@ -341,7 +341,7 @@ void VulkanManager::InitFrameBuffers()
 		.AddImageSpecification("Entity", 3, entityImageSpec)
 		.AddDepthSpecification(4, depthImageSpec);
 
-	for (uint32_t i = 0; i < Settings::MAX_FRAMES_IN_FLIGHTS; ++i)
+	for (uint32_t i = 0; i < GlobalConfig::FrameConfig::maxFramesInFlights; ++i)
 		RegisterFrameDependentFrameBuffer("Main", frameBufferBuilder.BuildDynamic(), i);
 }
 
@@ -350,14 +350,14 @@ void VulkanManager::InitDescriptors()
 	{
 		Vk::DescriptorPoolBuilder poolBuilder;
 		poolBuilder
-			.SetMaxSets(Settings::MAX_FRAMES_IN_FLIGHTS)
+			.SetMaxSets(GlobalConfig::FrameConfig::maxFramesInFlights)
 			.SetPoolSize(VK_DESCRIPTOR_TYPE_SAMPLER, 10)
 			.SetPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 10)
 			.SetPoolSize(VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 10);
 	
 		RegisterDescriptorPool("Main", poolBuilder.BuildDescriptorPool());
 
-		for (uint32_t i = 0; i < Settings::MAX_FRAMES_IN_FLIGHTS; ++i)
+		for (uint32_t i = 0; i < GlobalConfig::FrameConfig::maxFramesInFlights; ++i)
 			InitMainFramebufferDescriptorSet(i);
 	}
 
@@ -523,13 +523,13 @@ void VulkanManager::InitGraphicsPipelines()
 
 void VulkanManager::InitFences()
 {
-	for (uint32_t i = 0; i < Settings::MAX_FRAMES_IN_FLIGHTS; ++i)
+	for (uint32_t i = 0; i < GlobalConfig::FrameConfig::maxFramesInFlights; ++i)
 		RegisterFrameDependentFence("InFlight", std::make_shared<Vk::Fence>(true), i);
 }
 
 void VulkanManager::InitSemaphores()
 {
-	for (uint32_t i = 0; i < Settings::MAX_FRAMES_IN_FLIGHTS; ++i)
+	for (uint32_t i = 0; i < GlobalConfig::FrameConfig::maxFramesInFlights; ++i)
 	{
 		RegisterFrameDependentSemaphore("ImageAvailable", std::make_shared<Vk::Semaphore>(), i);
 		RegisterFrameDependentSemaphore("RenderFinished", std::make_shared<Vk::Semaphore>(), i);

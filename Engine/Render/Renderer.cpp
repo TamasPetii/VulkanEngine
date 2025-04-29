@@ -116,7 +116,7 @@ void Renderer::Destroy()
 	auto device = Vk::VulkanContext::GetContext()->GetDevice();
 	vkDeviceWaitIdle(device->Value());
 
-	for (uint32_t i = 0; i < Settings::MAX_FRAMES_IN_FLIGHTS; i++)
+	for (uint32_t i = 0; i < GlobalConfig::FrameConfig::maxFramesInFlights; i++)
 	{
 		vkDestroyCommandPool(device->Value(), commandPools[i], nullptr);
 	}
@@ -132,7 +132,7 @@ void Renderer::InitCommandPool()
 	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 	poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
 
-	for(uint32_t i = 0; i < Settings::MAX_FRAMES_IN_FLIGHTS; ++i)
+	for(uint32_t i = 0; i < GlobalConfig::FrameConfig::maxFramesInFlights; ++i)
 		VK_CHECK_MESSAGE(vkCreateCommandPool(device->Value(), &poolInfo, nullptr, &commandPools[i]), "Failed to create command pool!");
 }
 
@@ -140,7 +140,7 @@ void Renderer::InitCommandBuffer()
 {
 	auto device = Vk::VulkanContext::GetContext()->GetDevice();
 
-	for (uint32_t i = 0; i < Settings::MAX_FRAMES_IN_FLIGHTS; ++i)
+	for (uint32_t i = 0; i < GlobalConfig::FrameConfig::maxFramesInFlights; ++i)
 	{
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;

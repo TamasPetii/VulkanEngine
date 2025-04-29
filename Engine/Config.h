@@ -2,8 +2,18 @@
 #include "EngineApi.h"
 #include <cstdint>
 
-struct ENGINE_API Settings
+struct ENGINE_API GlobalConfig
 {
-	static inline constexpr uint32_t MAX_FRAMES_IN_FLIGHTS = 3;
-	static inline uint32_t FRAMES_IN_FLIGHT = 2;
+	struct ENGINE_API WireframeConfig
+	{
+		static inline bool showColliderAABB = false;
+		static inline bool showColliderOBB = false;
+		static inline bool showColliderSphere = false;
+	};
+
+	struct ENGINE_API FrameConfig
+	{
+		static inline constexpr uint32_t maxFramesInFlights = 3;
+		static inline uint32_t framesInFlight = 2;
+	};
 };

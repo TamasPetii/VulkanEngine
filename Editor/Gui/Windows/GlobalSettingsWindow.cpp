@@ -28,6 +28,28 @@ void GlobalSettingsWindow::Render(std::shared_ptr<Registry> registry, std::share
 
 				}
 			);
+
+			static Panel::Config wireframeConfig{
+				.name = "Wireframe"
+			};
+
+			Panel::Render(wireframeConfig, [&]() -> void
+				{
+					int offset = ImGui::GetContentRegionAvail().x / 2.f;
+
+					ImGui::Text("AABB Colliders");
+					ImGui::SameLine(offset);
+					ImGui::Checkbox("##AABB Colliders", &GlobalConfig::WireframeConfig::showColliderAABB);
+
+					ImGui::Text("Obb Colliders");
+					ImGui::SameLine(offset);
+					ImGui::Checkbox("##Obb Colliders", &GlobalConfig::WireframeConfig::showColliderOBB);
+
+					ImGui::Text("Sphere Colliders");
+					ImGui::SameLine(offset);
+					ImGui::Checkbox("##Sphere Colliders", &GlobalConfig::WireframeConfig::showColliderSphere);
+				}
+			);
 		}
 	);
 }
