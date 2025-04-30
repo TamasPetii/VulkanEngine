@@ -12,7 +12,6 @@ public:
 	std::shared_ptr<Vk::Buffer> GetMaterialBuffer();
 	virtual void UploadMaterialDataToGpu();
 protected:
-	std::vector<uint32_t> materialIndices;
 	std::vector<MaterialComponent> materials;
 	std::shared_ptr<Vk::Buffer> materialBuffer;
 };

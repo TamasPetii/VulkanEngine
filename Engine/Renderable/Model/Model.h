@@ -25,11 +25,23 @@ private:
 	virtual void PopulateSurfacePoints() override;
 	void PreFetch(aiNode* node, const aiScene* scene);
 	void Process(aiNode* node, const aiScene* scene);
-	void ProcessGeometry(aiMesh* mesh, const aiScene* scene, uint32_t& currentMeshCount, uint32_t& currentVertexCount, uint32_t& currentIndexCount, const glm::mat4& transform);
+	void ProcessGeometry(const aiScene* scene, uint32_t meshIndex);
 private:
-	uint32_t meshCount = 0;
 	std::string path;
 	std::string directory;
+private:
+	struct MeshProcessInfo
+	{
+		aiMesh* mesh;
+		uint32_t meshIndex;
+		uint32_t vertexOffset;
+		uint32_t vertexCount;
+		uint32_t indexOffset;
+		uint32_t indexCount;
+		glm::mat4 transform;
+	};
+	uint32_t meshCount = 0;
+	std::vector<MeshProcessInfo> meshProcessInfos;
 	std::unordered_map<std::string, uint32_t> loadedMaterials;
 private:
 	std::shared_ptr<ImageManager> imageManager;

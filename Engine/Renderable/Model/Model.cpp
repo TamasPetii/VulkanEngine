@@ -47,45 +47,8 @@ void Model::PopulateSurfacePoints()
 
 void Model::PreFetch(aiNode* node, const aiScene* scene)
 {
-    std::queue<aiNode*> queue;
-    queue.push(node);
-
-    while (!queue.empty())
-    {
-        aiNode* currentNode = queue.front();
-        queue.pop();
-
-        for (unsigned int i = 0; i < currentNode->mNumMeshes; ++i)
-        {
-            aiMesh* currentMesh = scene->mMeshes[currentNode->mMeshes[i]];
-            vertexCount += currentMesh->mNumVertices;
-
-            for (unsigned int f = 0; f < currentMesh->mNumFaces; ++f)
-                indexCount += currentMesh->mFaces[f].mNumIndices;
-
-            meshCount++;
-        }
-
-        for (unsigned int i = 0; i < currentNode->mNumChildren; ++i)
-            queue.push(currentNode->mChildren[i]);
-    }
-
-    vertices.reserve(vertexCount);
-    indices.reserve(indexCount);
-    materialIndices.reserve(meshCount);
-
-    aabbMax = glm::vec3(std::numeric_limits<float>::lowest());
-    aabbMin = glm::vec3(std::numeric_limits<float>::max());
-}
-
-void Model::Process(aiNode* node, const aiScene* scene)
-{
     std::queue<std::pair<aiNode*, glm::mat4>> queue;
     queue.push({ node, Assimp::ConvertAssimpToGlm(node->mTransformation) });
-
-    uint32_t currentMeshCount = 0;
-    uint32_t currentVertexCount = 0;
-    uint32_t currentIndexCount = 0;
 
     while (!queue.empty())
     {
@@ -98,26 +61,54 @@ void Model::Process(aiNode* node, const aiScene* scene)
         for (uint32_t i = 0; i < currentNode->mNumMeshes; ++i)
         {
             aiMesh* currentMesh = scene->mMeshes[currentNode->mMeshes[i]];
-            ProcessGeometry(currentMesh, scene, currentMeshCount, currentVertexCount, currentIndexCount, transform);
+
+            uint32_t meshVertexOffset = vertexCount;
+            uint32_t meshVertexCount = currentMesh->mNumVertices;
+
+            uint32_t meshIndexOffset = indexCount;
+            uint32_t meshIndexCount = currentMesh->mNumFaces * 3;
+
+            MeshProcessInfo meshProcessInfo{};
+            meshProcessInfo.mesh = currentMesh;
+            meshProcessInfo.meshIndex = meshCount;
+            meshProcessInfo.vertexOffset = meshVertexOffset;
+            meshProcessInfo.vertexCount = meshVertexCount;
+            meshProcessInfo.indexOffset = meshIndexOffset;
+            meshProcessInfo.indexCount = meshIndexCount;
+            meshProcessInfo.transform = transform;
+            meshProcessInfos.push_back(meshProcessInfo);
+
+            vertexCount += meshVertexCount;
+            indexCount += meshIndexCount;
+            meshCount++;
         }
 
-        for (uint32_t i = 0; i < currentNode->mNumChildren; ++i)
-        {
+        for (unsigned int i = 0; i < currentNode->mNumChildren; ++i)
             queue.push({ currentNode->mChildren[i], transform });
-        }
     }
+
+    vertices.resize(vertexCount);
+    indices.resize(indexCount);
+
+    aabbMax = glm::vec3(std::numeric_limits<float>::lowest());
+    aabbMin = glm::vec3(std::numeric_limits<float>::max());
 }
 
-void Model::ProcessGeometry(aiMesh* mesh, const aiScene* scene, uint32_t& currentMeshCount, uint32_t& currentVertexCount, uint32_t& currentIndexCount, const glm::mat4& transform)
+void Model::Process(aiNode* node, const aiScene* scene)
 {
-    glm::mat4 transformIT = glm::inverse(glm::transpose(transform));
+    for(uint32_t i = 0; i < meshProcessInfos.size(); ++i)
+        ProcessGeometry(scene, i);
+}
 
-    uint32_t meshVerticesCount = 0;
+void Model::ProcessGeometry(const aiScene* scene, uint32_t meshIndex)
+{
+    auto& meshProcessInfo = meshProcessInfos[meshIndex];
+    glm::mat4 transformIT = glm::inverse(glm::transpose(meshProcessInfo.transform));
 
     std::string materialName = "";
-    if (mesh->mMaterialIndex >= 0)
+    if (meshProcessInfo.mesh->mMaterialIndex >= 0)
     {
-        aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+        aiMaterial* material = scene->mMaterials[meshProcessInfo.mesh->mMaterialIndex];
         materialName = std::string(material->GetName().C_Str());
 
         if (loadedMaterials.find(materialName) == loadedMaterials.end())
@@ -169,61 +160,51 @@ void Model::ProcessGeometry(aiMesh* mesh, const aiScene* scene, uint32_t& curren
         }
     }
 
-    //Vertex Data Process
-    for (int i = 0; i < mesh->mNumVertices; ++i)
+    for (uint32_t i = 0; i < meshProcessInfo.vertexCount; ++i)
     {
         //Position
         glm::vec3 position{ 0,0,0 };
-        if (mesh->mVertices)
+        if (meshProcessInfo.mesh->mVertices)
         {
-            position = Assimp::ConvertAssimpToGlm(mesh->mVertices[i]);
-            position = glm::vec3(transform * glm::vec4(position, 1.0f));
+            position = Assimp::ConvertAssimpToGlm(meshProcessInfo.mesh->mVertices[i]);
+            position = glm::vec3(meshProcessInfo.transform * glm::vec4(position, 1.0f));
             aabbMax = glm::max(aabbMax, position);
             aabbMin = glm::min(aabbMin, position);
         }
 
         //Normals
         glm::vec3 normal{ 0,0,0 };
-        if (mesh->mNormals)
+        if (meshProcessInfo.mesh->mNormals)
         {
-            normal = Assimp::ConvertAssimpToGlm(mesh->mNormals[i]);
+            normal = Assimp::ConvertAssimpToGlm(meshProcessInfo.mesh->mNormals[i]);
             normal = glm::vec3(transformIT * glm::vec4(normal, 0));
         }
 
         //Tangents
         glm::vec3 tangent{ 0,0,0 };
-        if (mesh->mTangents)
+        if (meshProcessInfo.mesh->mTangents)
         {
-            tangent = Assimp::ConvertAssimpToGlm(mesh->mTangents[i]);
+            tangent = Assimp::ConvertAssimpToGlm(meshProcessInfo.mesh->mTangents[i]);
             tangent = glm::vec3(transformIT * glm::vec4(tangent, 0));
         }
 
         //Textures
         glm::vec2 texcoord{ 0,0 };
-        if (mesh->mTextureCoords[0] != nullptr)
+        if (meshProcessInfo.mesh->mTextureCoords[0] != nullptr)
         {
-            texcoord.x = mesh->mTextureCoords[0][i].x;
-            texcoord.y = mesh->mTextureCoords[0][i].y;
+            texcoord.x = meshProcessInfo.mesh->mTextureCoords[0][i].x;
+            texcoord.y = meshProcessInfo.mesh->mTextureCoords[0][i].y;
         }
 
-        vertices.push_back(Vertex(position, normal, tangent, texcoord, loadedMaterials[materialName]));
-        meshVerticesCount++;
+        vertices[meshProcessInfo.vertexOffset + i] = Vertex(position, normal, tangent, texcoord, loadedMaterials[materialName]);
     }
 
-    uint32_t meshIndicesCount = 0;
-
-    //Index Data
-    for (int i = 0; i < mesh->mNumFaces; ++i)
+    constexpr uint32_t faceIndexCount = 3;
+    for (uint32_t i = 0; i < meshProcessInfo.indexCount / faceIndexCount; ++i)
     {
-        aiFace face = mesh->mFaces[i];
-        for (int j = 0; j < face.mNumIndices; ++j)
+        for (uint32_t j = 0; j < faceIndexCount; ++j)
         {
-            indices.push_back(currentVertexCount + face.mIndices[j]);
-            meshIndicesCount++;
+            indices[meshProcessInfo.indexOffset + i * faceIndexCount + j] = meshProcessInfo.vertexOffset + meshProcessInfo.mesh->mFaces[i].mIndices[j];
         }
     }
-
-    currentIndexCount += meshIndicesCount;
-    currentVertexCount += meshVerticesCount;
-    currentMeshCount++;
 }
