@@ -73,6 +73,9 @@ void Model::PreFetch(aiNode* node, const aiScene* scene)
     vertices.reserve(vertexCount);
     indices.reserve(indexCount);
     materialIndices.reserve(meshCount);
+
+    aabbMax = glm::vec3(std::numeric_limits<float>::lowest());
+    aabbMin = glm::vec3(std::numeric_limits<float>::max());
 }
 
 void Model::Process(aiNode* node, const aiScene* scene)
