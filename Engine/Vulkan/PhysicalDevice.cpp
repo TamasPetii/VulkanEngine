@@ -43,6 +43,53 @@ void Vk::PhysicalDevice::Init(std::span<const char*> deviceExtensions)
 	}
 
 	CHECK_ERROR_NULL_MESSAGE(this->physicalDevice, "Failed to find a suitable GPU!");
+
+    //-------------------------------------------------------------------
+
+    // Get physical device properties
+    VkPhysicalDeviceProperties deviceProperties;
+    vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
+
+    // Get physical device limits
+    VkPhysicalDeviceLimits limits = deviceProperties.limits;
+
+    // Get extension properties to check for VK_EXT_descriptor_indexing
+    uint32_t extensionCount;
+    vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, nullptr);
+    std::vector<VkExtensionProperties> extensions(extensionCount);
+    vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, extensions.data());
+
+	std::cout << std::format("Max Uniform Buffer Bindings (per pipeline): {}\n", limits.maxDescriptorSetUniformBuffers);
+	std::cout << std::format("Max Dynamic Uniform Buffer Bindings (per pipeline): {}\n", limits.maxDescriptorSetUniformBuffersDynamic);
+	std::cout << std::format("Max Uniform Buffer Range (bytes): {}\n", limits.maxUniformBufferRange);
+
+	std::cout << std::format("Max Storage Buffer Bindings (per pipeline): {}\n", limits.maxDescriptorSetStorageBuffers);
+	std::cout << std::format("Max Dynamic Storage Buffer Bindings (per pipeline): {}\n", limits.maxDescriptorSetStorageBuffersDynamic);
+	std::cout << std::format("Max Storage Buffer Range (bytes): {}\n", limits.maxStorageBufferRange);
+
+	std::cout << std::format("Max Sampled Image Bindings (per pipeline): {}\n", limits.maxDescriptorSetSampledImages);
+	std::cout << std::format("Max Storage Image Bindings (per pipeline): {}\n", limits.maxDescriptorSetStorageImages);
+	std::cout << std::format("Max Sampler Bindings (per pipeline): {}\n", limits.maxDescriptorSetSamplers);
+	std::cout << std::format("Max Input Attachment Bindings (per pipeline): {}\n", limits.maxDescriptorSetInputAttachments);
+
+	std::cout << std::format("Max Descriptor Sets (per pool): {}\n", limits.maxBoundDescriptorSets);
+	std::cout << std::format("Max Descriptor Set Allocations: {}\n",
+		limits.maxDescriptorSetUniformBuffers +
+		limits.maxDescriptorSetStorageBuffers +
+		limits.maxDescriptorSetSampledImages +
+		limits.maxDescriptorSetStorageImages +
+		limits.maxDescriptorSetSamplers +
+		limits.maxDescriptorSetInputAttachments);
+
+	std::cout << std::format("Max Push Constants Size (bytes): {}\n", limits.maxPushConstantsSize);
+
+	std::cout << std::format("Max Image Dimension 1D: {}\n", limits.maxImageDimension1D);
+	std::cout << std::format("Max Image Dimension 2D: {}\n", limits.maxImageDimension2D);
+	std::cout << std::format("Max Image Dimension 3D: {}\n", limits.maxImageDimension3D);
+	std::cout << std::format("Max Image Dimension Cube: {}\n", limits.maxImageDimensionCube);
+	std::cout << std::format("Max Image Array Layers: {}\n", limits.maxImageArrayLayers);
+	std::cout << std::format("Max Texel Buffer Elements: {}\n", limits.maxTexelBufferElements);
+	std::cout << std::format("Max Sampler Allocation Count: {}\n", limits.maxSamplerAllocationCount);
 }
 
 void Vk::PhysicalDevice::Destroy()
