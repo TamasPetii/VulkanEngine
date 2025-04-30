@@ -1,4 +1,10 @@
 #include "Model.h"
+#include "Engine/Timer/Timer.h"
+#include <algorithm>
+#include <execution>
+#include <ranges>
+#include <future>
+#include <thread>
 
 Model::Model(std::shared_ptr<ImageManager> imageManager) : 
     imageManager(imageManager)
@@ -7,11 +13,16 @@ Model::Model(std::shared_ptr<ImageManager> imageManager) :
 
 bool Model::Load(const std::string& path)
 {
+    Timer timer;
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_CalcTangentSpace);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         return false;
+
+    std::cout << "-----------------------------------------\n";
+    std::cout << "Assimp::Importer: " << timer.GetElapsedTime() << "\n";
+    std::cout << "-----------------------------------------\n";
 
     this->path = path;
     this->directory = path.substr(0, path.find_last_of('/'));
@@ -47,6 +58,8 @@ void Model::PopulateSurfacePoints()
 
 void Model::PreFetch(aiNode* node, const aiScene* scene)
 {
+    Timer timer;
+
     std::queue<std::pair<aiNode*, glm::mat4>> queue;
     queue.push({ node, Assimp::ConvertAssimpToGlm(node->mTransformation) });
 
@@ -61,7 +74,7 @@ void Model::PreFetch(aiNode* node, const aiScene* scene)
         for (uint32_t i = 0; i < currentNode->mNumMeshes; ++i)
         {
             aiMesh* currentMesh = scene->mMeshes[currentNode->mMeshes[i]];
-
+           
             uint32_t meshVertexOffset = vertexCount;
             uint32_t meshVertexCount = currentMesh->mNumVertices;
 
@@ -89,122 +102,178 @@ void Model::PreFetch(aiNode* node, const aiScene* scene)
 
     vertices.resize(vertexCount);
     indices.resize(indexCount);
+    materials.resize(scene->mNumMaterials);
 
     aabbMax = glm::vec3(std::numeric_limits<float>::lowest());
     aabbMin = glm::vec3(std::numeric_limits<float>::max());
+
+    std::cout << "-----------------------------------------\n";
+    std::cout << "PreFetch: " << timer.GetElapsedTime() << "\n";
+    std::cout << "-----------------------------------------\n";
 }
 
 void Model::Process(aiNode* node, const aiScene* scene)
 {
-    for(uint32_t i = 0; i < meshProcessInfos.size(); ++i)
-        ProcessGeometry(scene, i);
+    auto futureMaterials = std::async(std::launch::async, &Model::ProcessMaterials, this, scene);
+    auto futureVertices = std::async(std::launch::async, &Model::ProcessMeshVertices, this, scene);
+    auto futureIndices = std::async(std::launch::async, &Model::ProcessMeshIndices, this, scene);
+
+    futureMaterials.get();
+    futureVertices.get();
+    futureIndices.get();
 }
 
-void Model::ProcessGeometry(const aiScene* scene, uint32_t meshIndex)
+void Model::ProcessMeshVertices(const aiScene* scene)
 {
-    auto& meshProcessInfo = meshProcessInfos[meshIndex];
+    Timer timer;
+
+    std::for_each(std::execution::seq, meshProcessInfos.begin(), meshProcessInfos.end(),
+        [&](const auto& meshProcessInfo) -> void {
+            ProcessMeshVertex(scene, meshProcessInfo);
+        }
+    );
+
+    std::cout << "-----------------------------------------\n";
+    std::cout << "ProcessMeshVertices: " << timer.GetElapsedTime() << "\n";
+    std::cout << "-----------------------------------------\n";
+}
+
+void Model::ProcessMeshVertex(const aiScene* scene, const MeshProcessInfo& meshProcessInfo)
+{
     glm::mat4 transformIT = glm::inverse(glm::transpose(meshProcessInfo.transform));
 
-    std::string materialName = "";
-    if (meshProcessInfo.mesh->mMaterialIndex >= 0)
-    {
-        aiMaterial* material = scene->mMaterials[meshProcessInfo.mesh->mMaterialIndex];
-        materialName = std::string(material->GetName().C_Str());
-
-        if (loadedMaterials.find(materialName) == loadedMaterials.end())
-        {
-            MaterialComponent materialComponent;
-
-            //Diffuse texture
-            if (material->GetTextureCount(aiTextureType_DIFFUSE) > 0)
+    auto vertex_index_range = std::views::iota(0u, meshProcessInfo.vertexCount);
+    std::for_each(std::execution::seq, vertex_index_range.begin(), vertex_index_range.end(),
+        [&](auto vertexIndex) -> void {
+            //Position
+            glm::vec3 position{ 0,0,0 };
+            if (meshProcessInfo.mesh->mVertices)
             {
-                aiString path;
-                material->GetTexture(aiTextureType_DIFFUSE, 0, &path);
-                std::string real_path = directory + "/" + std::string(path.C_Str());
-                materialComponent.albedo = imageManager->LoadImage(real_path, true);
+                position = Assimp::ConvertAssimpToGlm(meshProcessInfo.mesh->mVertices[vertexIndex]);
+                position = glm::vec3(meshProcessInfo.transform * glm::vec4(position, 1.0f));
             }
 
-            //Normals texture
-            if (material->GetTextureCount(aiTextureType_NORMALS) > 0)
+            //Normals
+            glm::vec3 normal{ 0,0,0 };
+            if (meshProcessInfo.mesh->mNormals)
             {
-                aiString path;
-                material->GetTexture(aiTextureType_NORMALS, 0, &path);
-                std::string real_path = directory + "/" + std::string(path.C_Str());
-                materialComponent.normal = imageManager->LoadImage(real_path, true);
+                normal = Assimp::ConvertAssimpToGlm(meshProcessInfo.mesh->mNormals[vertexIndex]);
+                normal = glm::vec3(transformIT * glm::vec4(normal, 0));
             }
 
-            //Height texture
-            if (material->GetTextureCount(aiTextureType_HEIGHT) > 0 && materialComponent.normal == nullptr)
+            //Tangents
+            glm::vec3 tangent{ 0,0,0 };
+            if (meshProcessInfo.mesh->mTangents)
             {
-                aiString path;
-                material->GetTexture(aiTextureType_HEIGHT, 0, &path);
-                std::string real_path = directory + "/" + std::string(path.C_Str());
-                materialComponent.normal = imageManager->LoadImage(real_path, true);
+                tangent = Assimp::ConvertAssimpToGlm(meshProcessInfo.mesh->mTangents[vertexIndex]);
+                tangent = glm::vec3(transformIT * glm::vec4(tangent, 0));
             }
 
-            //Displacement
-            if (material->GetTextureCount(aiTextureType_DISPLACEMENT) > 0 && materialComponent.normal == nullptr)
+            //Textures
+            glm::vec2 texcoord{ 0,0 };
+            if (meshProcessInfo.mesh->mTextureCoords[0] != nullptr)
             {
-                aiString path;
-                material->GetTexture(aiTextureType_DISPLACEMENT, 0, &path);
-                std::string real_path = directory + "/" + std::string(path.C_Str());
-                materialComponent.normal = imageManager->LoadImage(real_path, true);
+                texcoord.x = meshProcessInfo.mesh->mTextureCoords[0][vertexIndex].x;
+                texcoord.y = meshProcessInfo.mesh->mTextureCoords[0][vertexIndex].y;
             }
 
-            aiColor3D diffuseColor(1.f, 1.f, 1.f);
-            material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuseColor);
-            materialComponent.color = glm::vec4(Assimp::ConvertAssimpToGlm(diffuseColor), 1);
+            vertices[meshProcessInfo.vertexOffset + vertexIndex] = Vertex(position, normal, tangent, texcoord, meshProcessInfo.mesh->mMaterialIndex);
 
-            loadedMaterials[materialName] = materials.size();
-            materials.push_back(materialComponent);
-        }
-    }
-
-    for (uint32_t i = 0; i < meshProcessInfo.vertexCount; ++i)
-    {
-        //Position
-        glm::vec3 position{ 0,0,0 };
-        if (meshProcessInfo.mesh->mVertices)
-        {
-            position = Assimp::ConvertAssimpToGlm(meshProcessInfo.mesh->mVertices[i]);
-            position = glm::vec3(meshProcessInfo.transform * glm::vec4(position, 1.0f));
             aabbMax = glm::max(aabbMax, position);
             aabbMin = glm::min(aabbMin, position);
         }
+    );
+}
 
-        //Normals
-        glm::vec3 normal{ 0,0,0 };
-        if (meshProcessInfo.mesh->mNormals)
-        {
-            normal = Assimp::ConvertAssimpToGlm(meshProcessInfo.mesh->mNormals[i]);
-            normal = glm::vec3(transformIT * glm::vec4(normal, 0));
+void Model::ProcessMeshIndices(const aiScene* scene)
+{
+    Timer timer;
+
+    std::for_each(std::execution::seq, meshProcessInfos.begin(), meshProcessInfos.end(), 
+        [&](const auto& meshProcessInfo) -> void {
+            ProcessMeshIndex(scene, meshProcessInfo);
         }
+    );
 
-        //Tangents
-        glm::vec3 tangent{ 0,0,0 };
-        if (meshProcessInfo.mesh->mTangents)
-        {
-            tangent = Assimp::ConvertAssimpToGlm(meshProcessInfo.mesh->mTangents[i]);
-            tangent = glm::vec3(transformIT * glm::vec4(tangent, 0));
-        }
+    std::cout << "-----------------------------------------\n";
+    std::cout << "ProcessMeshIndices: " << timer.GetElapsedTime() << "\n";
+    std::cout << "-----------------------------------------\n";
+}
 
-        //Textures
-        glm::vec2 texcoord{ 0,0 };
-        if (meshProcessInfo.mesh->mTextureCoords[0] != nullptr)
-        {
-            texcoord.x = meshProcessInfo.mesh->mTextureCoords[0][i].x;
-            texcoord.y = meshProcessInfo.mesh->mTextureCoords[0][i].y;
-        }
-
-        vertices[meshProcessInfo.vertexOffset + i] = Vertex(position, normal, tangent, texcoord, loadedMaterials[materialName]);
-    }
-
+void Model::ProcessMeshIndex(const aiScene* scene, const MeshProcessInfo& meshProcessInfo)
+{
     constexpr uint32_t faceIndexCount = 3;
-    for (uint32_t i = 0; i < meshProcessInfo.indexCount / faceIndexCount; ++i)
-    {
-        for (uint32_t j = 0; j < faceIndexCount; ++j)
-        {
-            indices[meshProcessInfo.indexOffset + i * faceIndexCount + j] = meshProcessInfo.vertexOffset + meshProcessInfo.mesh->mFaces[i].mIndices[j];
+    auto index_range = std::views::iota(0u, meshProcessInfo.indexCount);
+    std::for_each(std::execution::seq, index_range.begin(), index_range.end(),
+        [&](auto flatIndex) -> void {
+            uint32_t faceIndex = flatIndex / faceIndexCount;
+            uint32_t localIndex = flatIndex % faceIndexCount;
+
+            indices[meshProcessInfo.indexOffset + flatIndex] = meshProcessInfo.vertexOffset + meshProcessInfo.mesh->mFaces[faceIndex].mIndices[localIndex];
         }
+    );
+}
+
+void Model::ProcessMaterials(const aiScene* scene)
+{
+    Timer timer;
+
+    auto material_index_range = std::views::iota(0u, (uint32_t)materials.size());
+    std::for_each(std::execution::seq, material_index_range.begin(), material_index_range.end(), 
+        [&](auto materialIndex) -> void {
+            ProcessMaterial(scene, materialIndex);
+        }
+    );
+
+    std::cout << "-----------------------------------------\n";
+    std::cout << "ProcessMaterials: " << timer.GetElapsedTime() << "\n";
+    std::cout << "-----------------------------------------\n";
+}
+
+void Model::ProcessMaterial(const aiScene* scene, uint32_t materialIndex)
+{
+    aiMaterial* material = scene->mMaterials[materialIndex];
+    MaterialComponent materialComponent;
+
+    //Diffuse texture
+    if (material->GetTextureCount(aiTextureType_DIFFUSE) > 0)
+    {
+        aiString path;
+        material->GetTexture(aiTextureType_DIFFUSE, 0, &path);
+        std::string real_path = directory + "/" + std::string(path.C_Str());
+        materialComponent.albedo = imageManager->LoadImage(real_path, true);
     }
+
+    //Normals texture
+    if (material->GetTextureCount(aiTextureType_NORMALS) > 0)
+    {
+        aiString path;
+        material->GetTexture(aiTextureType_NORMALS, 0, &path);
+        std::string real_path = directory + "/" + std::string(path.C_Str());
+        materialComponent.normal = imageManager->LoadImage(real_path, true);
+    }
+
+    //Height texture
+    if (material->GetTextureCount(aiTextureType_HEIGHT) > 0 && materialComponent.normal == nullptr)
+    {
+        aiString path;
+        material->GetTexture(aiTextureType_HEIGHT, 0, &path);
+        std::string real_path = directory + "/" + std::string(path.C_Str());
+        materialComponent.normal = imageManager->LoadImage(real_path, true);
+    }
+
+    //Displacement
+    if (material->GetTextureCount(aiTextureType_DISPLACEMENT) > 0 && materialComponent.normal == nullptr)
+    {
+        aiString path;
+        material->GetTexture(aiTextureType_DISPLACEMENT, 0, &path);
+        std::string real_path = directory + "/" + std::string(path.C_Str());
+        materialComponent.normal = imageManager->LoadImage(real_path, true);
+    }
+
+    aiColor3D diffuseColor(1.f, 1.f, 1.f);
+    material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuseColor);
+    materialComponent.color = glm::vec4(Assimp::ConvertAssimpToGlm(diffuseColor), 1);
+
+    materials[materialIndex] = materialComponent;
 }

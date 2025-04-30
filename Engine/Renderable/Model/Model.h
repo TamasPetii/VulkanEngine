@@ -14,6 +14,17 @@
 
 #include "Engine/Managers/ImageManager.h"
 
+struct ENGINE_API MeshProcessInfo
+{
+	aiMesh* mesh;
+	uint32_t meshIndex;
+	uint32_t vertexOffset;
+	uint32_t vertexCount;
+	uint32_t indexOffset;
+	uint32_t indexCount;
+	glm::mat4 transform;
+};
+
 class ENGINE_API Model : public Renderable, public Materialized, public Instanceable, public BoundingVolume
 {
 public:
@@ -25,24 +36,21 @@ private:
 	virtual void PopulateSurfacePoints() override;
 	void PreFetch(aiNode* node, const aiScene* scene);
 	void Process(aiNode* node, const aiScene* scene);
-	void ProcessGeometry(const aiScene* scene, uint32_t meshIndex);
+
+	void ProcessMeshVertices(const aiScene* scene);
+	void ProcessMeshVertex(const aiScene* scene, const MeshProcessInfo& meshProcessInfo);
+
+	void ProcessMeshIndices(const aiScene* scene);
+	void ProcessMeshIndex(const aiScene* scene, const MeshProcessInfo& meshProcessInfo);
+
+	void ProcessMaterials(const aiScene* scene);
+	void ProcessMaterial(const aiScene* scene, uint32_t materialIndex);
 private:
 	std::string path;
 	std::string directory;
 private:
-	struct MeshProcessInfo
-	{
-		aiMesh* mesh;
-		uint32_t meshIndex;
-		uint32_t vertexOffset;
-		uint32_t vertexCount;
-		uint32_t indexOffset;
-		uint32_t indexCount;
-		glm::mat4 transform;
-	};
 	uint32_t meshCount = 0;
 	std::vector<MeshProcessInfo> meshProcessInfos;
-	std::unordered_map<std::string, uint32_t> loadedMaterials;
 private:
 	std::shared_ptr<ImageManager> imageManager;
 };
