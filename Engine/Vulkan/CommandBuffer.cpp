@@ -1,4 +1,5 @@
 #include "CommandBuffer.h"
+#include "Engine/Vulkan/VulkanMutex.h"
 
 VkCommandBufferSubmitInfo Vk::CommandBuffer::BuildSubmitInfo(VkCommandBuffer commandBuffer)
 {
@@ -47,8 +48,10 @@ void Vk::CommandBuffer::EndSingleTimeCommandBuffer(VkCommandBuffer commandBuffer
 	submitInfo.commandBufferInfoCount = 1;
 	submitInfo.pCommandBufferInfos = &commandBufferSubmitInfo;
 
+	std::unique_lock<std::mutex> queueLock(VulkanMutex::graphicsQueueSubmitMutex);
 	vkQueueSubmit2(queue, 1, &submitInfo, VK_NULL_HANDLE);
 	vkQueueWaitIdle(queue);
+	queueLock.unlock();
 
 	vkFreeCommandBuffers(device->Value(), commandPool, 1, &commandBuffer);
 }

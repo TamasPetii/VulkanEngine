@@ -1,7 +1,7 @@
 #pragma once
 #include "Component.h"
-#include "Engine/Vulkan/Image.h"
 #include <glm/glm.hpp>
+#include "Engine/Utils/ImageTexture.h"
 
 struct ENGINE_API MaterialComponent : public Component
 {
@@ -10,10 +10,10 @@ struct ENGINE_API MaterialComponent : public Component
 	bool useBloom;
 	glm::vec4 color;
 	glm::vec2 uvScale;
-	std::shared_ptr<Vk::Image> albedo;
-	std::shared_ptr<Vk::Image> normal;
-	std::shared_ptr<Vk::Image> metallic; 
-	std::shared_ptr<Vk::Image> roughness;
+	std::shared_ptr<ImageTexture> albedo;
+	std::shared_ptr<ImageTexture> normal;
+	std::shared_ptr<ImageTexture> metallic;
+	std::shared_ptr<ImageTexture> roughness;
 };
 
 struct ENGINE_API MaterialComponentGPU

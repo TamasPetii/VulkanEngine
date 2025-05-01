@@ -3,6 +3,7 @@
 #include "Renderers/GeometryRenderer.h"
 #include "Renderers/GuiRenderer.h"
 #include "Renderers/BoundingVolumeRenderer.h"
+#include "Engine/Vulkan/VulkanMutex.h"
 
 Renderer::Renderer()
 {
@@ -90,7 +91,9 @@ void Renderer::Render(std::shared_ptr<Registry> registry, std::shared_ptr<Resour
 	submitInfo.commandBufferInfoCount = 1;
 	submitInfo.pCommandBufferInfos = &commandBufferSubmitInfo;
 
+	std::unique_lock<std::mutex> queueLock(VulkanMutex::graphicsQueueSubmitMutex);
 	VK_CHECK_MESSAGE(vkQueueSubmit2(graphicsQueue, 1, &submitInfo, inFlightFence->Value()), "Failed to submit draw command buffer!");
+	queueLock.unlock();
 
 	VkPresentInfoKHR presentInfo{};
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;

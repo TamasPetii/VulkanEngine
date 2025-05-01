@@ -85,13 +85,14 @@ void Engine::Update()
 
 		resourceManager->GetBenchmarkManager()->ResetBenchmarkTimes();
 
-		//std::cout << std::format("Fps: {}", counter) << std::endl;
+		std::cout << std::format("Fps: {}", counter) << std::endl;
 		time = 0;
 		counter = 0;
 	}
 
 	resourceManager->GetBenchmarkManager()->AddToCounter();
 	resourceManager->GetModelManager()->Update();
+	resourceManager->GetImageManager()->Update();
 
 	scene->Update(frameTimer, frameIndex);
 	InputManager::Instance()->UpdatePrevious();

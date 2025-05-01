@@ -1,4 +1,7 @@
 #include "Materialized.h"
+#include <algorithm>
+#include <execution>
+#include <ranges>
 
 std::shared_ptr<Vk::Buffer> Materialized::GetMaterialBuffer()
 {
@@ -14,34 +17,34 @@ void Materialized::UploadMaterialDataToGpu()
         material.color = glm::vec4(10, 0, 0, 1);
         materials.push_back(material);
     }
+    //TODO: Is it even handled?
 
-    //Upload the materials datas to GPU
     {
-        std::vector<MaterialComponentGPU> materialsGPU(materials.begin(), materials.end());
-        VkDeviceSize bufferSize = sizeof(MaterialComponentGPU) * materialsGPU.size();
-
-        Vk::BufferConfig stagingConfig;
-        stagingConfig.size = bufferSize;
-        stagingConfig.usage = VK_BUFFER_USAGE_2_TRANSFER_SRC_BIT;
-        stagingConfig.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-
-        Vk::Buffer stagingBuffer{ stagingConfig };
-
-        void* mappedBuffer = stagingBuffer.MapMemory();
-        memcpy(mappedBuffer, materialsGPU.data(), (size_t)bufferSize);
-        stagingBuffer.UnmapMemory();
+        VkDeviceSize bufferSize = sizeof(MaterialComponentGPU) * materials.size();
 
         Vk::BufferConfig config;
         config.size = bufferSize;
-        config.usage = VK_BUFFER_USAGE_2_TRANSFER_DST_BIT | VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT;
-        config.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-
+        config.usage = VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT;
+        config.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
         materialBuffer = std::make_shared<Vk::Buffer>(config);
+        materialBuffer->MapMemory();
+        auto materialBufferHandler = static_cast<MaterialComponentGPU*>(materialBuffer->GetHandler());
 
-        Vk::VulkanContext::GetContext()->GetImmediateQueue()->Submit(
-            [&](VkCommandBuffer commandBuffer) -> void {
-                Vk::Buffer::CopyBufferToBuffer(commandBuffer, stagingBuffer.Value(), materialBuffer->Value(), bufferSize);
-            }
-        );
+        auto vertex_index_range = std::views::iota(0u, (uint32_t)materials.size());
+        std::for_each(std::execution::par, vertex_index_range.begin(), vertex_index_range.end(),
+        [&](auto materialIndex) -> void {
+            bool albedoReady = false, normalReady = false, metallicReady = false, roughnessReady = false;     
+            auto& material = materials[materialIndex];
+
+            do
+            {
+                albedoReady = !material.albedo || (material.albedo->state == LoadState::Ready || material.albedo->state == LoadState::Failed);
+                normalReady = !material.normal || (material.normal->state == LoadState::Ready || material.normal->state == LoadState::Failed);
+                metallicReady = !material.metallic || (material.metallic->state == LoadState::Ready || material.metallic->state == LoadState::Failed);
+                roughnessReady = !material.roughness || (material.roughness->state == LoadState::Ready || material.roughness->state == LoadState::Failed);
+            } while (!albedoReady || !normalReady || !metallicReady || !roughnessReady);
+
+            materialBufferHandler[materialIndex] = MaterialComponentGPU(material);
+        });
     }
 }

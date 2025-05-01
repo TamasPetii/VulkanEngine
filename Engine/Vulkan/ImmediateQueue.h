@@ -2,8 +2,8 @@
 #include "Device.h"
 #include "PhysicalDevice.h"
 #include <memory>
-#include <functional>
 #include <mutex>
+#include <functional>
 
 namespace Vk
 {

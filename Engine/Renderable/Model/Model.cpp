@@ -5,6 +5,7 @@
 #include <ranges>
 #include <future>
 #include <thread>
+#include "Engine/Vulkan/VulkanContext.h"
 
 Model::Model(std::shared_ptr<ImageManager> imageManager) : 
     imageManager(imageManager)
@@ -13,6 +14,8 @@ Model::Model(std::shared_ptr<ImageManager> imageManager) :
 
 void Model::Load(const std::string& path)
 {
+    std::cout << "Async thread ImmediateQueue memory: " << Vk::VulkanContext::GetContext()->GetImmediateQueue().get() << std::endl;
+
     Timer timer;
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_CalcTangentSpace);
@@ -222,7 +225,7 @@ void Model::ProcessMaterials(const aiScene* scene)
     Timer timer;
 
     auto material_index_range = std::views::iota(0u, (uint32_t)materials.size());
-    std::for_each(std::execution::seq, material_index_range.begin(), material_index_range.end(), 
+    std::for_each(std::execution::par, material_index_range.begin(), material_index_range.end(), 
         [&](auto materialIndex) -> void {
             ProcessMaterial(scene, materialIndex);
         }
@@ -238,7 +241,6 @@ void Model::ProcessMaterial(const aiScene* scene, uint32_t materialIndex)
     aiMaterial* material = scene->mMaterials[materialIndex];
     MaterialComponent materialComponent;
 
-    /*
     //Diffuse texture
     if (material->GetTextureCount(aiTextureType_DIFFUSE) > 0)
     {
@@ -274,7 +276,6 @@ void Model::ProcessMaterial(const aiScene* scene, uint32_t materialIndex)
         std::string real_path = directory + "/" + std::string(path.C_Str());
         materialComponent.normal = imageManager->LoadImage(real_path, true);
     }
-    */
 
     aiColor3D diffuseColor(1.f, 1.f, 1.f);
     material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuseColor);

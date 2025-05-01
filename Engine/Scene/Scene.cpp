@@ -34,14 +34,15 @@ void Scene::InitializeRegistry()
 	std::mt19937 rng(dev());
 	std::uniform_real_distribution<float> dist(0, 1);
 
-	resourceManager->GetImageManager()->LoadImage("../Assets/Texture.jpg");
+	std::string imagePath = "../Assets/Texture.jpg";
+	resourceManager->GetImageManager()->LoadImage(imagePath, false);
+	resourceManager->GetImageManager()->WaitForImageFuture(imagePath);
 
 	{ //Camera
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, CameraComponent>(entity);
 		registry->GetComponent<CameraComponent>(entity).isMain = true;
 	}
-
 	/*
 	{
 		auto entity = registry->CreateEntity();
@@ -58,8 +59,8 @@ void Scene::InitializeRegistry()
 		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Bistro_v5_2/BistroInterior.fbx");
 		modelComponent.hasDirectxNormals = true;
 	}
-
 	*/
+	
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
@@ -67,6 +68,7 @@ void Scene::InitializeRegistry()
 		transformComponent.scale = glm::vec3(0.05);
 		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/VulkanEngine/Assets/Sponza/sponza.obj");
 	}
+	
 
 	/*
 	std::array<std::string, 5> shapes = { "Cube", "Sphere", "Cone", "Pyramid", "Cylinder" };

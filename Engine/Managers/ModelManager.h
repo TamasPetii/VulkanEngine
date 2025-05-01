@@ -4,6 +4,7 @@
 #include <string>
 #include <future>
 #include <thread>
+#include <mutex>
 #include <unordered_map>
 
 #include "Engine/Renderable/Model/Model.h"
@@ -20,6 +21,7 @@ public:
 	const auto& GetModels() { return models; }
 	void Update();
 private:
+	std::mutex loadMutex;
 	std::shared_ptr<ImageManager> imageManager = nullptr;
 	std::unordered_map<std::string, std::shared_ptr<Model>> models;
 	std::unordered_map<std::string, std::future<void>> futures;

@@ -114,6 +114,31 @@ Vk::QueueFamilyIndices Vk::PhysicalDevice::FindQueueFamilies(VkPhysicalDevice ph
 	std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
 	vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies.data());
 
+	for (uint32_t i = 0; i < queueFamilyCount; ++i) {
+		std::cout << "Queue Family Index: " << i << " - Flags: ";
+		VkQueueFlags flags = queueFamilies[i].queueFlags;
+
+		if (flags & VK_QUEUE_GRAPHICS_BIT) {
+			std::cout << "GRAPHICS ";
+		}
+		if (flags & VK_QUEUE_COMPUTE_BIT) {
+			std::cout << "COMPUTE ";
+		}
+		if (flags & VK_QUEUE_TRANSFER_BIT) {
+			std::cout << "TRANSFER ";
+		}
+		if (flags & VK_QUEUE_SPARSE_BINDING_BIT) {
+			std::cout << "SPARSE_BINDING ";
+		}
+		if (flags & VK_QUEUE_PROTECTED_BIT) {
+			std::cout << "PROTECTED ";
+		}
+		if (flags == 0) {
+			std::cout << "NONE";
+		}
+		std::cout << std::endl;
+	}
+
 	for (int i = 0; i < queueFamilies.size(); i++)
 	{
 		if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
@@ -126,7 +151,8 @@ Vk::QueueFamilyIndices Vk::PhysicalDevice::FindQueueFamilies(VkPhysicalDevice ph
 			indices.computeFamily = i;
 		}
 
-		if (queueFamilies[i].queueFlags & VK_QUEUE_TRANSFER_BIT)
+		if (queueFamilies[i].queueFlags & VK_QUEUE_TRANSFER_BIT &&
+			indices.graphicsFamily.has_value() && i != indices.graphicsFamily)
 		{
 			indices.transferFamily = i;
 		}
@@ -134,7 +160,7 @@ Vk::QueueFamilyIndices Vk::PhysicalDevice::FindQueueFamilies(VkPhysicalDevice ph
 		VkBool32 presentSupport = false;
 		vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface->Value(), &presentSupport);
 
-		if (presentSupport)
+		if (!indices.presentFamily.has_value() && presentSupport)
 		{
 			indices.presentFamily = i;
 		}
