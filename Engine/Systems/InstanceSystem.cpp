@@ -72,8 +72,11 @@ void InstanceSystem::UpdateModelInstances(std::shared_ptr<Registry> registry, st
 	auto modelManager = resourceManager->GetModelManager();
 	for (auto& [name, model] : modelManager->GetModels())
 	{
-		model->ResetInstanceCount();
-		model->ReserveInstances(model.use_count());
+		if (model && model->state == LoadState::Ready)
+		{
+			model->ResetInstanceCount();
+			model->ReserveInstances(model.use_count());
+		}
 	}
 
 	auto modelPool = registry->GetPool<ModelComponent>();
@@ -84,13 +87,16 @@ void InstanceSystem::UpdateModelInstances(std::shared_ptr<Registry> registry, st
 		[&](Entity entity) -> void 	{
 			auto& modelComponent = modelPool->GetData(entity);
 
-			if (modelComponent.toRender && modelComponent.model)
+			if (modelComponent.toRender && modelComponent.model && modelComponent.model->state == LoadState::Ready)
 				modelComponent.model->AddIndex(modelPool->GetDenseIndex(entity));
 		}
 	);
 
 	for (auto& [name, model] : modelManager->GetModels())
-		model->ShrinkInstances();
+	{
+		if (model && model->state == LoadState::Ready)
+			model->ShrinkInstances();
+	}
 }
 
 void InstanceSystem::UpdateModelInstancesGpu(std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex)
@@ -98,7 +104,8 @@ void InstanceSystem::UpdateModelInstancesGpu(std::shared_ptr<ResourceManager> re
 	auto modelManager = resourceManager->GetModelManager();
 	std::for_each(std::execution::par, modelManager->GetModels().begin(), modelManager->GetModels().end(),
 		[&](const std::pair<std::string, std::shared_ptr<Model>>& data) -> void {
-			data.second->UploadInstanceDataToGPU(data.second.use_count(), frameIndex);
+			if(data.second && data.second->state == LoadState::Ready)
+				data.second->UploadInstanceDataToGPU(data.second.use_count(), frameIndex);
 		}
 	);
 }

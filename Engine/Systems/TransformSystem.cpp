@@ -121,7 +121,9 @@ void TransformSystem::OnFinish(std::shared_ptr<Registry> registry)
 
 	std::for_each(std::execution::par, transformPool->GetDenseIndices().begin(), transformPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
-			transformPool->GetBitset(entity).reset();
+			[[unlikely]]
+			if(transformPool->IsBitSet<CHANGED_BIT>(entity))
+				transformPool->GetBitset(entity).reset();
 		}
 	);
 }

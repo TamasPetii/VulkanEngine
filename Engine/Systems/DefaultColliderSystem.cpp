@@ -13,12 +13,12 @@ void DefaultColliderSystem::OnUpdate(std::shared_ptr<Registry> registry, std::sh
 	std::for_each(std::execution::par, defaultColliderPool->GetDenseIndices().begin(), defaultColliderPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void
 		{
-			bool isShape = shapePool && shapePool->HasComponent(entity) && shapePool->GetData(entity).shape != nullptr;
-			bool isModel = modelPool && modelPool->HasComponent(entity) && modelPool->GetData(entity).model != nullptr;
+			bool isShape = shapePool && shapePool->HasComponent(entity) && shapePool->GetData(entity).shape;
+			bool isModel = modelPool && modelPool->HasComponent(entity) && modelPool->GetData(entity).model && modelPool->GetData(entity).model->state == LoadState::Ready;
 			bool shapeChanged = isShape && shapePool->IsBitSet<CHANGED_BIT>(entity);
 			bool modelChanged = isModel && modelPool->IsBitSet<CHANGED_BIT>(entity);
 
-			if (transformPool->HasComponent(entity) && (isShape || modelPool) && (defaultColliderPool->IsBitSet<UPDATE_BIT>(entity) || transformPool->IsBitSet<CHANGED_BIT>(entity) || shapeChanged || modelChanged))
+			if (transformPool->HasComponent(entity) && (isShape || isModel) && (defaultColliderPool->IsBitSet<UPDATE_BIT>(entity) || transformPool->IsBitSet<CHANGED_BIT>(entity) || shapeChanged || modelChanged))
 			{
 				auto& defaultColliderComponent = defaultColliderPool->GetData(entity);
 				auto& transformComponent = transformPool->GetData(entity);
@@ -60,7 +60,9 @@ void DefaultColliderSystem::OnFinish(std::shared_ptr<Registry> registry)
 
 	std::for_each(std::execution::par, defaultColliderPool->GetDenseIndices().begin(), defaultColliderPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
-			defaultColliderPool->GetBitset(entity).reset();
+			[[unlikely]]
+			if(defaultColliderPool->IsBitSet<CHANGED_BIT>(entity))
+				defaultColliderPool->GetBitset(entity).reset();
 		}
 	);
 }

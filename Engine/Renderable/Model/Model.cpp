@@ -11,14 +11,17 @@ Model::Model(std::shared_ptr<ImageManager> imageManager) :
 {
 }
 
-bool Model::Load(const std::string& path)
+void Model::Load(const std::string& path)
 {
     Timer timer;
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_CalcTangentSpace);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
-        return false;
+    {
+        state = LoadState::Failed;
+        return ;
+    }
 
     std::cout << "-----------------------------------------\n";
     std::cout << "Assimp::Importer: " << timer.GetElapsedTime() << "\n";
@@ -29,10 +32,10 @@ bool Model::Load(const std::string& path)
 
     PreFetch(scene->mRootNode, scene);
     Process(scene->mRootNode, scene);
-    //PopulateSurfacePoints();
     GenerateBoundingVolume(aabbMin, aabbMax);
     UploadToGpu();
-    return true;
+
+    state = LoadState::Loaded;
 }
 
 uint32_t Model::GetMeshCount()
@@ -235,6 +238,7 @@ void Model::ProcessMaterial(const aiScene* scene, uint32_t materialIndex)
     aiMaterial* material = scene->mMaterials[materialIndex];
     MaterialComponent materialComponent;
 
+    /*
     //Diffuse texture
     if (material->GetTextureCount(aiTextureType_DIFFUSE) > 0)
     {
@@ -270,6 +274,7 @@ void Model::ProcessMaterial(const aiScene* scene, uint32_t materialIndex)
         std::string real_path = directory + "/" + std::string(path.C_Str());
         materialComponent.normal = imageManager->LoadImage(real_path, true);
     }
+    */
 
     aiColor3D diffuseColor(1.f, 1.f, 1.f);
     material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuseColor);

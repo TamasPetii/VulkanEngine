@@ -3,6 +3,7 @@
 #include "Engine/Renderable/Materialized.h"
 #include "Engine/Renderable/Instanceable.h"
 #include "Engine/Renderable/BoundingVolume.h"
+#include "Engine/Async/AsyncLoaded.h"
 
 #include "AssimpConverter.h"
 #include <Assimp/Importer.hpp>
@@ -25,11 +26,11 @@ struct ENGINE_API MeshProcessInfo
 	glm::mat4 transform;
 };
 
-class ENGINE_API Model : public Renderable, public Materialized, public Instanceable, public BoundingVolume
+class ENGINE_API Model : public Renderable, public Materialized, public Instanceable, public BoundingVolume, public AsyncLoaded
 {
 public:
 	Model(std::shared_ptr<ImageManager> imageManager);
-	bool Load(const std::string& path);
+	void Load(const std::string& path);
 	uint32_t GetMeshCount();
 private:
 	virtual void UploadToGpu();

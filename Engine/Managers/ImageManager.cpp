@@ -171,43 +171,6 @@ std::shared_ptr<Vk::Image> ImageManager::CreateVulkanImageWithGli(const std::str
 		);
 	}
 
-
-
-	/*
-	Vk::BufferConfig stagingConfig;
-	stagingConfig.size = texSize;
-	stagingConfig.usage = VK_BUFFER_USAGE_2_TRANSFER_SRC_BIT;
-	stagingConfig.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-	Vk::Buffer stagingBuffer{ stagingConfig };
-
-	Vk::VulkanContext::GetContext()->GetImmediateQueue()->Submit(
-		[&](VkCommandBuffer commandBuffer) -> void {
-			//Transition all image mipmap layers at once
-			Vk::Image::TransitionImageLayoutDynamic(commandBuffer, image->Value(),
-				VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, VK_ACCESS_2_NONE,
-				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT, imageSpec.mipmapLevel);
-
-			for (uint32_t level = 0; level < imageSpec.mipmapLevel; ++level)
-			{
-				uint32_t mipWidth = texture.extent(level).x;
-				uint32_t mipHeight = texture.extent(level).y;
-				VkDeviceSize mipSize = texture.size(level);
-				void* data = texture.data(0, 0, level);
-
-				void* mappedBuffer = stagingBuffer.MapMemory();
-				memcpy(mappedBuffer, data, (size_t)mipSize);
-				stagingBuffer.UnmapMemory();
-
-				Vk::Buffer::CopyBufferToImage(commandBuffer, stagingBuffer.Value(), image->Value(), mipWidth, mipHeight, level);
-
-				Vk::Image::TransitionImageLayoutDynamic(commandBuffer, image->Value(),
-					VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, VK_ACCESS_2_SHADER_READ_BIT, 1, level);
-			}
-		}
-	);
-	*/
-
 	return image;
 }
 

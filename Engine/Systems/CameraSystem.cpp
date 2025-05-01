@@ -83,7 +83,8 @@ void CameraSystem::OnFinish(std::shared_ptr<Registry> registry)
 
 	std::for_each(std::execution::par, cameraPool->GetDenseIndices().begin(), cameraPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
-			cameraPool->GetBitset(entity).reset();
+			if(cameraPool->IsBitSet<CHANGED_BIT>(entity))
+				cameraPool->GetBitset(entity).reset();
 		}
 	);
 }

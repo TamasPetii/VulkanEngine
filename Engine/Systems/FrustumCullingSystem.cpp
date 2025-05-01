@@ -64,8 +64,8 @@ void FrustumCullingSystem::DefaultColliderCulling(std::shared_ptr<Registry> regi
 
 	std::for_each(std::execution::par, defaultColliderPool->GetDenseIndices().begin(), defaultColliderPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
-			bool hasShape = shapePool && shapePool->HasComponent(entity) && shapePool->GetData(entity).shape != nullptr;
-			bool hasModel = modelPool && modelPool->HasComponent(entity) && modelPool->GetData(entity).model != nullptr;
+			bool hasShape = shapePool && shapePool->HasComponent(entity) && shapePool->GetData(entity).shape;
+			bool hasModel = modelPool && modelPool->HasComponent(entity) && modelPool->GetData(entity).model && modelPool->GetData(entity).model->state == LoadState::Ready;
 
 			if (transformPool->HasComponent(entity) && (hasShape || hasModel))
 			{

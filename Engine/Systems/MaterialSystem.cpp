@@ -30,7 +30,9 @@ void MaterialSystem::OnFinish(std::shared_ptr<Registry> registry)
 
 	std::for_each(std::execution::par, materialPool->GetDenseIndices().begin(), materialPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
-			materialPool->GetBitset(entity).reset();
+			[[unlikely]]
+			if(materialPool->IsBitSet<CHANGED_BIT>(entity))
+				materialPool->GetBitset(entity).reset();
 		}
 	);
 }

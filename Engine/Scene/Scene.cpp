@@ -42,6 +42,7 @@ void Scene::InitializeRegistry()
 		registry->GetComponent<CameraComponent>(entity).isMain = true;
 	}
 
+	/*
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
@@ -50,7 +51,6 @@ void Scene::InitializeRegistry()
 		modelComponent.hasDirectxNormals = true;
 	}
 
-	/*
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
@@ -59,6 +59,7 @@ void Scene::InitializeRegistry()
 		modelComponent.hasDirectxNormals = true;
 	}
 
+	*/
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
@@ -66,7 +67,6 @@ void Scene::InitializeRegistry()
 		transformComponent.scale = glm::vec3(0.05);
 		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/VulkanEngine/Assets/Sponza/sponza.obj");
 	}
-	*/
 
 	/*
 	std::array<std::string, 5> shapes = { "Cube", "Sphere", "Cone", "Pyramid", "Cylinder" };

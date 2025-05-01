@@ -119,7 +119,7 @@ void GeometryRenderer::RenderModelsInstanced(VkCommandBuffer commandBuffer, VkPi
 	std::for_each(std::execution::seq, modelManager->GetModels().begin(), modelManager->GetModels().end(),
 		[&](const std::pair<std::string, std::shared_ptr<Model>>& data) -> void {
 			auto model = data.second;
-			if (model->GetInstanceCount() > 0)
+			if (model && model->state == LoadState::Ready && model->GetInstanceCount() > 0)
 			{
 				GeometryRendererPushConstants pushConstants;
 				pushConstants.renderMode = MODEL_INSTANCED;

@@ -3,6 +3,7 @@
 #include "PhysicalDevice.h"
 #include <memory>
 #include <functional>
+#include <mutex>
 
 namespace Vk
 {
@@ -16,6 +17,7 @@ namespace Vk
 		void Initialize();
 		void Cleanup();
 	private:
+		std::mutex submitMutex;
 		const Device* const device;
 		const PhysicalDevice* const physicalDevice;
 		VkFence immediateFence = VK_NULL_HANDLE;

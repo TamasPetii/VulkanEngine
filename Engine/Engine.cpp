@@ -76,21 +76,22 @@ void Engine::Update()
 
 	if (time > 1)
 	{
-		std::cout << "---------------------------------------------------------" << "\n";
+		//std::cout << "---------------------------------------------------------" << "\n";
 
 		resourceManager->GetBenchmarkManager()->AverageBenchmarkTimes();
 
-		for (auto& [typeIndex, time] : resourceManager->GetBenchmarkManager()->GetAverageBenchmarkTimes())
-			std::cout << std::format("{} ran in an average of {} ms", typeIndex.name(), time) << "\n";
+		//for (auto& [typeIndex, time] : resourceManager->GetBenchmarkManager()->GetAverageBenchmarkTimes())
+			//std::cout << std::format("{} ran in an average of {} ms", typeIndex.name(), time) << "\n";
 
 		resourceManager->GetBenchmarkManager()->ResetBenchmarkTimes();
 
-		std::cout << std::format("Fps: {}", counter) << std::endl;
+		//std::cout << std::format("Fps: {}", counter) << std::endl;
 		time = 0;
 		counter = 0;
 	}
 
 	resourceManager->GetBenchmarkManager()->AddToCounter();
+	resourceManager->GetModelManager()->Update();
 
 	scene->Update(frameTimer, frameIndex);
 	InputManager::Instance()->UpdatePrevious();

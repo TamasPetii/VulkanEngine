@@ -14,6 +14,8 @@ Vk::ImmediateQueue::~ImmediateQueue()
 
 void Vk::ImmediateQueue::Submit(const std::function<void(VkCommandBuffer)>& function)
 {
+	std::lock_guard<std::mutex> lock(submitMutex);
+
 	VK_CHECK_MESSAGE(vkResetFences(device->Value(), 1, &immediateFence), "Couldn't reset immediate fence");
 	VK_CHECK_MESSAGE(vkResetCommandBuffer(immediateBuffer, 0), "Couldn't reset immediate fence");
 

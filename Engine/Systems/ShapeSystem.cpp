@@ -35,7 +35,10 @@ void ShapeSystem::OnFinish(std::shared_ptr<Registry> registry)
 	std::for_each(std::execution::par, shapePool->GetDenseIndices().begin(), shapePool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
 			shapePool->GetData(entity).toRender = false;
-			shapePool->GetBitset(entity).reset();
+
+			[[unlikely]]
+			if(shapePool->IsBitSet<CHANGED_BIT>(entity))
+				shapePool->GetBitset(entity).reset();
 		}
 	);
 }

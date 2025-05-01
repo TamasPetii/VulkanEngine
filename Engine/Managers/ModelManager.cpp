@@ -12,16 +12,9 @@ std::shared_ptr<Model> ModelManager::LoadModel(const std::string& path)
         return models.at(path);
 
     std::shared_ptr<Model> model = std::make_shared<Model>(imageManager);
-
-    Timer timer{};
-    if (!model->Load(path))
-        return nullptr;
-
-    std::cout << "-----------------------------------------\n";
-    std::cout << "Model Loaded: " << timer.GetElapsedTime() << "\n";
-    std::cout << "-----------------------------------------\n";
-
     models[path] = model;
+    futures.emplace(path, std::async(std::launch::async, &Model::Load, models.at(path), path));
+
     return models.at(path);
 }
 
@@ -31,4 +24,30 @@ std::shared_ptr<Model> ModelManager::GetModel(const std::string& path)
         return nullptr;
 
     return models.at(path);
+}
+
+void ModelManager::Update()
+{
+    for (auto it = futures.begin(); it != futures.end();) {
+        if (it->second.valid() && it->second.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+            try {
+                it->second.get();
+                it = futures.erase(it);
+                std::cout << "Async model loading thread finished successfuly" << "\n";
+            }
+            catch (const std::exception& e) {
+                std::cout << "Thread error: " << e.what() << std::endl;
+            }
+        }
+        else {
+            ++it;
+        }
+    }
+
+    for (auto& [path, model] : models)
+    {
+        if (futures.find(path) == futures.end() && model->state == LoadState::Loaded)
+            model->state = LoadState::Ready;
+    }
+
 }

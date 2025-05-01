@@ -163,6 +163,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Async\AsyncLoaded.h" />
     <ClInclude Include="Vulkan\ComputePipeline.h" />
     <ClInclude Include="Registry\Pools\ComponentPool.h" />
     <ClInclude Include="Registry\Pools\DataPool.h" />
@@ -266,6 +267,7 @@
     <ClInclude Include="Logger\Logger.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Async\AsyncLoaded.cpp" />
     <ClCompile Include="Vulkan\ComputePipeline.cpp" />
     <ClCompile Include="Registry\Pools\ComponentPool.cpp" />
     <ClCompile Include="Registry\Pools\DataPool.cpp" />

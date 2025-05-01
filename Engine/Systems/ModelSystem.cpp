@@ -13,8 +13,7 @@ void ModelSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<R
 	std::for_each(std::execution::par, modelPool->GetDenseIndices().begin(), modelPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
 			[[unlikely]]
-			if (modelPool->IsBitSet<UPDATE_BIT>(entity) ||
-				(transformPool && transformPool->HasComponent(entity) && transformPool->IsBitSet<INDEX_CHANGED_BIT>(entity)))
+			if (modelPool->IsBitSet<UPDATE_BIT>(entity) || (transformPool && transformPool->HasComponent(entity) && transformPool->IsBitSet<INDEX_CHANGED_BIT>(entity)))
 			{
 				modelPool->SetBit<CHANGED_BIT>(entity);
 				modelPool->GetData(entity).versionID++;
@@ -33,7 +32,10 @@ void ModelSystem::OnFinish(std::shared_ptr<Registry> registry)
 	std::for_each(std::execution::par, modelPool->GetDenseIndices().begin(), modelPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
 			modelPool->GetData(entity).toRender = false;
-			modelPool->GetBitset(entity).reset();
+
+			[[unlikely]]
+			if(modelPool->IsBitSet<CHANGED_BIT>(entity))
+				modelPool->GetBitset(entity).reset();
 		}
 	);
 }
