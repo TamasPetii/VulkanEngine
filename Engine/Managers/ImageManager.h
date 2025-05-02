@@ -34,5 +34,8 @@ private:
 	std::shared_ptr<VulkanManager> vulkanManager = nullptr;
 	std::unordered_map<std::string, std::shared_ptr<ImageTexture>> images;
 	std::unordered_map<std::string, std::future<void>> futures;
+
+	constexpr static inline uint32_t minSubmitBatchSize = 16;
+	std::vector<std::shared_ptr<ImageTexture>> imagesToUploadGpu;
 };
 

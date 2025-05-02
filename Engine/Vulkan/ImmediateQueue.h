@@ -13,6 +13,7 @@ namespace Vk
 		ImmediateQueue(const PhysicalDevice* const physicalDevice, const Device* const device);
 		~ImmediateQueue();
 		void Submit(const std::function<void(VkCommandBuffer)>& function);
+		void Submit(std::span<VkCommandBufferSubmitInfo> commandBufferSubmitInfos);
 	private:
 		void Initialize();
 		void Cleanup();

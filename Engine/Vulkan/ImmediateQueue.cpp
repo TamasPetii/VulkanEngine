@@ -49,6 +49,28 @@ void Vk::ImmediateQueue::Submit(const std::function<void(VkCommandBuffer)>& func
 	queueLock.unlock();
 }
 
+void Vk::ImmediateQueue::Submit(std::span<VkCommandBufferSubmitInfo> commandBufferSubmitInfos)
+{
+	if (commandBufferSubmitInfos.size() == 0)
+		return;
+
+	std::unique_lock<std::mutex> submitLock(submitMutex);
+
+	VK_CHECK_MESSAGE(vkResetFences(device->Value(), 1, &immediateFence), "Couldn't reset immediate fence");
+	VK_CHECK_MESSAGE(vkResetCommandBuffer(immediateBuffer, 0), "Couldn't reset immediate fence");
+
+	VkSubmitInfo2 submitInfo{};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2;
+	submitInfo.pNext = nullptr;
+	submitInfo.commandBufferInfoCount = static_cast<uint32_t>(commandBufferSubmitInfos.size());
+	submitInfo.pCommandBufferInfos = commandBufferSubmitInfos.data();
+
+	std::unique_lock<std::mutex> queueLock(VulkanMutex::graphicsQueueSubmitMutex);
+	VK_CHECK_MESSAGE(vkQueueSubmit2(device->GetQueue(QueueType::GRAPHICS), 1, &submitInfo, immediateFence), "Failed to submit immediate command to queue!");
+	VK_CHECK_MESSAGE(vkWaitForFences(device->Value(), 1, &immediateFence, true, UINT64_MAX), "Failed to wait for immediate fence");
+	queueLock.unlock();
+}
+
 void Vk::ImmediateQueue::Initialize()
 {
 	auto& queueFamilyIndices = physicalDevice->GetQueueFamilyIndices();

@@ -25,26 +25,41 @@ void Materialized::UploadMaterialDataToGpu()
         Vk::BufferConfig config;
         config.size = bufferSize;
         config.usage = VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT;
-        config.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+        config.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
         materialBuffer = std::make_shared<Vk::Buffer>(config);
         materialBuffer->MapMemory();
         auto materialBufferHandler = static_cast<MaterialComponentGPU*>(materialBuffer->GetHandler());
 
+        const auto timeout = std::chrono::seconds(30);
+        const auto checkInterval = std::chrono::milliseconds(100);
+
         auto vertex_index_range = std::views::iota(0u, (uint32_t)materials.size());
-        std::for_each(std::execution::par, vertex_index_range.begin(), vertex_index_range.end(),
+        std::for_each(std::execution::seq, vertex_index_range.begin(), vertex_index_range.end(),
         [&](auto materialIndex) -> void {
             bool albedoReady = false, normalReady = false, metallicReady = false, roughnessReady = false;     
             auto& material = materials[materialIndex];
 
-            do
+            auto startTime = std::chrono::steady_clock::now();
+
+            while (true)
             {
-                albedoReady = !material.albedo || (material.albedo->state == LoadState::Ready || material.albedo->state == LoadState::Failed);
-                normalReady = !material.normal || (material.normal->state == LoadState::Ready || material.normal->state == LoadState::Failed);
-                metallicReady = !material.metallic || (material.metallic->state == LoadState::Ready || material.metallic->state == LoadState::Failed);
-                roughnessReady = !material.roughness || (material.roughness->state == LoadState::Ready || material.roughness->state == LoadState::Failed);
-            } while (!albedoReady || !normalReady || !metallicReady || !roughnessReady);
+                bool albedoReady = !material.albedo || (material.albedo->state == LoadState::Ready || material.albedo->state == LoadState::Failed);
+                bool normalReady = !material.normal || (material.normal->state == LoadState::Ready || material.normal->state == LoadState::Failed);
+                bool metallicReady = !material.metallic || (material.metallic->state == LoadState::Ready || material.metallic->state == LoadState::Failed);
+                bool roughnessReady = !material.roughness || (material.roughness->state == LoadState::Ready || material.roughness->state == LoadState::Failed);
+            
+                if (albedoReady && normalReady && metallicReady && roughnessReady)
+                    break;
+
+                if (std::chrono::steady_clock::now() - startTime > timeout)
+                    break;
+
+                std::this_thread::sleep_for(checkInterval);
+            }
 
             materialBufferHandler[materialIndex] = MaterialComponentGPU(material);
         });
+
+        materialBuffer->UnmapMemory();
     }
 }

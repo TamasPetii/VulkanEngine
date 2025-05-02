@@ -14,7 +14,7 @@ Model::Model(std::shared_ptr<ImageManager> imageManager) :
 
 void Model::Load(const std::string& path)
 {
-    std::cout << "Async thread ImmediateQueue memory: " << Vk::VulkanContext::GetContext()->GetImmediateQueue().get() << std::endl;
+    std::cout << std::format("[Thread Started] : Loading model path={}", path) << "\n";
 
     Timer timer;
     Assimp::Importer importer;
@@ -36,9 +36,12 @@ void Model::Load(const std::string& path)
     PreFetch(scene->mRootNode, scene);
     Process(scene->mRootNode, scene);
     GenerateBoundingVolume(aabbMin, aabbMax);
+
+    state = LoadState::CpuLoaded;
+
     UploadToGpu();
 
-    state = LoadState::Loaded;
+    state = LoadState::GpuUploaded;
 }
 
 uint32_t Model::GetMeshCount()

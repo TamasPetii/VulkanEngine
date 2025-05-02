@@ -54,6 +54,10 @@ void ImageManager::Update()
         if (it->second.valid() && it->second.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
             try {
                 it->second.get();
+
+                std::string path = it->first;
+                imagesToUploadGpu.push_back(images.at(path));
+
                 it = futures.erase(it);
                 std::cout << "Async texture loading thread finished successfuly" << "\n";
             }
@@ -66,12 +70,35 @@ void ImageManager::Update()
         }
     }
 
+    if (imagesToUploadGpu.size() >= minSubmitBatchSize || (!imagesToUploadGpu.empty() && futures.empty())) {
+
+        std::vector<VkCommandBufferSubmitInfo> submitInfos;
+        submitInfos.reserve(imagesToUploadGpu.size());
+
+        for (auto& image : imagesToUploadGpu)
+            submitInfos.push_back(image->GetCommandBufferSubmitInfo());
+
+        Vk::VulkanContext::GetContext()->GetImmediateQueue()->Submit(submitInfos);
+
+        for (auto& image : imagesToUploadGpu)
+        {
+            image->DestoryCommandPoolAndBuffer();
+            image->state = LoadState::GpuUploaded;
+        }
+
+        std::cout << "Images uploaded to gpu: Batch size = " << imagesToUploadGpu.size() << "\n";
+
+        imagesToUploadGpu.clear();
+    }
+
     for (auto& [path, image] : images)
     {
-        if (futures.find(path) == futures.end() && image->state == LoadState::Loaded)
+        if (image->state == LoadState::GpuUploaded)
         {
-            image->state = LoadState::Ready;
             vulkanManager->GetDescriptorSet("LoadedImages")->UpdateImageArrayElement("Images", images.at(path)->GetImage()->GetImageView(), VK_NULL_HANDLE, images.at(path)->GetImage()->GetDescriptorArrayIndex());
+            image->state = LoadState::Ready;
+
+            std::cout << "Image ready to use: " << path << "\n";
         }   
     }
 }

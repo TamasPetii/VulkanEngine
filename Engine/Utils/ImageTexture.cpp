@@ -68,7 +68,7 @@ void ImageTexture::Load(const std::string& path, bool generateMipMap)
 	else
 		CreateVulkanImageWithStb(path, generateMipMap);
 
-	state = LoadState::Loaded;
+	state = LoadState::CpuLoaded;
 }
 
 void ImageTexture::CreateVulkanImageWithGli(const std::string& path)
@@ -101,46 +101,53 @@ void ImageTexture::CreateVulkanImageWithGli(const std::string& path)
 	imageSpec.mipmapLevel = mipMapLevel;
 	image = std::make_unique<Vk::Image>(imageSpec, descriptorArrayIndex);
 
-	//Init all staging buffers with image data
-	std::vector<std::shared_ptr<Vk::Buffer>> stagingBuffers(imageSpec.mipmapLevel);
+	VkDeviceSize totalSize = 0;
+	std::vector<VkDeviceSize> offsets;
+	for (uint32_t level = 0; level < imageSpec.mipmapLevel; ++level) {
+		offsets.push_back(totalSize);
+		totalSize += texture.size(level);
+	}
+
+	Vk::BufferConfig stagingConfig;
+	stagingConfig.size = totalSize;
+	stagingConfig.usage = VK_BUFFER_USAGE_2_TRANSFER_SRC_BIT;
+	stagingConfig.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+	uploadData.stagingBuffer = std::make_shared<Vk::Buffer>(stagingConfig);
+	void* mappedBuffer = uploadData.stagingBuffer->MapMemory();
+
+	VkDeviceSize offset = 0;
 	for (uint32_t level = 0; level < imageSpec.mipmapLevel; ++level)
 	{
-		Vk::BufferConfig stagingConfig;
-		stagingConfig.size = texSize;
-		stagingConfig.usage = VK_BUFFER_USAGE_2_TRANSFER_SRC_BIT;
-		stagingConfig.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-		stagingBuffers[level] = std::make_shared<Vk::Buffer>(stagingConfig);
-
 		uint32_t mipWidth = texture.extent(level).x;
 		uint32_t mipHeight = texture.extent(level).y;
 		VkDeviceSize mipSize = texture.size(level);
 		void* data = texture.data(0, 0, level);
-
-		void* mappedBuffer = stagingBuffers[level]->MapMemory();
-		memcpy(mappedBuffer, data, (size_t)mipSize);
-		stagingBuffers[level]->UnmapMemory();
+		memcpy(static_cast<char*>(mappedBuffer) + offset, data, (size_t)mipSize);
+		offset += mipSize;
 	}
 
-	Vk::VulkanContext::GetContext()->GetImmediateQueue()->Submit(
-		[&](VkCommandBuffer commandBuffer) -> void
-		{
-			for (uint32_t level = 0; level < imageSpec.mipmapLevel; ++level)
-			{
-				uint32_t mipWidth = texture.extent(level).x;
-				uint32_t mipHeight = texture.extent(level).y;
+	uploadData.stagingBuffer->UnmapMemory();
 
-				Vk::Image::TransitionImageLayoutDynamic(commandBuffer, image->Value(),
-					VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, VK_ACCESS_2_NONE,
-					VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT, 1, level);
+	BatchUploaded::CreateCommandPoolAndBuffer();
+	BatchUploaded::BeginCommandBuffer();
 
-				Vk::Buffer::CopyBufferToImage(commandBuffer, stagingBuffers[level]->Value(), image->Value(), mipWidth, mipHeight, level);
+	for (uint32_t level = 0; level < imageSpec.mipmapLevel; ++level)
+	{
+		uint32_t mipWidth = texture.extent(level).x;
+		uint32_t mipHeight = texture.extent(level).y;
 
-				Vk::Image::TransitionImageLayoutDynamic(commandBuffer, image->Value(),
-					VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, VK_ACCESS_2_SHADER_READ_BIT, 1, level);
-			}
-		}
-	);
+		Vk::Image::TransitionImageLayoutDynamic(uploadData.commandBuffer, image->Value(),
+			VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, VK_ACCESS_2_NONE,
+			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT, 1, level);
+
+		Vk::Buffer::CopyBufferToImage(uploadData.commandBuffer, uploadData.stagingBuffer->Value(), image->Value(), mipWidth, mipHeight, level, offsets[level]);
+
+		Vk::Image::TransitionImageLayoutDynamic(uploadData.commandBuffer, image->Value(),
+			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT,
+			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, VK_ACCESS_2_SHADER_READ_BIT, 1, level);
+	}
+
+	BatchUploaded::EndCommandBuffer();
 }
 
 void ImageTexture::CreateVulkanImageWithStb(const std::string& path, bool generateMipMap)
@@ -167,12 +174,12 @@ void ImageTexture::CreateVulkanImageWithStb(const std::string& path, bool genera
 	Vk::BufferConfig stagingConfig;
 	stagingConfig.size = size;
 	stagingConfig.usage = VK_BUFFER_USAGE_2_TRANSFER_SRC_BIT;
-	stagingConfig.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-	Vk::Buffer stagingBuffer{ stagingConfig };
+	stagingConfig.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+	uploadData.stagingBuffer = std::make_shared<Vk::Buffer>(stagingConfig);
 
-	void* mappedBuffer = stagingBuffer.MapMemory();
+	void* mappedBuffer = uploadData.stagingBuffer->MapMemory();
 	memcpy(mappedBuffer, data, (size_t)size);
-	stagingBuffer.UnmapMemory();
+	uploadData.stagingBuffer->UnmapMemory();
 
 	stbi_image_free(data);
 
@@ -189,25 +196,26 @@ void ImageTexture::CreateVulkanImageWithStb(const std::string& path, bool genera
 	imageSpec.mipmapLevel = mipMapLevel;
 	image = std::make_unique<Vk::Image>(imageSpec, descriptorArrayIndex);
 
-	Vk::VulkanContext::GetContext()->GetImmediateQueue()->Submit(
-		[&](VkCommandBuffer commandBuffer) -> void {
-			//Transition all image mipmap layers at once
-			Vk::Image::TransitionImageLayoutDynamic(commandBuffer, image->Value(),
-				VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, VK_ACCESS_2_NONE,
-				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT, imageSpec.mipmapLevel);
+	BatchUploaded::CreateCommandPoolAndBuffer();
+	BatchUploaded::BeginCommandBuffer();
 
-			Vk::Buffer::CopyBufferToImage(commandBuffer, stagingBuffer.Value(), image->Value(), imageSpec.width, imageSpec.height);
+	//Transition all image mipmap layers at once
+	Vk::Image::TransitionImageLayoutDynamic(uploadData.commandBuffer, image->Value(),
+		VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, VK_ACCESS_2_NONE,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT, imageSpec.mipmapLevel);
 
-			if (imageSpec.mipmapLevel > 1)
-			{
-				Vk::Image::GenerateMipMaps(commandBuffer, image->Value(), imageSpec.width, imageSpec.height, imageSpec.mipmapLevel);
-			}
-			else
-			{
-				Vk::Image::TransitionImageLayoutDynamic(commandBuffer, image->Value(),
-					VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT,
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, VK_ACCESS_2_SHADER_READ_BIT);
-			}
-		}
-	);
+	Vk::Buffer::CopyBufferToImage(uploadData.commandBuffer, uploadData.stagingBuffer->Value(), image->Value(), imageSpec.width, imageSpec.height);
+
+	if (imageSpec.mipmapLevel > 1)
+	{
+		Vk::Image::GenerateMipMaps(uploadData.commandBuffer, image->Value(), imageSpec.width, imageSpec.height, imageSpec.mipmapLevel);
+	}
+	else
+	{
+		Vk::Image::TransitionImageLayoutDynamic(uploadData.commandBuffer, image->Value(),
+			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT,
+			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, VK_ACCESS_2_SHADER_READ_BIT);
+	}
+
+	BatchUploaded::EndCommandBuffer();
 }

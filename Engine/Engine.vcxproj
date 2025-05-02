@@ -164,6 +164,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Async\AsyncLoaded.h" />
+    <ClInclude Include="Async\BatchUploaded.h" />
     <ClInclude Include="Utils\ImageTexture.h" />
     <ClInclude Include="Vulkan\ComputePipeline.h" />
     <ClInclude Include="Registry\Pools\ComponentPool.h" />
@@ -270,6 +271,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Async\AsyncLoaded.cpp" />
+    <ClCompile Include="Async\BatchUploaded.cpp" />
     <ClCompile Include="Utils\ImageTexture.cpp" />
     <ClCompile Include="Vulkan\ComputePipeline.cpp" />
     <ClCompile Include="Registry\Pools\ComponentPool.cpp" />

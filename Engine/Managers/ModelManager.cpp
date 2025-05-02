@@ -54,7 +54,7 @@ void ModelManager::Update()
 
     for (auto& [path, model] : models)
     {
-        if (futures.find(path) == futures.end() && model->state == LoadState::Loaded)
+        if (futures.find(path) == futures.end() && model->state == LoadState::GpuUploaded)
             model->state = LoadState::Ready;
     }
 }

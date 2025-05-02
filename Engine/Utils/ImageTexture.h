@@ -2,10 +2,11 @@
 #include "Engine/EngineApi.h"
 #include "Engine/Vulkan/Image.h"
 #include "Engine/Async/AsyncLoaded.h"
+#include "Engine/Async/BatchUploaded.h"
 #include <memory>
 #include <string>
 
-class ENGINE_API ImageTexture : public AsyncLoaded
+class ENGINE_API ImageTexture : public AsyncLoaded, public BatchUploaded
 {
 public:
 	ImageTexture(uint32_t descriptorArrayIndex);

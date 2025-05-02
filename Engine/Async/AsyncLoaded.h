@@ -5,7 +5,8 @@
 
 enum class LoadState : uint8_t {
     NotLoaded,      
-    Loaded,        
+    CpuLoaded,
+    GpuUploaded,
     Ready,
     Failed
 };

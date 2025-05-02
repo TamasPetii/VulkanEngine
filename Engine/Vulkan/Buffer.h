@@ -19,7 +19,7 @@ namespace Vk
 	{
 	public:
 		static void CopyBufferToBuffer(VkCommandBuffer commandBuffer, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-		static void CopyBufferToImage(VkCommandBuffer commandBuffer, VkBuffer srcBuffer, VkImage dstImage, uint32_t width, uint32_t height, uint32_t mipLevel = 0);
+		static void CopyBufferToImage(VkCommandBuffer commandBuffer, VkBuffer srcBuffer, VkImage dstImage, uint32_t width, uint32_t height, uint32_t mipLevel = 0, VkDeviceSize bufferOffset = 0);
 		static void CopyImageToBuffer(VkCommandBuffer commandBuffer, VkImage srcImage, VkBuffer dstBuffer, uint32_t width, uint32_t height, uint32_t offsetX, uint32_t offsetY);
 
 		Buffer(const BufferConfig& config);
