@@ -45,6 +45,7 @@ void ModelManager::Update()
             }
             catch (const std::exception& e) {
                 std::cout << "Async model loading thread error: " << e.what() << std::endl;
+                it = futures.erase(it);
             }
         }
         else {

@@ -45,8 +45,9 @@ void Vk::ImmediateQueue::Submit(const std::function<void(VkCommandBuffer)>& func
 
 	std::unique_lock<std::mutex> queueLock(VulkanMutex::graphicsQueueSubmitMutex);
 	VK_CHECK_MESSAGE(vkQueueSubmit2(device->GetQueue(QueueType::GRAPHICS), 1, &submitInfo, immediateFence), "Failed to submit immediate command to queue!");
-	VK_CHECK_MESSAGE(vkWaitForFences(device->Value(), 1, &immediateFence, true, UINT64_MAX), "Failed to wait for immediate fence");
 	queueLock.unlock();
+
+	VK_CHECK_MESSAGE(vkWaitForFences(device->Value(), 1, &immediateFence, true, UINT64_MAX), "Failed to wait for immediate fence");
 }
 
 void Vk::ImmediateQueue::Submit(std::span<VkCommandBufferSubmitInfo> commandBufferSubmitInfos)
@@ -67,8 +68,9 @@ void Vk::ImmediateQueue::Submit(std::span<VkCommandBufferSubmitInfo> commandBuff
 
 	std::unique_lock<std::mutex> queueLock(VulkanMutex::graphicsQueueSubmitMutex);
 	VK_CHECK_MESSAGE(vkQueueSubmit2(device->GetQueue(QueueType::GRAPHICS), 1, &submitInfo, immediateFence), "Failed to submit immediate command to queue!");
-	VK_CHECK_MESSAGE(vkWaitForFences(device->Value(), 1, &immediateFence, true, UINT64_MAX), "Failed to wait for immediate fence");
 	queueLock.unlock();
+
+	VK_CHECK_MESSAGE(vkWaitForFences(device->Value(), 1, &immediateFence, true, UINT64_MAX), "Failed to wait for immediate fence");
 }
 
 void Vk::ImmediateQueue::Initialize()

@@ -40,7 +40,7 @@ std::shared_ptr<ImageTexture> ImageManager::LoadImage(const std::string& path, b
 	std::shared_ptr<ImageTexture> imageTexture = std::make_shared<ImageTexture>(GetAvailableIndex());
 	images[path] = imageTexture;
 
-	futures.emplace(path, std::async(std::launch::async, &ImageTexture::Load, images.at(path), path, generateMipMap));
+    imageLoadFutures.emplace(path, std::async(std::launch::async, &ImageTexture::Load, images.at(path), path, generateMipMap));
 
 	return images.at(path);
 }
@@ -50,7 +50,7 @@ void ImageManager::Update()
     //Need the lock, might delete future from futures map while LoadModel inserts future in it.
     std::unique_lock<std::mutex> lock(loadMutex);
 
-    for (auto it = futures.begin(); it != futures.end();) {
+    for (auto it = imageLoadFutures.begin(); it != imageLoadFutures.end();) {
         if (it->second.valid() && it->second.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
             try {
                 it->second.get();
@@ -58,11 +58,12 @@ void ImageManager::Update()
                 std::string path = it->first;
                 imagesToUploadGpu.push_back(images.at(path));
 
-                it = futures.erase(it);
+                it = imageLoadFutures.erase(it);
                 std::cout << "Async texture loading thread finished successfuly" << "\n";
             }
             catch (const std::exception& e) {
                 std::cout << "Async texture loading thread error: " << e.what() << std::endl;
+                it = imageLoadFutures.erase(it);
             }
         }
         else {
@@ -70,25 +71,27 @@ void ImageManager::Update()
         }
     }
 
-    if (imagesToUploadGpu.size() >= minSubmitBatchSize || (!imagesToUploadGpu.empty() && futures.empty())) {
-
-        std::vector<VkCommandBufferSubmitInfo> submitInfos;
-        submitInfos.reserve(imagesToUploadGpu.size());
-
-        for (auto& image : imagesToUploadGpu)
-            submitInfos.push_back(image->GetCommandBufferSubmitInfo());
-
-        Vk::VulkanContext::GetContext()->GetImmediateQueue()->Submit(submitInfos);
-
-        for (auto& image : imagesToUploadGpu)
-        {
-            image->DestoryCommandPoolAndBuffer();
-            image->state = LoadState::GpuUploaded;
-        }
-
-        std::cout << "Images uploaded to gpu: Batch size = " << imagesToUploadGpu.size() << "\n";
-
+    if (imagesToUploadGpu.size() >= minSubmitBatchSize || (!imagesToUploadGpu.empty() && imageLoadFutures.empty())) 
+    {
+        imagesToUploadGpuFutures.insert(std::make_unique<std::future<void>>(std::async(std::launch::async, &ImageManager::UploadBatchedImages, this, imagesToUploadGpu)));
         imagesToUploadGpu.clear();
+    }
+
+    for (auto it = imagesToUploadGpuFutures.begin(); it != imagesToUploadGpuFutures.end();) {
+        auto& future = *it;
+        if (future->valid() && future->wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+            try {
+                future->get();
+                it = imagesToUploadGpuFutures.erase(it);
+            }
+            catch (const std::exception& e) {
+                std::cout << "Async texture batch loading thread error: " << e.what() << std::endl;
+                it = imagesToUploadGpuFutures.erase(it);
+            }
+        }
+        else {
+            ++it;
+        }
     }
 
     for (auto& [path, image] : images)
@@ -103,20 +106,39 @@ void ImageManager::Update()
     }
 }
 
+void ImageManager::UploadBatchedImages(std::vector<std::shared_ptr<ImageTexture>> imagesToUploadGpu)
+{
+    std::vector<VkCommandBufferSubmitInfo> submitInfos;
+    submitInfos.reserve(imagesToUploadGpu.size());
+
+    for (auto& image : imagesToUploadGpu)
+        submitInfos.push_back(image->GetCommandBufferSubmitInfo());
+
+    Vk::VulkanContext::GetContext()->GetImmediateQueue()->Submit(submitInfos);
+
+    for (auto& image : imagesToUploadGpu)
+    {
+        image->DestoryCommandPoolAndBuffer();
+        image->state = LoadState::GpuUploaded;
+    }
+
+    std::cout << "Images uploaded to gpu: Batch size = " << imagesToUploadGpu.size() << "\n";
+}
+
 void ImageManager::WaitForImageFuture(const std::string& path)
 {
     std::unique_lock<std::mutex> lock(loadMutex);
 
-    if (futures.find(path) == futures.end() )
+    if (imageLoadFutures.find(path) == imageLoadFutures.end() )
         return;
 
-    if (futures.at(path).valid())
+    if (imageLoadFutures.at(path).valid())
     {
-        futures.at(path).get();
+        imageLoadFutures.at(path).get();
         images.at(path)->state = LoadState::Ready;
         vulkanManager->GetDescriptorSet("LoadedImages")->UpdateImageArrayElement("Images", images.at(path)->GetImage()->GetImageView(), VK_NULL_HANDLE, images.at(path)->GetImage()->GetDescriptorArrayIndex());
         std::cout << "WaitForImageFuture finished, image loaded: " << path << "\n";
     }
 
-    futures.erase(path);
+    imageLoadFutures.erase(path);
 }
