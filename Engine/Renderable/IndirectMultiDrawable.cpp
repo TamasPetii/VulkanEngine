@@ -24,7 +24,7 @@ void IndirectMultiDrawable::UploadIndirectCommandsToGpu(uint32_t frameIndex)
 
 		indirectBuffer[frameIndex] = std::make_shared<Vk::Buffer>(config);
 
-		Vk::VulkanContext::GetContext()->GetImmediateQueue()->Submit(
+		Vk::VulkanContext::GetContext()->GetImmediateQueue()->SubmitTransfer(
 			[&](VkCommandBuffer commandBuffer) -> void {
 				Vk::Buffer::CopyBufferToBuffer(commandBuffer, stagingBuffer.Value(), indirectBuffer[frameIndex]->Value(), bufferSize);
 			}

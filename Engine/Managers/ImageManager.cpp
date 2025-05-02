@@ -59,10 +59,8 @@ void ImageManager::Update()
                 imagesToUploadGpu.push_back(images.at(path));
 
                 it = imageLoadFutures.erase(it);
-                std::cout << "Async texture loading thread finished successfuly" << "\n";
             }
             catch (const std::exception& e) {
-                std::cout << "Async texture loading thread error: " << e.what() << std::endl;
                 it = imageLoadFutures.erase(it);
             }
         }
@@ -85,7 +83,6 @@ void ImageManager::Update()
                 it = imagesToUploadGpuFutures.erase(it);
             }
             catch (const std::exception& e) {
-                std::cout << "Async texture batch loading thread error: " << e.what() << std::endl;
                 it = imagesToUploadGpuFutures.erase(it);
             }
         }
@@ -100,8 +97,6 @@ void ImageManager::Update()
         {
             vulkanManager->GetDescriptorSet("LoadedImages")->UpdateImageArrayElement("Images", images.at(path)->GetImage()->GetImageView(), VK_NULL_HANDLE, images.at(path)->GetImage()->GetDescriptorArrayIndex());
             image->state = LoadState::Ready;
-
-            std::cout << "Image ready to use: " << path << "\n";
         }   
     }
 }
@@ -114,19 +109,18 @@ void ImageManager::UploadBatchedImages(std::vector<std::shared_ptr<ImageTexture>
     for (auto& image : imagesToUploadGpu)
         submitInfos.push_back(image->GetCommandBufferSubmitInfo());
 
-    Vk::VulkanContext::GetContext()->GetImmediateQueue()->Submit(submitInfos);
+    Vk::VulkanContext::GetContext()->GetImmediateQueue()->SubmitGraphics(submitInfos);
 
     for (auto& image : imagesToUploadGpu)
     {
         image->DestoryCommandPoolAndBuffer();
         image->state = LoadState::GpuUploaded;
     }
-
-    std::cout << "Images uploaded to gpu: Batch size = " << imagesToUploadGpu.size() << "\n";
 }
 
 void ImageManager::WaitForImageFuture(const std::string& path)
 {
+    /*
     std::unique_lock<std::mutex> lock(loadMutex);
 
     if (imageLoadFutures.find(path) == imageLoadFutures.end() )
@@ -137,8 +131,8 @@ void ImageManager::WaitForImageFuture(const std::string& path)
         imageLoadFutures.at(path).get();
         images.at(path)->state = LoadState::Ready;
         vulkanManager->GetDescriptorSet("LoadedImages")->UpdateImageArrayElement("Images", images.at(path)->GetImage()->GetImageView(), VK_NULL_HANDLE, images.at(path)->GetImage()->GetDescriptorArrayIndex());
-        std::cout << "WaitForImageFuture finished, image loaded: " << path << "\n";
     }
 
     imageLoadFutures.erase(path);
+    */
 }

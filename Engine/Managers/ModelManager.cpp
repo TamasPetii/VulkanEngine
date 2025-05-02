@@ -10,8 +10,6 @@ std::shared_ptr<Model> ModelManager::LoadModel(const std::string& path)
 {
     std::unique_lock<std::mutex> lock(loadMutex);
 
-    std::cout << "Main thread ImmediateQueue memory: " << Vk::VulkanContext::GetContext()->GetImmediateQueue().get() << std::endl;
-
     if (models.find(path) != models.end())
         return models.at(path);
 

@@ -231,13 +231,9 @@ void ViewportWindow::GetClickedActiveEntity(std::shared_ptr<Registry> registry, 
 			stagingConfig.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 			Vk::Buffer stagingBuffer{ stagingConfig };
 
-			Vk::VulkanContext::GetContext()->GetImmediateQueue()->Submit(
+			Vk::VulkanContext::GetContext()->GetImmediateQueue()->SubmitTransfer(
 				[&](VkCommandBuffer commandBuffer) -> void
 				{
-					Vk::Image::TransitionImageLayoutDynamic(commandBuffer, frameBuffer->GetImage("Entity")->Value(),
-						VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
-						VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_READ_BIT);
-
 					Vk::Buffer::CopyImageToBuffer(commandBuffer, frameBuffer->GetImage("Entity")->Value(), stagingBuffer.Value(), 1, 1, mouseX, frameBuffer->GetSize().height - mouseY);
 				}
 			);

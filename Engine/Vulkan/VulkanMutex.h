@@ -6,4 +6,5 @@ class VulkanMutex
 {
 public:
 	static inline std::mutex graphicsQueueSubmitMutex;
+	static inline std::mutex transferQueueSubmitMutex;
 };

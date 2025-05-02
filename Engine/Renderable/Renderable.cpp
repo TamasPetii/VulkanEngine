@@ -4,69 +4,56 @@ void Renderable::UploadToGpu()
 {
 	auto device = Vk::VulkanContext::GetContext()->GetDevice();
 
-	//Upload the vertices to the gpu
-	{
-		VkDeviceSize bufferSize = sizeof(Vertex) * vertices.size();
+	//Vertex Buffer
+	VkDeviceSize vertexBufferSize = sizeof(Vertex) * vertices.size();
 
-		Vk::BufferConfig stagingConfig;
-		stagingConfig.size = bufferSize;
-		stagingConfig.usage = VK_BUFFER_USAGE_2_TRANSFER_SRC_BIT;
-		stagingConfig.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+	Vk::BufferConfig vertexStagingConfig;
+	vertexStagingConfig.size = vertexBufferSize;
+	vertexStagingConfig.usage = VK_BUFFER_USAGE_2_TRANSFER_SRC_BIT;
+	vertexStagingConfig.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+	Vk::Buffer vertexStagingBuffer{ vertexStagingConfig };
 
-		Vk::Buffer stagingBuffer{ stagingConfig };
+	void* vertexStagigngBufferHandler = vertexStagingBuffer.MapMemory();
+	memcpy(vertexStagigngBufferHandler, vertices.data(), (size_t)vertexBufferSize);
+	vertexStagingBuffer.UnmapMemory();
 
-		void* mappedBuffer = stagingBuffer.MapMemory();
-		memcpy(mappedBuffer, vertices.data(), (size_t)bufferSize);
-		stagingBuffer.UnmapMemory();
+	Vk::BufferConfig vertexBufferConfig;
+	vertexBufferConfig.size = vertexBufferSize;
+	vertexBufferConfig.usage = VK_BUFFER_USAGE_2_TRANSFER_DST_BIT | VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT;
+	vertexBufferConfig.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+	vertexBuffer = std::make_shared<Vk::Buffer>(vertexBufferConfig);
 
-		Vk::BufferConfig config;
-		config.size = bufferSize;
-		config.usage = VK_BUFFER_USAGE_2_TRANSFER_DST_BIT | VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT;
-		config.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+	//Index Buffer
+	VkDeviceSize indexBufferSize = sizeof(uint32_t) * indices.size();
 
-		vertexBuffer = std::make_shared<Vk::Buffer>(config);
+	Vk::BufferConfig indexStagingConfig;
+	indexStagingConfig.size = indexBufferSize;
+	indexStagingConfig.usage = VK_BUFFER_USAGE_2_TRANSFER_SRC_BIT;
+	indexStagingConfig.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+	Vk::Buffer indexStagingBuffer{ indexStagingConfig };
 
-		Vk::VulkanContext::GetContext()->GetImmediateQueue()->Submit(
-			[&](VkCommandBuffer commandBuffer) -> void {
-				Vk::Buffer::CopyBufferToBuffer(commandBuffer, stagingBuffer.Value(), vertexBuffer->Value(), bufferSize);
-			}
-		);
+	void* indexStagingBufferHandler = indexStagingBuffer.MapMemory();
+	memcpy(indexStagingBufferHandler, indices.data(), (size_t)indexBufferSize);
+	indexStagingBuffer.UnmapMemory();
 
-		vertexCount = vertices.size();
-		vertices.clear();
-		vertices.shrink_to_fit();
-	}
+	Vk::BufferConfig indexBufferConfig;
+	indexBufferConfig.size = indexBufferSize;
+	indexBufferConfig.usage = VK_BUFFER_USAGE_2_TRANSFER_DST_BIT | VK_BUFFER_USAGE_2_INDEX_BUFFER_BIT;
+	indexBufferConfig.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+	indexBuffer = std::make_shared<Vk::Buffer>(indexBufferConfig);
 
-	//Upload the indices to the gpu
-	{
-		VkDeviceSize bufferSize = sizeof(uint32_t) * indices.size();
+	Vk::VulkanContext::GetContext()->GetImmediateQueue()->SubmitTransfer(
+		[&](VkCommandBuffer commandBuffer) -> void {
+			Vk::Buffer::CopyBufferToBuffer(commandBuffer, vertexStagingBuffer.Value(), vertexBuffer->Value(), vertexBufferSize);
+			Vk::Buffer::CopyBufferToBuffer(commandBuffer, indexStagingBuffer.Value(), indexBuffer->Value(), indexBufferSize);
+		}
+	);
 
-		Vk::BufferConfig stagingConfig;
-		stagingConfig.size = bufferSize;
-		stagingConfig.usage = VK_BUFFER_USAGE_2_TRANSFER_SRC_BIT;
-		stagingConfig.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+	indexCount = indices.size();
+	indices.clear();
+	indices.shrink_to_fit();
 
-		Vk::Buffer stagingBuffer{ stagingConfig };
-
-		void* mappedBuffer = stagingBuffer.MapMemory();
-		memcpy(mappedBuffer, indices.data(), (size_t)bufferSize);
-		stagingBuffer.UnmapMemory();
-
-		Vk::BufferConfig config;
-		config.size = bufferSize;
-		config.usage = VK_BUFFER_USAGE_2_TRANSFER_DST_BIT | VK_BUFFER_USAGE_2_INDEX_BUFFER_BIT;
-		config.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-
-		indexBuffer = std::make_shared<Vk::Buffer>(config);
-
-		Vk::VulkanContext::GetContext()->GetImmediateQueue()->Submit(
-			[&](VkCommandBuffer commandBuffer) -> void {
-				Vk::Buffer::CopyBufferToBuffer(commandBuffer, stagingBuffer.Value(), indexBuffer->Value(), bufferSize);
-			}
-		);
-
-		indexCount = indices.size();
-		indices.clear();
-		indices.shrink_to_fit();
-	}
+	vertexCount = vertices.size();
+	vertices.clear();
+	vertices.shrink_to_fit();
 }
