@@ -66,11 +66,18 @@ void Scene::InitializeRegistry()
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
 		auto [transformComponent, modelComponent] = registry->GetComponents<TransformComponent, ModelComponent>(entity);
-		transformComponent.scale = glm::vec3(0.05);
+		transformComponent.scale = glm::vec3(0.01);
 		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/VulkanEngine/Assets/Sponza/sponza.obj");
 	}
+
+	{
+		auto entity = registry->CreateEntity();
+		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
+		auto [transformComponent, modelComponent] = registry->GetComponents<TransformComponent, ModelComponent>(entity);
+		transformComponent.scale = glm::vec3(500);
+		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/VulkanEngine/Assets/Man/Walking.dae");
+	}
 	
-	/*
 	std::array<std::string, 5> shapes = { "Cube", "Sphere", "Cone", "Pyramid", "Cylinder" };
 	std::uniform_int_distribution<size_t> shapeDist(0, shapes.size() - 1); // for shape selection
 
@@ -85,11 +92,10 @@ void Scene::InitializeRegistry()
 		transformComponent.scale = glm::vec3(1);
 
 		materialComponent.color = glm::vec4(dist(rng), dist(rng), dist(rng), 1);
-		materialComponent.albedo = resourceManager->GetImageManager()->LoadImage("../Assets/Texture.jpg");
+		//materialComponent.albedo = resourceManager->GetImageManager()->LoadImage("../Assets/Texture.jpg");
 
 		shapeComponent.shape = resourceManager->GetGeometryManager()->GetShape(shapes[shapeDist(rng)]);
 	}
-	*/
 }
 
 void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)

@@ -76,12 +76,12 @@ void Engine::Update()
 
 	if (time > 1)
 	{
-		//std::cout << "---------------------------------------------------------" << "\n";
+		std::cout << "---------------------------------------------------------" << "\n";
 
 		resourceManager->GetBenchmarkManager()->AverageBenchmarkTimes();
 
-		//for (auto& [typeIndex, time] : resourceManager->GetBenchmarkManager()->GetAverageBenchmarkTimes())
-			//std::cout << std::format("{} ran in an average of {} ms", typeIndex.name(), time) << "\n";
+		for (auto& [typeIndex, time] : resourceManager->GetBenchmarkManager()->GetAverageBenchmarkTimes())
+			std::cout << std::format("{} ran in an average of {} ms", typeIndex.name(), time) << "\n";
 
 		resourceManager->GetBenchmarkManager()->ResetBenchmarkTimes();
 

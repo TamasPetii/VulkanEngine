@@ -11,17 +11,6 @@ void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Reg
 	auto frameBuffer = resourceManager->GetVulkanManager()->GetFrameDependentFrameBuffer("Main", frameIndex);
 	auto pipeline = resourceManager->GetVulkanManager()->GetGraphicsPipeline("DeferredPre");
 
-	VkQueryPool queryPool;
-	VkQueryPoolCreateInfo queryPoolInfo{};
-	queryPoolInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
-	queryPoolInfo.queryType = VK_QUERY_TYPE_TIMESTAMP;
-	queryPoolInfo.queryCount = 2;
-
-	VK_CHECK_MESSAGE(vkCreateQueryPool(device->Value(), &queryPoolInfo, nullptr, &queryPool), "Failed to create query pool!");
-
-	vkCmdResetQueryPool(commandBuffer, queryPool, 0, 2);
-	vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queryPool, 0);
-
 	VkClearValue colorClearValue{};
 	colorClearValue.color.float32[0] = 0.f;
 	colorClearValue.color.float32[1] = 0.f;
@@ -83,8 +72,6 @@ void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Reg
 	RenderModelsInstanced(commandBuffer, pipeline->GetLayout(), resourceManager, frameIndex);
 
 	vkCmdEndRendering(commandBuffer);
-
-	vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, queryPool, 1);
 }
 
 void GeometryRenderer::RenderShapesInstanced(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex)
