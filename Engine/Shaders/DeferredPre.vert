@@ -40,7 +40,7 @@ void main()
 	if(PushConstants.renderMode == MODEL_INSTANCED)
 	{	
 		localTransform = localTransform * NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[v.nodeIndex].transform;
-		localTransformIT = localTransformIT * NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[v.nodeIndex].transformIT;
+		localTransformIT = NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[v.nodeIndex].transformIT * localTransformIT;
 	}
 
 	vec4 worldPosition = localTransform * vec4(v.position, 1.0);
@@ -48,7 +48,10 @@ void main()
 
 	vec3 normal = normalize(vec3(localTransformIT * vec4(v.normal, 0)));
 	vec3 tangent = normalize(vec3(localTransformIT * vec4(v.tangent, 0)));
-	vec3 bitangent = normalize(vec3(localTransformIT * vec4(v.bitangent, 0)));
+	tangent = normalize(tangent - dot(tangent, normal) * normal);
+	vec3 bitangent = normalize(cross(normal, tangent));
+
+	//vec3 bitangent = normalize(vec3(localTransformIT * vec4(v.bitangent, 0)));
 
 	vs_out_pos = worldPosition.xyz;
 	vs_out_normal = normal;

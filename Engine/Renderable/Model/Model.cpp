@@ -199,7 +199,7 @@ void Model::ProcessMeshVertex(const aiScene* scene, const MeshProcessInfo& meshP
                 uv.y = meshProcessInfo.mesh->mTextureCoords[0][vertexIndex].y;
             }
 
-            vertices[meshProcessInfo.vertexOffset + vertexIndex] = Vertex(position, normal, uv, tangent, bitangent, meshProcessInfo.mesh->mMaterialIndex, 0);
+            vertices[meshProcessInfo.vertexOffset + vertexIndex] = Vertex(position, normal, uv, tangent, bitangent, meshProcessInfo.mesh->mMaterialIndex, meshProcessInfo.nodeIndex);
         }
     );
 }
