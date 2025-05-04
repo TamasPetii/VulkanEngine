@@ -8,3 +8,4 @@
 #include "InstanceSystem.h"
 #include "DefaultColliderSystem.h"
 #include "FrustumCullingSystem.h"
+#include "AnimationSystem.h"

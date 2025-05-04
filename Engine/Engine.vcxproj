@@ -163,6 +163,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Renderable\Model\NodeTransform.h" />
+    <ClInclude Include="Systems\AnimationSystem.h" />
     <ClInclude Include="Components\AnimationComponent.h" />
     <ClInclude Include="Animation\Animation.h" />
     <ClInclude Include="Async\AsyncLoaded.h" />
@@ -273,6 +275,8 @@
     <ClInclude Include="Vulkan\VulkanMutex.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Renderable\Model\NodeTransform.cpp" />
+    <ClCompile Include="Systems\AnimationSystem.cpp" />
     <ClCompile Include="Components\AnimationComponent.cpp" />
     <ClCompile Include="Animation\Animation.cpp" />
     <ClCompile Include="Async\AsyncLoaded.cpp" />

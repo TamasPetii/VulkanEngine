@@ -14,7 +14,7 @@
 
 class ENGINE_API Animation : public AsyncLoaded
 {
-private:
+public:
 	struct ENGINE_API VertexBoneData
 	{
 		glm::vec4 weights = { 0.f, 0.f, 0.f, 0.f };
@@ -39,20 +39,23 @@ private:
 		uint32_t boneIndex = UINT32_MAX;
 		uint32_t parentIndex = UINT32_MAX;
 	};
-	struct ENGINE_API NodeTransformGLSL
-	{
-		glm::mat4 transform;
-		glm::mat4 transformIT;
-	};
 public:
 	void Load(const std::string& path);
+	auto GetDuration() { return duration; }
+	auto GetTicksPerSeconds() { return ticksPerSecond; }
+	auto GetVertexCount() { return vertexCount; }
+	auto GetBoneCount() { return boneCount; }
+	auto GetMeshCount() { return meshCount; }
+	const auto& GetBoneIndexMap() { return boneIndex; }
+	const auto& GetNodeProcessInfo() { return nodeProcessInfos; }
+	const auto& GetBoneProcessInfo() { return boneProcessInfos; }
+	const auto& GetVertexBoneBuffer() { return vertexBoneBuffer; }
 private:
 	void PreFetch(const aiScene* scene);
 	void ProcessBoneKeyFrames(const aiScene* scene);
 	void ProcessMeshVertexBones();
 	void ProcessMeshVertexBone(const MeshProcessInfo& meshProcessInfo);
 	void InitVertexBoneBuffer();
-	void InitNodeTransformBuffer();
 
 	double duration;
 	double ticksPerSecond;

@@ -321,7 +321,7 @@ void Model::ProcessMaterial(const aiScene* scene, uint32_t materialIndex)
 
 void Model::UploadNodeTransformDataToGpu()
 {
-    VkDeviceSize nodeBufferSize = sizeof(NodeTransformGLSL) * nodeTransformInfos.size();
+    VkDeviceSize nodeBufferSize = sizeof(NodeTransform) * nodeTransformInfos.size();
 
     Vk::BufferConfig nodeStagingConfig;
     nodeStagingConfig.size = nodeBufferSize;
@@ -329,7 +329,7 @@ void Model::UploadNodeTransformDataToGpu()
     nodeStagingConfig.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
     Vk::Buffer nodeStagingBuffer{ nodeStagingConfig };
 
-    NodeTransformGLSL* nodeStagigngBufferHandler = static_cast<NodeTransformGLSL*>(nodeStagingBuffer.MapMemory());
+    NodeTransform* nodeStagigngBufferHandler = static_cast<NodeTransform*>(nodeStagingBuffer.MapMemory());
     for (uint32_t i = 0; i < nodeTransformInfos.size(); ++i)
     {
         nodeStagigngBufferHandler[i].transform = nodeTransformInfos[i].globalTransform;

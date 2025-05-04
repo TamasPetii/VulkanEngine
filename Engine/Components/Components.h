@@ -5,3 +5,4 @@
 #include "ShapeComponent.h"
 #include "ModelComponent.h"
 #include "DefaultColliderComponent.h"
+#include "AnimationComponent.h"

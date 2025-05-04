@@ -37,18 +37,18 @@ private:
 public:
     Bone() = default;
     Bone(aiNodeAnim* channel);
-    glm::mat4 GetTransform(double time);
+    glm::mat4 GetTransform(double time) const;
 private:
     void ProcessScaleKeys(aiNodeAnim* channel);
     void ProcessPositionKeys(aiNodeAnim* channel);
     void ProcessRotationKeys(aiNodeAnim* channel);
-    uint32_t GetScaleKeyIndex(double time);
-    uint32_t GetPositionKeyIndex(double time);
-    uint32_t GetRotationKeyIndex(double time);
-    glm::mat4 InterpolateScale(double time);
-    glm::mat4 InterpolatePosition(double time);
-    glm::mat4 InterpolateRotation(double time);
-    double GetFactor(double lastTimeStamp, double nextTimeStamp, double time);
+    uint32_t GetScaleKeyIndex(double time) const;
+    uint32_t GetPositionKeyIndex(double time) const;
+    uint32_t GetRotationKeyIndex(double time) const;
+    glm::mat4 InterpolateScale(double time) const;
+    glm::mat4 InterpolatePosition(double time) const;
+    glm::mat4 InterpolateRotation(double time) const;
+    double GetFactor(double lastTimeStamp, double nextTimeStamp, double time) const;
 private:
     std::vector<KeyScale> scales;
     std::vector<KeyPosition> positions;

@@ -10,7 +10,7 @@ Bone::Bone(aiNodeAnim* channel)
 	rotations.reserve(channel->mNumRotationKeys);
 }
 
-glm::mat4 Bone::GetTransform(double time)
+glm::mat4 Bone::GetTransform(double time) const
 {
 	return InterpolatePosition(time) * InterpolateRotation(time) * InterpolateScale(time);
 }
@@ -33,7 +33,7 @@ void Bone::ProcessRotationKeys(aiNodeAnim* channel)
 		rotations.emplace_back(KeyRotation(Assimp::ConvertAssimpToGlm(channel->mRotationKeys[i].mValue), channel->mRotationKeys[i].mTime));
 }
 
-uint32_t Bone::GetScaleKeyIndex(double time)
+uint32_t Bone::GetScaleKeyIndex(double time) const
 {
 	for (uint32_t i = 0; i < scales.size() - 1; ++i)
 	{
@@ -44,7 +44,7 @@ uint32_t Bone::GetScaleKeyIndex(double time)
 	return UINT32_MAX;
 }
 
-uint32_t Bone::GetPositionKeyIndex(double time)
+uint32_t Bone::GetPositionKeyIndex(double time) const
 {
 	for (uint32_t i = 0; i < positions.size() - 1; ++i)
 	{
@@ -55,7 +55,7 @@ uint32_t Bone::GetPositionKeyIndex(double time)
 	return UINT32_MAX;
 }
 
-uint32_t Bone::GetRotationKeyIndex(double time)
+uint32_t Bone::GetRotationKeyIndex(double time) const
 {
 	for (uint32_t i = 0; i < rotations.size() - 1; ++i)
 	{
@@ -66,7 +66,7 @@ uint32_t Bone::GetRotationKeyIndex(double time)
 	return UINT32_MAX;
 }
 
-glm::mat4 Bone::InterpolateScale(double time)
+glm::mat4 Bone::InterpolateScale(double time) const
 {
 	if (scales.size() == 1)
 		return glm::scale(scales[0].scale);
@@ -78,7 +78,7 @@ glm::mat4 Bone::InterpolateScale(double time)
 	return glm::scale(finalScale);
 }
 
-glm::mat4 Bone::InterpolatePosition(double time)
+glm::mat4 Bone::InterpolatePosition(double time) const
 {
 	if (positions.size() == 1)
 		return glm::translate(positions[0].position);
@@ -90,7 +90,7 @@ glm::mat4 Bone::InterpolatePosition(double time)
 	return glm::translate(finalPosition);
 }
 
-glm::mat4 Bone::InterpolateRotation(double time)
+glm::mat4 Bone::InterpolateRotation(double time) const
 {
 	if (rotations.size() == 1)
 		return glm::toMat4(glm::normalize(rotations[0].orientation));
@@ -102,7 +102,7 @@ glm::mat4 Bone::InterpolateRotation(double time)
 	return glm::toMat4(glm::normalize(finalRotation));
 }
 
-double Bone::GetFactor(double lastTimeStamp, double nextTimeStamp, double time)
+double Bone::GetFactor(double lastTimeStamp, double nextTimeStamp, double time) const
 {
 	return (time - lastTimeStamp) / (nextTimeStamp - lastTimeStamp);
 }

@@ -36,7 +36,6 @@ void Animation::Load(const std::string& path)
     ProcessMeshVertexBones();
     ProcessBoneKeyFrames(scene);
     InitVertexBoneBuffer();
-    InitNodeTransformBuffer();
 }
 
 void Animation::PreFetch(const aiScene* scene)
@@ -174,16 +173,4 @@ void Animation::InitVertexBoneBuffer()
             Vk::Buffer::CopyBufferToBuffer(commandBuffer, vertexBoneStagingBuffer.Value(), vertexBoneBuffer->Value(), vertexBoneBufferSize);
         }
     );
-}
-
-void Animation::InitNodeTransformBuffer()
-{
-    VkDeviceSize nodeBufferSize = sizeof(NodeTransformGLSL) * nodeProcessInfos.size();
-
-    Vk::BufferConfig nodeBufferConfig;
-    nodeBufferConfig.size = nodeBufferSize;
-    nodeBufferConfig.usage =  VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT;
-    nodeBufferConfig.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-    nodeTransformBuffer = std::make_shared<Vk::Buffer>(nodeBufferConfig);
-    nodeTransformBuffer->MapMemory();
 }

@@ -13,11 +13,12 @@
 #include <filesystem>
 #include <queue>
 
+#include "NodeTransform.h"
 #include "Engine/Managers/ImageManager.h"
 
 class ENGINE_API Model : public Renderable, public Materialized, public Instanceable, public BoundingVolume, public AsyncLoaded
 {
-private:
+public:
 	struct ENGINE_API MeshProcessInfo
 	{
 		aiMesh* mesh;
@@ -34,38 +35,33 @@ private:
 		glm::mat4 globalTransform;
 		glm::mat4 globalTransformIT;
 	};
-	struct ENGINE_API NodeTransformGLSL
-	{
-		glm::mat4 transform;
-		glm::mat4 transformIT;
-	};
 public:
 	Model(std::shared_ptr<ImageManager> imageManager);
 	void Load(const std::string& path);
-	uint32_t GetMeshCount() { return meshCount; }
+	auto GetMeshCount() { return meshCount; }
+	auto GetVertexCount() { return vertexCount; }
+	auto GetIndexCount() { return indexCount; }
 	auto GetNodeTransformBuffer() { return nodeTransformBuffer; }
+	const auto& GetMeshProcessInfos() { return meshProcessInfos; }
+	const auto& GetNodeTransformInfos() { return nodeTransformInfos; }
 private:
 	virtual void UploadToGpu();
 	virtual void PopulateSurfacePoints() override;
 	void PreFetch(const aiScene* scene);
 	void Process(const aiScene* scene);
-
 	void ProcessMeshVertices(const aiScene* scene);
 	void ProcessMeshVertex(const aiScene* scene, const MeshProcessInfo& meshProcessInfo);
-
 	void ProcessMeshIndices(const aiScene* scene);
 	void ProcessMeshIndex(const aiScene* scene, const MeshProcessInfo& meshProcessInfo);
-
 	void ProcessMaterials(const aiScene* scene);
 	void ProcessMaterial(const aiScene* scene, uint32_t materialIndex);
+	void UploadNodeTransformDataToGpu();
 private:
 	std::string path;
 	std::string directory;
 private:
 	uint32_t meshCount = 0;
 	std::vector<MeshProcessInfo> meshProcessInfos;
-
-	void UploadNodeTransformDataToGpu();
 	std::vector<NodeTransformInfo> nodeTransformInfos;
 	std::shared_ptr<Vk::Buffer> nodeTransformBuffer;
 private:
