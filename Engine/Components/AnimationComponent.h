@@ -1,5 +1,6 @@
 #pragma once
 #include "Component.h"
+#include "Engine/Config.h"
 #include <memory>
 #include "Engine/Vulkan/Buffer.h"
 #include "Engine/Animation/Animation.h"
@@ -7,11 +8,19 @@
 
 struct ENGINE_API AnimationComponent : public Component
 {
+	struct AnimationTransformBuffer
+	{
+		uint32_t version = 0;
+		std::shared_ptr<Vk::Buffer> buffer;
+	};
+
 	AnimationComponent();
+
 
 	double time;
 	float speed;
-	std::vector<NodeTransform> transforms;
 	std::shared_ptr<Animation> animation;
-	std::shared_ptr<Vk::Buffer> nodeTransformBuffer;
+	std::vector<NodeTransform> nodeTransforms;
+	std::array<AnimationTransformBuffer, GlobalConfig::FrameConfig::maxFramesInFlights> nodeTransformBuffers;
+	uint32_t nodeTransformVersion = 0;
 };

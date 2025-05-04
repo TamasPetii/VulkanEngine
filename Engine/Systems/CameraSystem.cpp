@@ -5,7 +5,7 @@
 #include <glm/gtx/transform2.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-void CameraSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, float deltaTime)
+void CameraSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex, float deltaTime)
 {
 	auto inputManager = InputManager::Instance();
 	auto [transformPool, cameraPool] = registry->GetPools<TransformComponent, CameraComponent>();

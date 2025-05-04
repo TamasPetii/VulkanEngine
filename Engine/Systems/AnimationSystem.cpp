@@ -3,7 +3,7 @@
 #include "Engine/Components/ModelComponent.h"
 #include "Engine/Components/AnimationComponent.h"
 
-void AnimationSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, float deltaTime)
+void AnimationSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex, float deltaTime)
 {
 	auto [animationPool, modelPool] = registry->GetPools<AnimationComponent, ModelComponent>();
 	if (!animationPool || !modelPool)
@@ -11,27 +11,37 @@ void AnimationSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_p
 
 	std::for_each(std::execution::par, animationPool->GetDenseIndices().begin(), animationPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
-			if (animationPool->GetData(entity).animation && 
-				animationPool->IsBitSet<REGENERATE_BIT>(entity))
+			auto& animationComponent = animationPool->GetData(entity);
+
+			if (animationComponent.animation)
 			{
-				auto& animationComponent = animationPool->GetData(entity);
+				[[unlikely]]
+				if (animationPool->IsBitSet<REGENERATE_BIT>(entity))
+				{
+					animationComponent.nodeTransformVersion++;
+					animationPool->ResetBit<REGENERATE_BIT>(entity);
+				}
 
-				uint32_t nodeCount = animationPool->GetData(entity).animation->GetNodeProcessInfo().size();
+				[[unlikely]]
+				if (animationComponent.nodeTransformBuffers[frameIndex].version != animationComponent.nodeTransformVersion)
+				{
+					animationComponent.nodeTransformBuffers[frameIndex].version = animationComponent.nodeTransformVersion;
 
-				animationComponent.transforms.clear();
-				animationComponent.transforms.resize(nodeCount);
+					uint32_t nodeCount = animationPool->GetData(entity).animation->GetNodeProcessInfo().size();
 
-				VkDeviceSize nodeBufferSize = sizeof(NodeTransform) * nodeCount;
+					animationComponent.nodeTransforms.clear();
+					animationComponent.nodeTransforms.resize(nodeCount);
 
-				Vk::BufferConfig nodeBufferConfig;
-				nodeBufferConfig.size = nodeBufferSize;
-				nodeBufferConfig.usage = VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT;
-				nodeBufferConfig.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+					VkDeviceSize nodeBufferSize = sizeof(NodeTransform) * nodeCount;
 
-				animationComponent.nodeTransformBuffer = std::make_shared<Vk::Buffer>(nodeBufferConfig);
-				animationComponent.nodeTransformBuffer->MapMemory();
+					Vk::BufferConfig nodeBufferConfig;
+					nodeBufferConfig.size = nodeBufferSize;
+					nodeBufferConfig.usage = VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT;
+					nodeBufferConfig.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
-				animationPool->ResetBit<REGENERATE_BIT>(entity);
+					animationComponent.nodeTransformBuffers[frameIndex].buffer = std::make_shared<Vk::Buffer>(nodeBufferConfig);
+					animationComponent.nodeTransformBuffers[frameIndex].buffer->MapMemory();
+				}
 			}
 		}
 	);
@@ -53,24 +63,23 @@ void AnimationSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_p
 				auto& nodeTransformInfos = modelComponent.model->GetNodeTransformInfos();
 				for (uint32_t i = 0; i < nodeProcessInfos.size(); ++i)
 				{
-					animationComponent.transforms[i].transform = nodeTransformInfos[i].localTransform;
+					animationComponent.nodeTransforms[i].transform = nodeTransformInfos[i].localTransform;
 					
 					//Node is processed such a way, that all the parents are layed down before their children
 					if (nodeProcessInfos[i].parentIndex != UINT32_MAX)
-						animationComponent.transforms[i].transform = animationComponent.transforms[nodeProcessInfos[i].parentIndex].transform * animationComponent.transforms[i].transform;
+						animationComponent.nodeTransforms[i].transform = animationComponent.nodeTransforms[nodeProcessInfos[i].parentIndex].transform * animationComponent.nodeTransforms[i].transform;
 
 					if (nodeProcessInfos[i].boneIndex != UINT32_MAX)
 					{
 						auto& boneProcessInfo = boneProcesInfos[nodeProcessInfos[i].boneIndex];
-						animationComponent.transforms[i].transform = animationComponent.transforms[i].transform * boneProcessInfo.bone.GetTransform(static_cast<double>(deltaTime)) * boneProcessInfo.offsetMatrix;
+						animationComponent.nodeTransforms[i].transform = animationComponent.nodeTransforms[i].transform * boneProcessInfo.bone.GetTransform(static_cast<double>(deltaTime)) * boneProcessInfo.offsetMatrix;
 					}
 
-					animationComponent.transforms[i].transformIT = glm::inverse(glm::transpose(animationComponent.transforms[i].transform));
+					animationComponent.nodeTransforms[i].transformIT = glm::inverse(glm::transpose(animationComponent.nodeTransforms[i].transform));
 				}
 
 				animationPool->ResetBit<UPDATE_BIT>(entity);
 				animationPool->SetBit<CHANGED_BIT>(entity);
-				animationComponent.versionID++;
 			}
 		}
 	);
@@ -105,7 +114,7 @@ void AnimationSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::sha
 		[&](const Entity& entity) -> void {
 			auto& animationComponent = animationPool->GetData(entity);
 			auto animationIndex = animationPool->GetDenseIndex(entity);		
-			memcpy(animationComponent.nodeTransformBuffer->GetHandler(), animationComponent.transforms.data(), sizeof(NodeTransform) * animationComponent.transforms.size());
+			memcpy(animationComponent.nodeTransformBuffers[frameIndex].buffer->GetHandler(), animationComponent.nodeTransforms.data(), sizeof(NodeTransform) * animationComponent.nodeTransforms.size());
 		}
 	);
 }

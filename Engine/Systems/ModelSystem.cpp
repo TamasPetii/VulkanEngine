@@ -3,7 +3,7 @@
 #include "Engine/Components/ModelComponent.h"
 #include "Engine/Components/TransformComponent.h"
 
-void ModelSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, float deltaTime)
+void ModelSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex, float deltaTime)
 {
 	auto [modelPool, transformPool] = registry->GetPools<ModelComponent, TransformComponent>();
 

@@ -5,7 +5,7 @@
 #include <glm/gtx/transform2.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 
-void TransformSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, float deltaTime)
+void TransformSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex, float deltaTime)
 {
 	auto [transformPool, relationShipPool] = registry->GetPools<TransformComponent, Relationship>();
 	if (!transformPool)

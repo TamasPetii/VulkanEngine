@@ -11,7 +11,7 @@
 #include "Engine/Physics/Tester/TesterFrustum.h"
 #include "Engine/Systems/CameraSystem.h"
 
-void FrustumCullingSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, float deltaTime)
+void FrustumCullingSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex, float deltaTime)
 {
 	auto cameraPool = registry->GetPool<CameraComponent>();
 	if (!cameraPool)

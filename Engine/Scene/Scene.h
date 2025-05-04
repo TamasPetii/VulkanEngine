@@ -19,14 +19,14 @@ private:
 	void InitializeSystems();
 	void InitializeRegistry();
 private:
-	void UpdateSystems(float deltaTime);
+	void UpdateSystems(uint32_t frameIndex, float deltaTime);
 	void FinishSystems();
 	void UpdateSystemsGPU(uint32_t frameIndex);
 	void UpdateComponentBuffers(uint32_t frameIndex);
 	template<typename T>
 	void InitSystem();
 	template<typename T>
-	void UpdateSystem(float deltaTime);
+	void UpdateSystem(uint32_t frameIndex, float deltaTime);
 	template<typename T>
 	void FinishSystem();
 	template<typename T>
@@ -49,11 +49,11 @@ inline void Scene::InitSystem()
 }
 
 template<typename T>
-inline void Scene::UpdateSystem(float deltaTime)
+inline void Scene::UpdateSystem(uint32_t frameIndex, float deltaTime)
 {
 	static_assert(std::is_base_of_v<System, T>, "T must be derived from System");
 	Timer timer{};
-	systems.at(Unique::typeID<T>())->OnUpdate(registry, resourceManager, deltaTime);
+	systems.at(Unique::typeID<T>())->OnUpdate(registry, resourceManager, frameIndex, deltaTime);
 	resourceManager->GetBenchmarkManager()->AddBenchmarkTime<T>(timer.GetElapsedTime());
 }
 

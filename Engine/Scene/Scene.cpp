@@ -166,7 +166,7 @@ void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
 		registry->GetPool<CameraComponent>()->GetBitset(0).set(UPDATE_BIT, true);
 	}
 
-	UpdateSystems(frameTimer->GetFrameDeltaTime());
+	UpdateSystems(frameIndex, frameTimer->GetFrameDeltaTime());
 	FinishSystems();
 }
 
@@ -188,7 +188,7 @@ void Scene::InitializeSystems()
 	InitSystem<FrustumCullingSystem>();
 }
 
-void Scene::UpdateSystems(float deltaTime)
+void Scene::UpdateSystems(uint32_t frameIndex, float deltaTime)
 {
 	Timer timer{};
 
@@ -197,7 +197,7 @@ void Scene::UpdateSystems(float deltaTime)
 	auto LaunchSystemUpdateAsync = [&]<typename T>() -> void {
 		futures[Unique::typeID<T>()] = std::async(std::launch::async, 
 			[&]() -> void {
-				UpdateSystem<T>(deltaTime);
+				UpdateSystem<T>(frameIndex, deltaTime);
 			});
 	};
 
