@@ -104,10 +104,10 @@ void Scene::InitializeRegistry()
 	*/
 
 	auto entity = registry->CreateEntity();
-	registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
-	auto [transformComponent, modelComponent] = registry->GetComponents<TransformComponent, ModelComponent>(entity);
+	registry->AddComponents<TransformComponent, ModelComponent, AnimationComponent, DefaultColliderComponent>(entity);
+	auto [transformComponent, modelComponent, animationComponent] = registry->GetComponents<TransformComponent, ModelComponent, AnimationComponent>(entity);
 	modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/DancingSoldier/DancingSoldier.dae");
-
+	animationComponent.animation = 
 	Animation animation{};
 	animation.Load("C:/Users/User/Desktop/DancingSoldier/DancingSoldier.dae");
 
@@ -186,6 +186,7 @@ void Scene::InitializeSystems()
 	InitSystem<InstanceSystem>();
 	InitSystem<DefaultColliderSystem>();
 	InitSystem<FrustumCullingSystem>();
+	InitSystem<AnimationSystem>();
 }
 
 void Scene::UpdateSystems(uint32_t frameIndex, float deltaTime)
@@ -206,6 +207,7 @@ void Scene::UpdateSystems(uint32_t frameIndex, float deltaTime)
 	LaunchSystemUpdateAsync.template operator() < MaterialSystem > ();
 	LaunchSystemUpdateAsync.template operator() < ShapeSystem > ();
 	LaunchSystemUpdateAsync.template operator() < ModelSystem > ();
+	LaunchSystemUpdateAsync.template operator() < AnimationSystem > ();
 
 	//DefaultColliderSystem uses these systems output as input
 	futures[Unique::typeID<TransformSystem>()].get();
@@ -250,6 +252,7 @@ void Scene::FinishSystems()
 	LaunchSystemFinishAsync.template operator() < ModelSystem > ();
 	LaunchSystemFinishAsync.template operator() < InstanceSystem > ();
 	LaunchSystemFinishAsync.template operator() < DefaultColliderSystem > ();
+	LaunchSystemFinishAsync.template operator() < AnimationSystem > ();
 
 	for (auto& [_, future] : futures) {
 		if (future.valid())
@@ -279,6 +282,7 @@ void Scene::UpdateSystemsGPU(uint32_t frameIndex)
 	LaunchSystemUpdateGpuAsync.template operator() < ModelSystem > ();
 	LaunchSystemUpdateGpuAsync.template operator() < InstanceSystem > ();
 	LaunchSystemUpdateGpuAsync.template operator() < DefaultColliderSystem > ();
+	LaunchSystemUpdateGpuAsync.template operator() < AnimationSystem > ();
 
 	for (auto& [_, future] : futures) {
 		if (future.valid())

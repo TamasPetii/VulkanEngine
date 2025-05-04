@@ -35,7 +35,12 @@ void Animation::Load(const std::string& path)
     PreFetch(scene);
     ProcessMeshVertexBones();
     ProcessBoneKeyFrames(scene);
+
+    state = LoadState::CpuLoaded;
+
     InitVertexBoneBuffer();
+
+    state = LoadState::GpuUploaded;
 }
 
 void Animation::PreFetch(const aiScene* scene)

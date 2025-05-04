@@ -163,6 +163,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Managers\AnimationManager.h" />
     <ClInclude Include="Renderable\Model\NodeTransform.h" />
     <ClInclude Include="Systems\AnimationSystem.h" />
     <ClInclude Include="Components\AnimationComponent.h" />
@@ -275,6 +276,7 @@
     <ClInclude Include="Vulkan\VulkanMutex.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Managers\AnimationManager.cpp" />
     <ClCompile Include="Renderable\Model\NodeTransform.cpp" />
     <ClCompile Include="Systems\AnimationSystem.cpp" />
     <ClCompile Include="Components\AnimationComponent.cpp" />

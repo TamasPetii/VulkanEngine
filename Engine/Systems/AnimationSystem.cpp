@@ -13,7 +13,7 @@ void AnimationSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_p
 		[&](const Entity& entity) -> void {
 			auto& animationComponent = animationPool->GetData(entity);
 
-			if (animationComponent.animation)
+			if (animationComponent.animation && animationComponent.animation->state == LoadState::Ready)
 			{
 				[[unlikely]]
 				if (animationPool->IsBitSet<REGENERATE_BIT>(entity))
@@ -48,9 +48,11 @@ void AnimationSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_p
 
 	std::for_each(std::execution::par, animationPool->GetDenseIndices().begin(), animationPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
-			if (modelPool->HasComponent(entity) && 
+			if (animationPool->GetData(entity).animation &&
+				animationPool->GetData(entity).animation->state == LoadState::Ready &&
+				modelPool->HasComponent(entity) && 	
 				modelPool->GetData(entity).model && 
-				animationPool->GetData(entity).animation &&
+				modelPool->GetData(entity).model->state == LoadState::Ready &&
 				(true || animationPool->IsBitSet<UPDATE_BIT>(entity)))
 			{
 				auto& animationComponent = animationPool->GetData(entity);
@@ -103,18 +105,25 @@ void AnimationSystem::OnFinish(std::shared_ptr<Registry> registry)
 
 void AnimationSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex)
 {
-	auto animationPool = registry->GetPool<AnimationComponent>();
+	auto [animationPool, modelPool] = registry->GetPools<AnimationComponent, ModelComponent>();
 
-	if (!animationPool)
+	if (!animationPool || !modelPool)
 		return;
 
 	//TODO: UPDATE ANIMATION TRANSFORM BUFFER DEVICE ADDRESS
 
 	std::for_each(std::execution::par, animationPool->GetDenseIndices().begin(), animationPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
-			auto& animationComponent = animationPool->GetData(entity);
-			auto animationIndex = animationPool->GetDenseIndex(entity);		
-			memcpy(animationComponent.nodeTransformBuffers[frameIndex].buffer->GetHandler(), animationComponent.nodeTransforms.data(), sizeof(NodeTransform) * animationComponent.nodeTransforms.size());
+			if (animationPool->GetData(entity).animation &&
+				animationPool->GetData(entity).animation->state == LoadState::Ready &&
+				modelPool->HasComponent(entity) &&
+				modelPool->GetData(entity).model &&
+				modelPool->GetData(entity).model->state == LoadState::Ready)
+			{
+				auto& animationComponent = animationPool->GetData(entity);
+				auto animationIndex = animationPool->GetDenseIndex(entity);		
+				memcpy(animationComponent.nodeTransformBuffers[frameIndex].buffer->GetHandler(), animationComponent.nodeTransforms.data(), sizeof(NodeTransform) * animationComponent.nodeTransforms.size());
+			}
 		}
 	);
 }
