@@ -1,10 +1,11 @@
 #pragma once
 #include "Component.h"
 #include "Engine/Config.h"
-#include <memory>
 #include "Engine/Vulkan/Buffer.h"
 #include "Engine/Animation/Animation.h"
 #include "Engine/Renderable/Model/NodeTransform.h"
+#include <memory>
+#include <array>
 
 struct ENGINE_API AnimationComponent : public Component
 {
@@ -16,11 +17,10 @@ struct ENGINE_API AnimationComponent : public Component
 
 	AnimationComponent();
 
-
 	double time;
 	float speed;
 	std::shared_ptr<Animation> animation;
 	std::vector<NodeTransform> nodeTransforms;
 	std::array<AnimationTransformBuffer, GlobalConfig::FrameConfig::maxFramesInFlights> nodeTransformBuffers;
-	uint32_t nodeTransformVersion = 0;
+	uint32_t nodeTransformVersion = 0; //Systems need this to know which buffer is outdated.
 };

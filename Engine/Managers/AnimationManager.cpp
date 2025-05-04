@@ -7,7 +7,7 @@ std::shared_ptr<Animation> AnimationManager::LoadAnimation(const std::string& pa
     if (animations.find(path) != animations.end())
         return animations.at(path);
 
-    std::shared_ptr<Animation> animation = std::make_shared<Animation>();
+    std::shared_ptr<Animation> animation = std::make_shared<Animation>(GetAvailableIndex());
     animations[path] = animation;
 
     futures.emplace(path, std::async(std::launch::async, &Animation::Load, animations.at(path), path));

@@ -107,9 +107,7 @@ void Scene::InitializeRegistry()
 	registry->AddComponents<TransformComponent, ModelComponent, AnimationComponent, DefaultColliderComponent>(entity);
 	auto [transformComponent, modelComponent, animationComponent] = registry->GetComponents<TransformComponent, ModelComponent, AnimationComponent>(entity);
 	modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/DancingSoldier/DancingSoldier.dae");
-	animationComponent.animation = 
-	Animation animation{};
-	animation.Load("C:/Users/User/Desktop/DancingSoldier/DancingSoldier.dae");
+	animationComponent.animation = resourceManager->GetAnimationManager()->LoadAnimation("C:/Users/User/Desktop/DancingSoldier/DancingSoldier.dae");
 
 	std::array<std::string, 5> shapes = { "Cube", "Sphere", "Cone", "Pyramid", "Cylinder" };
 	std::uniform_int_distribution<size_t> shapeDist(0, shapes.size() - 1); // for shape selection
@@ -206,8 +204,11 @@ void Scene::UpdateSystems(uint32_t frameIndex, float deltaTime)
 	LaunchSystemUpdateAsync.template operator() < CameraSystem > ();
 	LaunchSystemUpdateAsync.template operator() < MaterialSystem > ();
 	LaunchSystemUpdateAsync.template operator() < ShapeSystem > ();
-	LaunchSystemUpdateAsync.template operator() < ModelSystem > ();
 	LaunchSystemUpdateAsync.template operator() < AnimationSystem > ();
+
+	//Maybe problematic in long term -> Need a mechanism to handle model indices
+	futures[Unique::typeID<AnimationSystem>()].get();
+	LaunchSystemUpdateAsync.template operator() < ModelSystem > ();
 
 	//DefaultColliderSystem uses these systems output as input
 	futures[Unique::typeID<TransformSystem>()].get();

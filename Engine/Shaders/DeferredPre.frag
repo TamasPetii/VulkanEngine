@@ -29,6 +29,7 @@ layout( push_constant ) uniform constants
 	uvec2 materialBuffer;
 	uvec2 renderIndicesBuffer;
 	uvec2 nodeTransformBuffer;
+	uvec2 vertexBoneBuffer;
 } PushConstants;
 
 void main() 

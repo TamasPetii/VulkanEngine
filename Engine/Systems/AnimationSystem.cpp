@@ -18,6 +18,10 @@ void AnimationSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_p
 				[[unlikely]]
 				if (animationPool->IsBitSet<REGENERATE_BIT>(entity))
 				{
+					//Model handles component indices -> need to update animation index to gpu.
+					if (modelPool && modelPool->HasComponent(entity))
+						modelPool->SetBit<UPDATE_BIT>(entity);
+
 					animationComponent.nodeTransformVersion++;
 					animationPool->ResetBit<REGENERATE_BIT>(entity);
 				}
@@ -40,7 +44,7 @@ void AnimationSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_p
 					nodeBufferConfig.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
 					animationComponent.nodeTransformBuffers[frameIndex].buffer = std::make_shared<Vk::Buffer>(nodeBufferConfig);
-					animationComponent.nodeTransformBuffers[frameIndex].buffer->MapMemory();
+					//animationComponent.nodeTransformBuffers[frameIndex].buffer->MapMemory();
 				}
 			}
 		}
@@ -74,7 +78,7 @@ void AnimationSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_p
 					if (nodeProcessInfos[i].boneIndex != UINT32_MAX)
 					{
 						auto& boneProcessInfo = boneProcesInfos[nodeProcessInfos[i].boneIndex];
-						animationComponent.nodeTransforms[i].transform = animationComponent.nodeTransforms[i].transform * boneProcessInfo.bone.GetTransform(static_cast<double>(deltaTime)) * boneProcessInfo.offsetMatrix;
+						animationComponent.nodeTransforms[i].transform = animationComponent.nodeTransforms[i].transform * boneProcessInfo.bone.GetTransform(animationComponent.time) * boneProcessInfo.offsetMatrix;
 					}
 
 					animationComponent.nodeTransforms[i].transformIT = glm::inverse(glm::transpose(animationComponent.nodeTransforms[i].transform));
@@ -122,7 +126,10 @@ void AnimationSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::sha
 			{
 				auto& animationComponent = animationPool->GetData(entity);
 				auto animationIndex = animationPool->GetDenseIndex(entity);		
-				memcpy(animationComponent.nodeTransformBuffers[frameIndex].buffer->GetHandler(), animationComponent.nodeTransforms.data(), sizeof(NodeTransform) * animationComponent.nodeTransforms.size());
+
+				void* handler =	animationComponent.nodeTransformBuffers[frameIndex].buffer->MapMemory();
+				memcpy(handler, animationComponent.nodeTransforms.data(), sizeof(NodeTransform) * animationComponent.nodeTransforms.size());
+				animationComponent.nodeTransformBuffers[frameIndex].buffer->UnmapMemory();
 			}
 		}
 	);

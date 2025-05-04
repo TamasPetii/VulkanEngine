@@ -93,6 +93,7 @@ void Engine::Update()
 	resourceManager->GetBenchmarkManager()->AddToCounter();
 	resourceManager->GetModelManager()->Update();
 	resourceManager->GetImageManager()->Update();
+	resourceManager->GetAnimationManager()->Update();
 
 	scene->Update(frameTimer, frameIndex);
 	InputManager::Instance()->UpdatePrevious();

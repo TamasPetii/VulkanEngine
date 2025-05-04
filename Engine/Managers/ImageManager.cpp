@@ -10,18 +10,6 @@ ImageManager::~ImageManager()
 	images.clear();
 }
 
-uint32_t ImageManager::GetAvailableIndex()
-{
-	std::unique_lock<std::mutex> lock(availableIndexMutex);
-
-	if (availableIndices.empty())
-		return counter++;
-
-	uint32_t index = *availableIndices.begin();
-	availableIndices.erase(index);
-	return index;
-}
-
 std::shared_ptr<ImageTexture> ImageManager::GetImage(const std::string& path)
 {
 	if (images.find(path) == images.end())

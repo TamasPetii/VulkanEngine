@@ -1,0 +1,15 @@
+#pragma once
+#include <set>
+#include <mutex>
+#include <atomic>
+
+class DescriptorArrayIndexed
+{
+protected:
+	uint32_t GetAvailableIndex();
+protected:
+	std::mutex availableIndexMutex;
+	std::atomic<uint32_t> counter = 0;
+	std::set<uint32_t> availableIndices;
+};
+

@@ -18,6 +18,7 @@ void ResourceManager::Initialize()
 	imageManager = std::make_shared<ImageManager>(vulkanManager);
 	modelManager = std::make_shared<ModelManager>(imageManager);
 	benchmarkManager = std::make_shared<BenchmarkManager>();
+	animationManager = std::make_shared<AnimationManager>();
 }
 
 void ResourceManager::Cleanup()
@@ -28,4 +29,5 @@ void ResourceManager::Cleanup()
 	componentBufferManager.reset();
 	vulkanManager.reset();
 	benchmarkManager.reset();
+	animationManager.reset();
 }

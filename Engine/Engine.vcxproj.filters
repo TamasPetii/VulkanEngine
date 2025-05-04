@@ -348,6 +348,9 @@
     <ClInclude Include="Managers\AnimationManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Managers\DescriptorArrayIndexed.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -659,6 +662,9 @@
     <ClCompile Include="Managers\AnimationManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Managers\DescriptorArrayIndexed.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Registry\Registry.inl">
@@ -683,5 +689,6 @@
     <None Include="Shaders\BoundingVolume.frag" />
     <None Include="Shaders\Common\BoundingVolume.glsl" />
     <None Include="Shaders\Common\NodeTransform.glsl" />
+    <None Include="Shaders\Common\VertexBone.glsl" />
   </ItemGroup>
 </Project>

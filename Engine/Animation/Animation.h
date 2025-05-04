@@ -17,8 +17,8 @@ class ENGINE_API Animation : public AsyncLoaded
 public:
 	struct ENGINE_API VertexBoneData
 	{
+		glm::uvec4 indices = { UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX };
 		glm::vec4 weights = { 0.f, 0.f, 0.f, 0.f };
-		glm::ivec4 indices = { -1, -1, -1, -1 };
 	};
 	struct ENGINE_API MeshProcessInfo
 	{
@@ -40,13 +40,15 @@ public:
 		uint32_t parentIndex = UINT32_MAX;
 	};
 public:
+	Animation(uint32_t descriptorArrayIndex) : descriptorArrayIndex(descriptorArrayIndex) {}
 	void Load(const std::string& path);
 	auto GetDuration() { return duration; }
 	auto GetTicksPerSeconds() { return ticksPerSecond; }
 	auto GetVertexCount() { return vertexCount; }
 	auto GetBoneCount() { return boneCount; }
 	auto GetMeshCount() { return meshCount; }
-	const auto& GetBoneIndexMap() { return boneIndex; }
+	auto GetDescriptorArrayIndex() { return descriptorArrayIndex; }
+	const auto& GetBoneIndexMap() { return boneIndexMap; }
 	const auto& GetNodeProcessInfo() { return nodeProcessInfos; }
 	const auto& GetBoneProcessInfo() { return boneProcessInfos; }
 	const auto& GetVertexBoneBuffer() { return vertexBoneBuffer; }
@@ -56,6 +58,8 @@ private:
 	void ProcessMeshVertexBones();
 	void ProcessMeshVertexBone(const MeshProcessInfo& meshProcessInfo);
 	void InitVertexBoneBuffer();
+
+	uint32_t descriptorArrayIndex;
 
 	double duration;
 	double ticksPerSecond;
@@ -68,6 +72,7 @@ private:
 	std::vector<NodeProcessInfo> nodeProcessInfos;
 	std::vector<MeshProcessInfo> meshProcessInfos;
 	std::vector<BoneProcessInfo> boneProcessInfos;
-	std::unordered_map<std::string, uint32_t> boneIndex;
+	std::unordered_map<std::string, uint32_t> boneIndexMap;
+	std::unordered_map<std::string, uint32_t> nodeIndexMap;
 };
 

@@ -163,6 +163,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Managers\DescriptorArrayIndexed.h" />
     <ClInclude Include="Managers\AnimationManager.h" />
     <ClInclude Include="Renderable\Model\NodeTransform.h" />
     <ClInclude Include="Systems\AnimationSystem.h" />
@@ -276,6 +277,7 @@
     <ClInclude Include="Vulkan\VulkanMutex.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Managers\DescriptorArrayIndexed.cpp" />
     <ClCompile Include="Managers\AnimationManager.cpp" />
     <ClCompile Include="Renderable\Model\NodeTransform.cpp" />
     <ClCompile Include="Systems\AnimationSystem.cpp" />
@@ -396,6 +398,7 @@
     <None Include="Shaders\Common\RenderIndices.glsl" />
     <None Include="Shaders\Common\Transform.glsl" />
     <None Include="Shaders\Common\Vertex.glsl" />
+    <None Include="Shaders\Common\VertexBone.glsl" />
     <None Include="Shaders\DeferredDir.frag" />
     <None Include="Shaders\DeferredDir.vert" />
     <None Include="Shaders\DeferredPre.frag" />

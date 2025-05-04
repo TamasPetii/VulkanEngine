@@ -8,11 +8,10 @@ Bone::Bone(aiNodeAnim* channel)
 	scales.reserve(channel->mNumScalingKeys);
 	positions.reserve(channel->mNumPositionKeys);
 	rotations.reserve(channel->mNumRotationKeys);
-}
-
-glm::mat4 Bone::GetTransform(double time) const
-{
-	return InterpolatePosition(time) * InterpolateRotation(time) * InterpolateScale(time);
+	
+	ProcessScaleKeys(channel);
+	ProcessPositionKeys(channel);
+	ProcessRotationKeys(channel);
 }
 
 void Bone::ProcessScaleKeys(aiNodeAnim* channel)
@@ -105,4 +104,9 @@ glm::mat4 Bone::InterpolateRotation(double time) const
 double Bone::GetFactor(double lastTimeStamp, double nextTimeStamp, double time) const
 {
 	return (time - lastTimeStamp) / (nextTimeStamp - lastTimeStamp);
+}
+
+glm::mat4 Bone::GetTransform(double time) const
+{
+	return InterpolatePosition(time) * InterpolateRotation(time) * InterpolateScale(time);
 }

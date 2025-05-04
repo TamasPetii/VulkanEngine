@@ -9,6 +9,7 @@
 #include "Common/Material.glsl"
 #include "Common/InstanceIndex.glsl"
 #include "Common/NodeTransform.glsl"
+#include "Common/VertexBone.glsl"
 
 layout (location = 0) out vec3 vs_out_pos;
 layout (location = 1) out vec3 vs_out_normal;
@@ -27,6 +28,7 @@ layout( push_constant ) uniform constants
 	uvec2 materialBuffer;
 	uvec2 renderIndicesBuffer;
 	uvec2 nodeTransformBuffer;
+	uvec2 vertexBoneBuffer;
 } PushConstants;
 
 void main() 
@@ -37,13 +39,38 @@ void main()
 	mat4 localTransform = TransformBuffer(PushConstants.transformBuffer).transforms[indices.transformIndex].transform;
 	mat4 localTransformIT = TransformBuffer(PushConstants.transformBuffer).transforms[indices.transformIndex].transformIT;
 
+	vec4 position = vec4(v.position, 1.0);
+
 	if(PushConstants.renderMode == MODEL_INSTANCED)
 	{	
-		localTransform = localTransform * NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[v.nodeIndex].transform;
-		localTransformIT = NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[v.nodeIndex].transformIT * localTransformIT;
+		//Animation index is packed into materialIndex
+		if(indices.animationIndex != INVALID_RENDER_INDEX)
+		{
+		    vec4 totalPosition = vec4(0);
+
+			VertexBone vertexBone = VertexBoneBuffer(PushConstants.vertexBoneBuffer).vertexBones[gl_VertexIndex];
+
+			for(int i = 0; i < 4; i++)
+			{
+				if(vertexBone.indices[i] == INVALID_VERTEX_BONE_INDEX)
+				   continue;
+
+				vec4 localPosition = NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[vertexBone.indices[i]].transform * vec4(v.position, 1);
+				totalPosition += localPosition * vertexBone.weights[i];
+			}
+
+			position = totalPosition;
+
+			//TODO: WHAT TO DO WITH NORMALS AND TANGENTS?
+		}
+		else
+		{ //Normal model rendering
+			localTransform = localTransform * NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[v.nodeIndex].transform;
+			localTransformIT = NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[v.nodeIndex].transformIT * localTransformIT;
+		}
 	}
 
-	vec4 worldPosition = localTransform * vec4(v.position, 1.0);
+	vec4 worldPosition = localTransform * position;
 	gl_Position = CameraBuffer(PushConstants.cameraBuffer).cameras[PushConstants.cameraIndex].viewProj * worldPosition;
 
 	vec3 normal = normalize(vec3(localTransformIT * vec4(v.normal, 0)));
