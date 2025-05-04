@@ -15,28 +15,40 @@
 
 #include "Engine/Managers/ImageManager.h"
 
-struct ENGINE_API MeshProcessInfo
-{
-	aiMesh* mesh;
-	uint32_t meshIndex;
-	uint32_t vertexOffset;
-	uint32_t vertexCount;
-	uint32_t indexOffset;
-	uint32_t indexCount;
-	glm::mat4 transform;
-};
-
 class ENGINE_API Model : public Renderable, public Materialized, public Instanceable, public BoundingVolume, public AsyncLoaded
 {
+private:
+	struct ENGINE_API MeshProcessInfo
+	{
+		aiMesh* mesh;
+		uint32_t meshIndex;
+		uint32_t vertexOffset;
+		uint32_t vertexCount;
+		uint32_t indexOffset;
+		uint32_t indexCount;
+		uint32_t nodeIndex;
+	};
+	struct ENGINE_API NodeTransformInfo
+	{
+		glm::mat4 localTransform;
+		glm::mat4 globalTransform;
+		glm::mat4 globalTransformIT;
+	};
+	struct ENGINE_API NodeTransformGLSL
+	{
+		glm::mat4 transform;
+		glm::mat4 transformIT;
+	};
 public:
 	Model(std::shared_ptr<ImageManager> imageManager);
 	void Load(const std::string& path);
-	uint32_t GetMeshCount();
+	uint32_t GetMeshCount() { return meshCount; }
+	auto GetNodeTransformBuffer() { return nodeTransformBuffer; }
 private:
 	virtual void UploadToGpu();
 	virtual void PopulateSurfacePoints() override;
-	void PreFetch(aiNode* node, const aiScene* scene);
-	void Process(aiNode* node, const aiScene* scene);
+	void PreFetch(const aiScene* scene);
+	void Process(const aiScene* scene);
 
 	void ProcessMeshVertices(const aiScene* scene);
 	void ProcessMeshVertex(const aiScene* scene, const MeshProcessInfo& meshProcessInfo);
@@ -52,6 +64,10 @@ private:
 private:
 	uint32_t meshCount = 0;
 	std::vector<MeshProcessInfo> meshProcessInfos;
+
+	void UploadNodeTransformDataToGpu();
+	std::vector<NodeTransformInfo> nodeTransformInfos;
+	std::shared_ptr<Vk::Buffer> nodeTransformBuffer;
 private:
 	std::shared_ptr<ImageManager> imageManager;
 };

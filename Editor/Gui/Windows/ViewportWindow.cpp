@@ -58,8 +58,9 @@ std::string ViewportWindow::GetViewportImageName()
 {
 	switch (viewportImage)
 	{
-	case 0: return "Color"; break;
-	case 1: return "Normal"; break;
+	case 1: return "Position"; break;
+	case 2: return "Color"; break;
+	case 3: return "Normal"; break;
 	default: return "Main";
 	}
 }
@@ -112,9 +113,10 @@ void ViewportWindow::ViewportImageMenu()
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.0f, 0.0f));
 		if (ImGui::BeginChild("##ViewportImage", ImVec2(255, 210), ImGuiChildFlags_AlwaysUseWindowPadding))
 		{
-			ImGui::RadioButton("Color", &viewportImage, 0);
-			ImGui::RadioButton("Normal", &viewportImage, 1);
-			ImGui::RadioButton("Main", &viewportImage, 2);
+			ImGui::RadioButton("Main", &viewportImage, 0);
+			ImGui::RadioButton("Position", &viewportImage, 1);
+			ImGui::RadioButton("Color", &viewportImage, 2);
+			ImGui::RadioButton("Normal", &viewportImage, 3);
 
 			ImGui::EndChild();
 		}

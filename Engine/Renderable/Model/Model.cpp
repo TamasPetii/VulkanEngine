@@ -33,8 +33,8 @@ void Model::Load(const std::string& path)
     this->path = path;
     this->directory = path.substr(0, path.find_last_of('/'));
 
-    PreFetch(scene->mRootNode, scene);
-    Process(scene->mRootNode, scene);
+    PreFetch(scene);
+    Process(scene);
     GenerateBoundingVolume(aabbMin, aabbMax);
 
     state = LoadState::CpuLoaded;
@@ -44,16 +44,12 @@ void Model::Load(const std::string& path)
     state = LoadState::GpuUploaded;
 }
 
-uint32_t Model::GetMeshCount()
-{
-    return meshCount;
-}
-
 void Model::UploadToGpu()
 {
     auto device = Vk::VulkanContext::GetContext()->GetDevice();
 
     Renderable::UploadToGpu();
+    Model::UploadNodeTransformDataToGpu();
     Materialized::UploadMaterialDataToGpu();
 }
 
@@ -65,20 +61,21 @@ void Model::PopulateSurfacePoints()
         surfacePoints.push_back(vertex.position);
 }
 
-void Model::PreFetch(aiNode* node, const aiScene* scene)
+void Model::PreFetch(const aiScene* scene)
 {
     Timer timer;
 
-    std::queue<std::pair<aiNode*, glm::mat4>> queue;
-    queue.push({ node, Assimp::ConvertAssimpToGlm(node->mTransformation) });
+    std::queue<std::pair<aiNode*, uint32_t>> queue;
+    queue.push({ scene->mRootNode, UINT32_MAX });
 
     while (!queue.empty())
     {
-        auto [currentNode, parentTransform] = queue.front();
+        std::pair<aiNode*, uint32_t> queueData = queue.front();
         queue.pop();
 
-        glm::mat4 nodeTransform = Assimp::ConvertAssimpToGlm(currentNode->mTransformation);
-        glm::mat4 transform = parentTransform * nodeTransform;
+        aiNode* currentNode = queueData.first;
+        uint32_t parentNodeIndex = queueData.second;
+        uint32_t nodeIndex = nodeTransformInfos.size();
 
         for (uint32_t i = 0; i < currentNode->mNumMeshes; ++i)
         {
@@ -97,7 +94,7 @@ void Model::PreFetch(aiNode* node, const aiScene* scene)
             meshProcessInfo.vertexCount = meshVertexCount;
             meshProcessInfo.indexOffset = meshIndexOffset;
             meshProcessInfo.indexCount = meshIndexCount;
-            meshProcessInfo.transform = transform;
+            meshProcessInfo.nodeIndex = nodeIndex;
             meshProcessInfos.push_back(meshProcessInfo);
 
             vertexCount += meshVertexCount;
@@ -105,8 +102,17 @@ void Model::PreFetch(aiNode* node, const aiScene* scene)
             meshCount++;
         }
 
-        for (unsigned int i = 0; i < currentNode->mNumChildren; ++i)
-            queue.push({ currentNode->mChildren[i], transform });
+        glm::mat4 nodeTransform = Assimp::ConvertAssimpToGlm(currentNode->mTransformation);
+        glm::mat4 parentTransform = parentNodeIndex != UINT32_MAX ? nodeTransformInfos[parentNodeIndex].globalTransform : glm::mat4(1);
+
+        NodeTransformInfo nodeTransformInfo;
+        nodeTransformInfo.localTransform = nodeTransform;
+        nodeTransformInfo.globalTransform = parentTransform * nodeTransformInfo.localTransform;
+        nodeTransformInfo.globalTransformIT = glm::inverse(glm::transpose(nodeTransformInfo.globalTransform));
+        nodeTransformInfos.push_back(nodeTransformInfo);
+
+        for (uint32_t i = 0; i < currentNode->mNumChildren; ++i)
+            queue.push({ currentNode->mChildren[i], nodeIndex });
     }
 
     vertices.resize(vertexCount);
@@ -118,10 +124,11 @@ void Model::PreFetch(aiNode* node, const aiScene* scene)
 
     std::cout << "-----------------------------------------\n";
     std::cout << "PreFetch: " << timer.GetElapsedTime() << "\n";
+    std::cout << "NodeSize: " << nodeTransformInfos.size() << "\n";
     std::cout << "-----------------------------------------\n";
 }
 
-void Model::Process(aiNode* node, const aiScene* scene)
+void Model::Process(const aiScene* scene)
 {
     auto futureMaterials = std::async(std::launch::async, &Model::ProcessMaterials, this, scene);
     auto futureVertices = std::async(std::launch::async, &Model::ProcessMeshVertices, this, scene);
@@ -149,8 +156,6 @@ void Model::ProcessMeshVertices(const aiScene* scene)
 
 void Model::ProcessMeshVertex(const aiScene* scene, const MeshProcessInfo& meshProcessInfo)
 {
-    glm::mat4 transformIT = glm::inverse(glm::transpose(meshProcessInfo.transform));
-
     auto vertex_index_range = std::views::iota(0u, meshProcessInfo.vertexCount);
     std::for_each(std::execution::seq, vertex_index_range.begin(), vertex_index_range.end(),
         [&](auto vertexIndex) -> void {
@@ -159,7 +164,10 @@ void Model::ProcessMeshVertex(const aiScene* scene, const MeshProcessInfo& meshP
             if (meshProcessInfo.mesh->mVertices)
             {
                 position = Assimp::ConvertAssimpToGlm(meshProcessInfo.mesh->mVertices[vertexIndex]);
-                position = glm::vec3(meshProcessInfo.transform * glm::vec4(position, 1.0f));
+                glm::vec3 transformedPosition = glm::vec3(nodeTransformInfos[meshProcessInfo.nodeIndex].globalTransform * glm::vec4(position, 1.0f));
+
+                aabbMax = glm::max(aabbMax, transformedPosition);
+                aabbMin = glm::min(aabbMin, transformedPosition);
             }
 
             //Normals
@@ -167,7 +175,6 @@ void Model::ProcessMeshVertex(const aiScene* scene, const MeshProcessInfo& meshP
             if (meshProcessInfo.mesh->mNormals)
             {
                 normal = Assimp::ConvertAssimpToGlm(meshProcessInfo.mesh->mNormals[vertexIndex]);
-                normal = glm::vec3(transformIT * glm::vec4(normal, 0));
             }
 
             //Tangents
@@ -175,21 +182,24 @@ void Model::ProcessMeshVertex(const aiScene* scene, const MeshProcessInfo& meshP
             if (meshProcessInfo.mesh->mTangents)
             {
                 tangent = Assimp::ConvertAssimpToGlm(meshProcessInfo.mesh->mTangents[vertexIndex]);
-                tangent = glm::vec3(transformIT * glm::vec4(tangent, 0));
+            }
+
+            //Tangents
+            glm::vec3 bitangent{ 0,0,0 };
+            if (meshProcessInfo.mesh->mTangents)
+            {
+                bitangent = Assimp::ConvertAssimpToGlm(meshProcessInfo.mesh->mBitangents[vertexIndex]);
             }
 
             //Textures
-            glm::vec2 texcoord{ 0,0 };
+            glm::vec2 uv{ 0,0 };
             if (meshProcessInfo.mesh->mTextureCoords[0] != nullptr)
             {
-                texcoord.x = meshProcessInfo.mesh->mTextureCoords[0][vertexIndex].x;
-                texcoord.y = meshProcessInfo.mesh->mTextureCoords[0][vertexIndex].y;
+                uv.x = meshProcessInfo.mesh->mTextureCoords[0][vertexIndex].x;
+                uv.y = meshProcessInfo.mesh->mTextureCoords[0][vertexIndex].y;
             }
 
-            vertices[meshProcessInfo.vertexOffset + vertexIndex] = Vertex(position, normal, tangent, texcoord, meshProcessInfo.mesh->mMaterialIndex);
-
-            aabbMax = glm::max(aabbMax, position);
-            aabbMin = glm::min(aabbMin, position);
+            vertices[meshProcessInfo.vertexOffset + vertexIndex] = Vertex(position, normal, uv, tangent, bitangent, meshProcessInfo.mesh->mMaterialIndex, 0);
         }
     );
 }
@@ -228,7 +238,7 @@ void Model::ProcessMaterials(const aiScene* scene)
     Timer timer;
 
     auto material_index_range = std::views::iota(0u, (uint32_t)materials.size());
-    std::for_each(std::execution::par, material_index_range.begin(), material_index_range.end(), 
+    std::for_each(std::execution::seq, material_index_range.begin(), material_index_range.end(), 
         [&](auto materialIndex) -> void {
             ProcessMaterial(scene, materialIndex);
         }
@@ -248,16 +258,18 @@ void Model::ProcessMaterial(const aiScene* scene, uint32_t materialIndex)
     if (material->GetTextureCount(aiTextureType_DIFFUSE) > 0)
     {
         aiString path;
-        material->GetTexture(aiTextureType_DIFFUSE, 0, &path);
+        unsigned int uvIndex = 0;
+        material->GetTexture(aiTextureType_DIFFUSE, 0, &path, NULL, &uvIndex);
         std::string real_path = directory + "/" + std::string(path.C_Str());
-        materialComponent.albedo = imageManager->LoadImage(real_path, true);
+        materialComponent.albedo = imageManager->LoadImage(real_path, true); 
     }
 
     //Normals texture
     if (material->GetTextureCount(aiTextureType_NORMALS) > 0)
     {
         aiString path;
-        material->GetTexture(aiTextureType_NORMALS, 0, &path);
+        unsigned int uvIndex = 0;
+        material->GetTexture(aiTextureType_NORMALS, 0, &path, NULL, &uvIndex);
         std::string real_path = directory + "/" + std::string(path.C_Str());
         materialComponent.normal = imageManager->LoadImage(real_path, true);
     }
@@ -266,7 +278,8 @@ void Model::ProcessMaterial(const aiScene* scene, uint32_t materialIndex)
     if (material->GetTextureCount(aiTextureType_HEIGHT) > 0 && materialComponent.normal == nullptr)
     {
         aiString path;
-        material->GetTexture(aiTextureType_HEIGHT, 0, &path);
+        unsigned int uvIndex = 0;
+        material->GetTexture(aiTextureType_HEIGHT, 0, &path, NULL, &uvIndex);
         std::string real_path = directory + "/" + std::string(path.C_Str());
         materialComponent.normal = imageManager->LoadImage(real_path, true);
     }
@@ -275,9 +288,30 @@ void Model::ProcessMaterial(const aiScene* scene, uint32_t materialIndex)
     if (material->GetTextureCount(aiTextureType_DISPLACEMENT) > 0 && materialComponent.normal == nullptr)
     {
         aiString path;
-        material->GetTexture(aiTextureType_DISPLACEMENT, 0, &path);
+        unsigned int uvIndex = 0;
+        material->GetTexture(aiTextureType_DISPLACEMENT, 0, &path, NULL, &uvIndex);
         std::string real_path = directory + "/" + std::string(path.C_Str());
         materialComponent.normal = imageManager->LoadImage(real_path, true);
+    }
+
+    //Metallic Texture
+    if (material->GetTextureCount(aiTextureType_METALNESS) > 0)
+    {
+        aiString path;
+        unsigned int uvIndex = 0;
+        material->GetTexture(aiTextureType_METALNESS, 0, &path, NULL, &uvIndex);
+        std::string real_path = directory + "/" + std::string(path.C_Str());
+        materialComponent.metallic = imageManager->LoadImage(real_path, true);
+    }
+
+    //Roughness Texture
+    if (material->GetTextureCount(aiTextureType_DIFFUSE_ROUGHNESS) > 0)
+    {
+        aiString path;
+        unsigned int uvIndex = 0;
+        material->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &path, NULL, &uvIndex);
+        std::string real_path = directory + "/" + std::string(path.C_Str());
+        materialComponent.roughness = imageManager->LoadImage(real_path, true);
     }
 
     aiColor3D diffuseColor(1.f, 1.f, 1.f);
@@ -285,4 +319,35 @@ void Model::ProcessMaterial(const aiScene* scene, uint32_t materialIndex)
     materialComponent.color = glm::vec4(Assimp::ConvertAssimpToGlm(diffuseColor), 1);
 
     materials[materialIndex] = materialComponent;
+}
+
+void Model::UploadNodeTransformDataToGpu()
+{
+    VkDeviceSize nodeBufferSize = sizeof(NodeTransformGLSL) * nodeTransformInfos.size();
+
+    Vk::BufferConfig nodeStagingConfig;
+    nodeStagingConfig.size = nodeBufferSize;
+    nodeStagingConfig.usage = VK_BUFFER_USAGE_2_TRANSFER_SRC_BIT;
+    nodeStagingConfig.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+    Vk::Buffer nodeStagingBuffer{ nodeStagingConfig };
+
+    NodeTransformGLSL* nodeStagigngBufferHandler = static_cast<NodeTransformGLSL*>(nodeStagingBuffer.MapMemory());
+    for (uint32_t i = 0; i < nodeTransformInfos.size(); ++i)
+    {
+        nodeStagigngBufferHandler[i].transform = nodeTransformInfos[i].globalTransform;
+        nodeStagigngBufferHandler[i].transformIT = nodeTransformInfos[i].globalTransformIT;
+    }
+    nodeStagingBuffer.UnmapMemory();
+
+    Vk::BufferConfig nodeBufferConfig;
+    nodeBufferConfig.size = nodeBufferSize;
+    nodeBufferConfig.usage = VK_BUFFER_USAGE_2_TRANSFER_DST_BIT | VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT;
+    nodeBufferConfig.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    nodeTransformBuffer = std::make_shared<Vk::Buffer>(nodeBufferConfig);
+
+    Vk::VulkanContext::GetContext()->GetImmediateQueue()->SubmitTransfer(
+        [&](VkCommandBuffer commandBuffer) -> void {
+            Vk::Buffer::CopyBufferToBuffer(commandBuffer, nodeStagingBuffer.Value(), nodeTransformBuffer->Value(), nodeBufferSize);
+        }
+    );
 }

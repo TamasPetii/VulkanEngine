@@ -4,8 +4,9 @@
 layout(location = 0) in vec2 fs_in_tex;
 layout(location = 0) out vec4 fs_out_col;
 
-layout(set = 0, binding = 1) uniform sampler2D u_colorTexture;
-layout(set = 0, binding = 2) uniform sampler2D u_normalTexture;
+layout(set = 0, binding = 1) uniform sampler2D u_positionTexture;
+layout(set = 0, binding = 2) uniform sampler2D u_colorTexture;
+layout(set = 0, binding = 3) uniform sampler2D u_normalTexture;
 
 void main()
 {

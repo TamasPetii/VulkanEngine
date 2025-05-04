@@ -71,6 +71,7 @@ void ImageManager::Update()
 
     if (imagesToUploadGpu.size() >= minSubmitBatchSize || (!imagesToUploadGpu.empty() && imageLoadFutures.empty())) 
     {
+        std::cout << "Images Uploaded with batch size: " << imagesToUploadGpu.size() << "\n";
         imagesToUploadGpuFutures.insert(std::make_unique<std::future<void>>(std::async(std::launch::async, &ImageManager::UploadBatchedImages, this, imagesToUploadGpu)));
         imagesToUploadGpu.clear();
     }

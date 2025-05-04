@@ -2,6 +2,7 @@
 #include <random>
 #include <future>
 #include <thread>
+#include "Engine/Animation/Animation.h"
 
 Scene::Scene(std::shared_ptr<ResourceManager> resourceManager) : 
 	resourceManager(resourceManager)
@@ -46,22 +47,29 @@ void Scene::InitializeRegistry()
 		registry->GetComponent<CameraComponent>(entity).isMain = true;
 	}
 
+	/*
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
 		auto [transformComponent, modelComponent] = registry->GetComponents<TransformComponent, ModelComponent>(entity);
+		transformComponent.scale = glm::vec3(0.01);
+		transformComponent.rotation = glm::vec3(-90, 0, 0);
 		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Bistro_v5_2/BistroExterior.fbx");
 		modelComponent.hasDirectxNormals = true;
 	}
+	*/
 
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
 		auto [transformComponent, modelComponent] = registry->GetComponents<TransformComponent, ModelComponent>(entity);
+		transformComponent.scale = glm::vec3(0.01);
+		transformComponent.rotation = glm::vec3(-90, 0, 0);
 		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Bistro_v5_2/BistroInterior.fbx");
 		modelComponent.hasDirectxNormals = true;
 	}
-	
+
+	/*
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
@@ -77,10 +85,42 @@ void Scene::InitializeRegistry()
 		transformComponent.scale = glm::vec3(500);
 		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/VulkanEngine/Assets/Man/Walking.dae");
 	}
-	
+	*/
+
+	/*
+	{
+		auto entity = registry->CreateEntity();
+		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
+		auto [transformComponent, modelComponent] = registry->GetComponents<TransformComponent, ModelComponent>(entity);
+		modelComponent.hasDirectxNormals = true;
+		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/EmeraldSquare_v4_1/EmeraldSquare_Day.fbx");
+	}
+	*/
+
+	/*
+	{
+		auto entity = registry->CreateEntity();
+		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
+		auto [transformComponent, modelComponent] = registry->GetComponents<TransformComponent, ModelComponent>(entity);
+		transformComponent.scale = glm::vec3(0.01);
+		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/main1_sponza/NewSponza_Main_Yup_003.fbx");
+	}
+	*/
+
+	/*
+	auto entity = registry->CreateEntity();
+	registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
+	auto [transformComponent, modelComponent] = registry->GetComponents<TransformComponent, ModelComponent>(entity);
+	modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/DancingSoldier/DancingSoldier.dae");
+
+	Animation animation{};
+	animation.Load("C:/Users/User/Desktop/DancingSoldier/DancingSoldier.dae");
+	*/
+
 	std::array<std::string, 5> shapes = { "Cube", "Sphere", "Cone", "Pyramid", "Cylinder" };
 	std::uniform_int_distribution<size_t> shapeDist(0, shapes.size() - 1); // for shape selection
 
+	/*
 	for (uint32_t i = 0; i < 1000; ++i)
 	{
 		auto entity = registry->CreateEntity();
@@ -96,6 +136,7 @@ void Scene::InitializeRegistry()
 
 		shapeComponent.shape = resourceManager->GetGeometryManager()->GetShape(shapes[shapeDist(rng)]);
 	}
+	*/
 }
 
 void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)

@@ -6,7 +6,9 @@ struct Vertex {
 	vec3 normal;
 	float uv_y;
 	vec3 tangent;
-	uint index;
+	uint matIndex;
+	vec3 bitangent;
+	uint nodeIndex;
 }; 
 
 layout(buffer_reference, std430) readonly buffer VertexBuffer { 

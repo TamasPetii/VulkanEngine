@@ -163,6 +163,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Animation\Animation.h" />
     <ClInclude Include="Async\AsyncLoaded.h" />
     <ClInclude Include="Async\BatchUploaded.h" />
     <ClInclude Include="Utils\ImageTexture.h" />
@@ -270,6 +271,7 @@
     <ClInclude Include="Vulkan\VulkanMutex.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Animation\Animation.cpp" />
     <ClCompile Include="Async\AsyncLoaded.cpp" />
     <ClCompile Include="Async\BatchUploaded.cpp" />
     <ClCompile Include="Utils\ImageTexture.cpp" />
@@ -376,6 +378,7 @@
     <None Include="Shaders\BoundingVolume.vert" />
     <None Include="Shaders\Common\BoundingVolume.glsl" />
     <None Include="Shaders\Common\Camera.glsl" />
+    <None Include="Shaders\Common\NodeTransform.glsl" />
     <None Include="Shaders\Common\RenderDefines.glsl" />
     <None Include="Shaders\Common\Images.glsl" />
     <None Include="Shaders\Common\InstanceIndex.glsl" />

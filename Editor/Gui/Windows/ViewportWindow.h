@@ -16,7 +16,7 @@ protected:
 		float snapAngle = 5.0f;
 		float snapScale = 0.1f;
 	};
-	inline static int viewportImage = 2;
+	inline static int viewportImage = 0;
 	inline static GizmoConfig gizmoConfig;
 private:
 	std::string GetViewportImageName();

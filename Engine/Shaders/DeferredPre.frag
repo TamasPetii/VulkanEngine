@@ -13,9 +13,10 @@ layout (location = 3) in flat uvec3 fs_in_index;
 layout (location = 4) in mat3 fs_in_tbn;
 
 //Outputs
-layout (location = 0) out vec4 fs_out_color;
-layout (location = 1) out vec4 fs_out_normal;
-layout (location = 2) out uint fs_out_entity;
+layout (location = 0) out vec4 fs_out_pos;
+layout (location = 1) out vec4 fs_out_color;
+layout (location = 2) out vec4 fs_out_normal;
+layout (location = 3) out uint fs_out_entity;
 
 layout( push_constant ) uniform constants
 {	
@@ -27,6 +28,7 @@ layout( push_constant ) uniform constants
 	uvec2 transformBuffer;
 	uvec2 materialBuffer;
 	uvec2 renderIndicesBuffer;
+	uvec2 nodeTransformBuffer;
 } PushConstants;
 
 void main() 
@@ -52,7 +54,18 @@ void main()
 		normal *= (0.5 - ((fs_in_index.z >> DIRECTX_NORMALS_BIT_INDEX) & 1)) * 2.0;
 	}
 
-	fs_out_color = albedo;
+	float metallic = 0.0;
+	if(materialBuffer.materials[materialIndex].metallicIndex != uint(INVALID_IMAGE_INDEX))
+		metallic = sampleTexture2D(materialBuffer.materials[materialIndex].metallicIndex, LINEAR_ANISOTROPY_SAMPLER_ID, fs_in_tex).x;
+
+	float roughness = 0.0;
+	if(materialBuffer.materials[materialIndex].roughnessIndex != uint(INVALID_IMAGE_INDEX))
+		roughness = sampleTexture2D(materialBuffer.materials[materialIndex].roughnessIndex, LINEAR_ANISOTROPY_SAMPLER_ID, fs_in_tex).x;
+	
+	fs_out_pos = vec4(fs_in_pos, 1);
+	//fs_out_color = vec4(albedo.xyz, metallic);
+	//fs_out_normal = vec4(normal, roughness);
+	fs_out_color = vec4(albedo.xyz, 1);
 	fs_out_normal = vec4(normal, 1);
 	fs_out_entity = fs_in_index.x;
 }

@@ -16,6 +16,7 @@ struct GeometryRendererPushConstants
 	VkDeviceAddress transformBuffer;
 	VkDeviceAddress materialBuffer;
 	VkDeviceAddress renderIndicesBuffer;
+	VkDeviceAddress nodeTransformBuffer;
 };
 
 struct BoundingVolumeRendererPushConstants

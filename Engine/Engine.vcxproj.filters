@@ -330,6 +330,9 @@
     <ClInclude Include="Async\BatchUploaded.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Animation\Animation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -623,6 +626,9 @@
     <ClCompile Include="Async\BatchUploaded.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Animation\Animation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Registry\Registry.inl">
@@ -646,5 +652,6 @@
     <None Include="Shaders\BoundingVolume.vert" />
     <None Include="Shaders\BoundingVolume.frag" />
     <None Include="Shaders\Common\BoundingVolume.glsl" />
+    <None Include="Shaders\Common\NodeTransform.glsl" />
   </ItemGroup>
 </Project>
