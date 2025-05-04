@@ -70,11 +70,9 @@ void Model::PreFetch(const aiScene* scene)
 
     while (!queue.empty())
     {
-        std::pair<aiNode*, uint32_t> queueData = queue.front();
+        auto [currentNode, parentNodeIndex] = queue.front();
         queue.pop();
 
-        aiNode* currentNode = queueData.first;
-        uint32_t parentNodeIndex = queueData.second;
         uint32_t nodeIndex = nodeTransformInfos.size();
 
         for (uint32_t i = 0; i < currentNode->mNumMeshes; ++i)

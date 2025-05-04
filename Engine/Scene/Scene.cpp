@@ -47,6 +47,7 @@ void Scene::InitializeRegistry()
 		registry->GetComponent<CameraComponent>(entity).isMain = true;
 	}
 
+	/*
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
@@ -62,6 +63,7 @@ void Scene::InitializeRegistry()
 		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Bistro_v5_2/BistroExterior.fbx");
 		modelComponent.hasDirectxNormals = true;
 	}
+	*/
 
 	/*
 	{
@@ -101,7 +103,6 @@ void Scene::InitializeRegistry()
 	}
 	*/
 
-	/*
 	auto entity = registry->CreateEntity();
 	registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
 	auto [transformComponent, modelComponent] = registry->GetComponents<TransformComponent, ModelComponent>(entity);
@@ -109,7 +110,6 @@ void Scene::InitializeRegistry()
 
 	Animation animation{};
 	animation.Load("C:/Users/User/Desktop/DancingSoldier/DancingSoldier.dae");
-	*/
 
 	std::array<std::string, 5> shapes = { "Cube", "Sphere", "Cone", "Pyramid", "Cylinder" };
 	std::uniform_int_distribution<size_t> shapeDist(0, shapes.size() - 1); // for shape selection

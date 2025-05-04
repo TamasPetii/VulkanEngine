@@ -163,9 +163,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Components\AnimationComponent.h" />
     <ClInclude Include="Animation\Animation.h" />
     <ClInclude Include="Async\AsyncLoaded.h" />
     <ClInclude Include="Async\BatchUploaded.h" />
+    <ClInclude Include="Animation\Bone.h" />
     <ClInclude Include="Utils\ImageTexture.h" />
     <ClInclude Include="Vulkan\ComputePipeline.h" />
     <ClInclude Include="Registry\Pools\ComponentPool.h" />
@@ -271,9 +273,11 @@
     <ClInclude Include="Vulkan\VulkanMutex.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Components\AnimationComponent.cpp" />
     <ClCompile Include="Animation\Animation.cpp" />
     <ClCompile Include="Async\AsyncLoaded.cpp" />
     <ClCompile Include="Async\BatchUploaded.cpp" />
+    <ClCompile Include="Animation\Bone.cpp" />
     <ClCompile Include="Utils\ImageTexture.cpp" />
     <ClCompile Include="Vulkan\ComputePipeline.cpp" />
     <ClCompile Include="Registry\Pools\ComponentPool.cpp" />

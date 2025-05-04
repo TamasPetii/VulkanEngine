@@ -29,20 +29,32 @@ void Animation::Load(const std::string& path)
         return;
     }
 
+    duration = scene->mAnimations[0]->mDuration;
+    ticksPerSecond = scene->mAnimations[0]->mTicksPerSecond;
 
     PreFetch(scene);
+    ProcessMeshVertexBones();
+    ProcessBoneKeyFrames(scene);
+    InitVertexBoneBuffer();
+    InitNodeTransformBuffer();
 }
 
 void Animation::PreFetch(const aiScene* scene)
 {
-    /*
     std::queue<std::pair<aiNode*, uint32_t>> queue;
     queue.push({ scene->mRootNode, UINT32_MAX });
 
     while (!queue.empty())
     {
-        auto [currentNode, parentBoneIndex] = queue.front();
+        auto [currentNode, parentNodeIndex] = queue.front();
         queue.pop();
+
+        uint32_t nodeIndex = nodeProcessInfos.size();
+
+        NodeProcessInfo nodeProcessInfo;
+        nodeProcessInfo.name = std::string(currentNode->mName.C_Str());
+        nodeProcessInfo.parentIndex = parentNodeIndex;
+        nodeProcessInfos.push_back(nodeProcessInfo);
 
         for (uint32_t i = 0; i < currentNode->mNumMeshes; ++i)
         {
@@ -64,12 +76,14 @@ void Animation::PreFetch(const aiScene* scene)
                 std::string boneName = std::string(bone->mName.C_Str());
                 if (boneIndex.find(boneName) == boneIndex.end())
                 {
-                    boneIndex[boneName] = boneProcessInfos.size();
+                    boneIndex[boneName] = boneCount++;
 
                     BoneProcessInfo boneProcessInfo{};
                     boneProcessInfo.name = boneName;
                     boneProcessInfo.offsetMatrix = Assimp::ConvertAssimpToGlm(bone->mOffsetMatrix);
-                    boneProcessInfo.parentIndex = parentBoneIndex;
+
+                    //BONE
+
                     boneProcessInfos.push_back(boneProcessInfo);
                 }
             }
@@ -79,23 +93,28 @@ void Animation::PreFetch(const aiScene* scene)
         }
 
         for (unsigned int i = 0; i < currentNode->mNumChildren; ++i)
-            queue.push(currentNode->mChildren[i]);
+            queue.push({ currentNode->mChildren[i], nodeIndex });
+    }
+
+    for (auto& nodeProcessInfo : nodeProcessInfos)
+    {
+        if (boneIndex.find(nodeProcessInfo.name) != boneIndex.end())
+            nodeProcessInfo.boneIndex = boneIndex[nodeProcessInfo.name];
     }
 
     vertexBoneDatas.resize(vertexCount);
-    */
 }
 
-void Animation::ProcessMeshVertexBones(const aiScene* scene)
+void Animation::ProcessMeshVertexBones()
 {
     std::for_each(std::execution::seq, meshProcessInfos.begin(), meshProcessInfos.end(),
         [&](const auto& meshProcessInfo) -> void {
-            ProcessMeshVertexBone(scene, meshProcessInfo);
+            ProcessMeshVertexBone(meshProcessInfo);
         }
     );
 }
 
-void Animation::ProcessMeshVertexBone(const aiScene* scene, const MeshProcessInfo& meshProcessInfo)
+void Animation::ProcessMeshVertexBone(const MeshProcessInfo& meshProcessInfo)
 {
     for (uint32_t b = 0; b < meshProcessInfo.mesh->mNumBones; ++b)
     {
@@ -107,10 +126,64 @@ void Animation::ProcessMeshVertexBone(const aiScene* scene, const MeshProcessInf
                 uint32_t vertexIndex = meshProcessInfo.vertexOffset + bone->mWeights[w].mVertexId;
                 if (vertexBoneDatas[vertexIndex].indices[i] == -1)
                 {
-                    vertexBoneDatas[vertexIndex].indices[i] = boneIndex[std::string(bone->mName.C_Str())];
+                    vertexBoneDatas[vertexIndex].indices[i] = boneIndex.at(std::string(bone->mName.C_Str()));
                     vertexBoneDatas[vertexIndex].weights[i] = bone->mWeights[w].mWeight;
                 }
             }
         }
     }
+}
+
+void Animation::ProcessBoneKeyFrames(const aiScene* scene)
+{
+    auto animation = scene->mAnimations[0];
+    auto index_range = std::views::iota(0u, animation->mNumChannels);
+    std::for_each(std::execution::seq, index_range.begin(), index_range.end(),
+        [&](auto channelIndex) -> void {
+            auto channel = animation->mChannels[channelIndex];
+            std::string channelName = std::string(channel->mNodeName.C_Str());
+
+            if (boneIndex.find(channelName) != boneIndex.end())
+                boneProcessInfos[boneIndex.at(channelName)].bone = Bone(channel);
+        }
+    );
+}
+
+void Animation::InitVertexBoneBuffer()
+{
+    VkDeviceSize vertexBoneBufferSize = sizeof(VertexBoneData) * vertexBoneDatas.size();
+
+    Vk::BufferConfig vertexBoneStagingConfig;
+    vertexBoneStagingConfig.size = vertexBoneBufferSize;
+    vertexBoneStagingConfig.usage = VK_BUFFER_USAGE_2_TRANSFER_SRC_BIT;
+    vertexBoneStagingConfig.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+    Vk::Buffer vertexBoneStagingBuffer{ vertexBoneStagingConfig };
+
+    void* vertexBoneStagigngBufferHandler = vertexBoneStagingBuffer.MapMemory();
+    memcpy(vertexBoneStagigngBufferHandler, vertexBoneDatas.data(), vertexBoneBufferSize);
+    vertexBoneStagingBuffer.UnmapMemory();
+
+    Vk::BufferConfig vertexBoneBufferConfig;
+    vertexBoneBufferConfig.size = vertexBoneBufferSize;
+    vertexBoneBufferConfig.usage = VK_BUFFER_USAGE_2_TRANSFER_DST_BIT | VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT;
+    vertexBoneBufferConfig.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    vertexBoneBuffer = std::make_shared<Vk::Buffer>(vertexBoneBufferConfig);
+
+    Vk::VulkanContext::GetContext()->GetImmediateQueue()->SubmitTransfer(
+        [&](VkCommandBuffer commandBuffer) -> void {
+            Vk::Buffer::CopyBufferToBuffer(commandBuffer, vertexBoneStagingBuffer.Value(), vertexBoneBuffer->Value(), vertexBoneBufferSize);
+        }
+    );
+}
+
+void Animation::InitNodeTransformBuffer()
+{
+    VkDeviceSize nodeBufferSize = sizeof(NodeTransformGLSL) * nodeProcessInfos.size();
+
+    Vk::BufferConfig nodeBufferConfig;
+    nodeBufferConfig.size = nodeBufferSize;
+    nodeBufferConfig.usage =  VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT;
+    nodeBufferConfig.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    nodeTransformBuffer = std::make_shared<Vk::Buffer>(nodeBufferConfig);
+    nodeTransformBuffer->MapMemory();
 }

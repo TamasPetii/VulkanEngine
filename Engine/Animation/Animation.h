@@ -2,6 +2,7 @@
 #include "Engine/EngineApi.h"
 #include "Engine/Async/AsyncLoaded.h"
 #include "Engine/Vulkan/Buffer.h"
+#include "Bone.h"
 
 #include <glm/glm.hpp>
 #include <string>
@@ -28,23 +29,40 @@ private:
 	};
 	struct ENGINE_API BoneProcessInfo
 	{
+		Bone bone;
 		std::string name;
 		glm::mat4 offsetMatrix;
+	};
+	struct ENGINE_API NodeProcessInfo
+	{
+		std::string name;
+		uint32_t boneIndex = UINT32_MAX;
 		uint32_t parentIndex = UINT32_MAX;
+	};
+	struct ENGINE_API NodeTransformGLSL
+	{
+		glm::mat4 transform;
+		glm::mat4 transformIT;
 	};
 public:
 	void Load(const std::string& path);
 private:
 	void PreFetch(const aiScene* scene);
-	void ProcessMeshVertexBones(const aiScene* scene);
-	void ProcessMeshVertexBone(const aiScene* scene, const MeshProcessInfo& meshProcessInfo);
+	void ProcessBoneKeyFrames(const aiScene* scene);
+	void ProcessMeshVertexBones();
+	void ProcessMeshVertexBone(const MeshProcessInfo& meshProcessInfo);
+	void InitVertexBoneBuffer();
+	void InitNodeTransformBuffer();
 
-	uint32_t meshCount;
-	uint32_t boneCount;
-	uint32_t vertexCount;
+	double duration;
+	double ticksPerSecond;
+
+	uint32_t meshCount = 0;
+	uint32_t boneCount = 0;
+	uint32_t vertexCount = 0;
 	std::vector<VertexBoneData> vertexBoneDatas;
 	std::shared_ptr<Vk::Buffer> vertexBoneBuffer;
-
+	std::vector<NodeProcessInfo> nodeProcessInfos;
 	std::vector<MeshProcessInfo> meshProcessInfos;
 	std::vector<BoneProcessInfo> boneProcessInfos;
 	std::unordered_map<std::string, uint32_t> boneIndex;
