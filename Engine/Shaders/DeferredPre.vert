@@ -43,29 +43,33 @@ void main()
 
 	if(PushConstants.renderMode == MODEL_INSTANCED)
 	{	
+		bool hasBone = false;
 		//Animation index is packed into materialIndex
 		if(indices.animationIndex != INVALID_RENDER_INDEX)
 		{
-		    vec4 totalPosition = vec4(0);
+			VertexBone vertexBone = VertexBoneBuffer(PushConstants.vertexBoneBuffer).vertexBones[gl_VertexIndex];	
+			hasBone = vertexBone.indices[0] != INVALID_VERTEX_BONE_INDEX;
 
-			VertexBone vertexBone = VertexBoneBuffer(PushConstants.vertexBoneBuffer).vertexBones[gl_VertexIndex];
-
-			for(int i = 0; i < 4; i++)
+			if(hasBone)
 			{
-				if(vertexBone.indices[i] == INVALID_VERTEX_BONE_INDEX)
-				   continue;
+				vec4 totalPosition = vec4(0);
 
-				vec4 localPosition = NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[vertexBone.indices[i]].transform * vec4(v.position, 1);
-				totalPosition += localPosition * vertexBone.weights[i];
+				for(int i = 0; i < 4; i++)
+				{
+					if(vertexBone.indices[i] == INVALID_VERTEX_BONE_INDEX)
+					   continue;
+
+					vec4 localPosition = NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[vertexBone.indices[i]].transform * vec4(v.position, 1);
+					totalPosition += localPosition * vertexBone.weights[i];
+				}
+
+				position = totalPosition;
 			}
-
-			position = totalPosition;
-
-			//TODO: WHAT TO DO WITH NORMALS AND TANGENTS?
 		}
-		else
-		{ //Normal model rendering
-			localTransform = localTransform * NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[v.nodeIndex].transform;
+		
+		if(!hasBone)
+		{
+			localTransform *= NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[v.nodeIndex].transform;
 			localTransformIT = NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[v.nodeIndex].transformIT * localTransformIT;
 		}
 	}
@@ -77,7 +81,6 @@ void main()
 	vec3 tangent = normalize(vec3(localTransformIT * vec4(v.tangent, 0)));
 	tangent = normalize(tangent - dot(tangent, normal) * normal);
 	vec3 bitangent = normalize(cross(normal, tangent));
-
 	//vec3 bitangent = normalize(vec3(localTransformIT * vec4(v.bitangent, 0)));
 
 	vs_out_pos = worldPosition.xyz;

@@ -33,8 +33,8 @@ void AnimationSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_p
 
 					uint32_t nodeCount = animationPool->GetData(entity).animation->GetNodeProcessInfo().size();
 
-					animationComponent.nodeTransforms.clear();
-					animationComponent.nodeTransforms.resize(nodeCount);
+					animationComponent.animationNodeTransforms.clear();
+					animationComponent.animationNodeTransforms.resize(nodeCount);
 
 					VkDeviceSize nodeBufferSize = sizeof(NodeTransform) * nodeCount;
 
@@ -44,7 +44,7 @@ void AnimationSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_p
 					nodeBufferConfig.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
 					animationComponent.nodeTransformBuffers[frameIndex].buffer = std::make_shared<Vk::Buffer>(nodeBufferConfig);
-					//animationComponent.nodeTransformBuffers[frameIndex].buffer->MapMemory();
+					animationComponent.nodeTransformBuffers[frameIndex].buffer->MapMemory();
 				}
 			}
 		}
@@ -69,19 +69,23 @@ void AnimationSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_p
 				auto& nodeTransformInfos = modelComponent.model->GetNodeTransformInfos();
 				for (uint32_t i = 0; i < nodeProcessInfos.size(); ++i)
 				{
-					animationComponent.nodeTransforms[i].transform = nodeTransformInfos[i].localTransform;
-					
-					//Node is processed such a way, that all the parents are layed down before their children
-					if (nodeProcessInfos[i].parentIndex != UINT32_MAX)
-						animationComponent.nodeTransforms[i].transform = animationComponent.nodeTransforms[nodeProcessInfos[i].parentIndex].transform * animationComponent.nodeTransforms[i].transform;
+					animationComponent.animationNodeTransforms[i].localTransform = nodeTransformInfos[i].localTransform;
 
 					if (nodeProcessInfos[i].boneIndex != UINT32_MAX)
 					{
 						auto& boneProcessInfo = boneProcesInfos[nodeProcessInfos[i].boneIndex];
-						animationComponent.nodeTransforms[i].transform = animationComponent.nodeTransforms[i].transform * boneProcessInfo.bone.GetTransform(animationComponent.time) * boneProcessInfo.offsetMatrix;
+						animationComponent.animationNodeTransforms[i].localTransform = boneProcessInfo.bone.GetTransform(animationComponent.time);
+						animationComponent.animationNodeTransforms[i].nodeTransform.transform = animationComponent.animationNodeTransforms[i].localTransform * boneProcessInfo.offsetMatrix;
 					}
 
-					animationComponent.nodeTransforms[i].transformIT = glm::inverse(glm::transpose(animationComponent.nodeTransforms[i].transform));
+					if (nodeProcessInfos[i].parentIndex != UINT32_MAX)
+					{
+						auto& parentTransform = animationComponent.animationNodeTransforms[nodeProcessInfos[i].parentIndex].localTransform;
+						animationComponent.animationNodeTransforms[i].localTransform = parentTransform * animationComponent.animationNodeTransforms[i].localTransform;
+						animationComponent.animationNodeTransforms[i].nodeTransform.transform = parentTransform * animationComponent.animationNodeTransforms[i].nodeTransform.transform;
+					}
+					
+					animationComponent.animationNodeTransforms[i].nodeTransform.transformIT = glm::inverse(glm::transpose(animationComponent.animationNodeTransforms[i].nodeTransform.transform));
 				}
 
 				animationPool->ResetBit<UPDATE_BIT>(entity);
@@ -127,9 +131,10 @@ void AnimationSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::sha
 				auto& animationComponent = animationPool->GetData(entity);
 				auto animationIndex = animationPool->GetDenseIndex(entity);		
 
-				void* handler =	animationComponent.nodeTransformBuffers[frameIndex].buffer->MapMemory();
-				memcpy(handler, animationComponent.nodeTransforms.data(), sizeof(NodeTransform) * animationComponent.nodeTransforms.size());
-				animationComponent.nodeTransformBuffers[frameIndex].buffer->UnmapMemory();
+				NodeTransform* animationBufferHandler = static_cast<NodeTransform*>(animationComponent.nodeTransformBuffers[frameIndex].buffer->GetHandler());
+
+				for (uint32_t i = 0; i < animationComponent.animationNodeTransforms.size(); ++i)
+					animationBufferHandler[i] = animationComponent.animationNodeTransforms[i].nodeTransform;
 			}
 		}
 	);

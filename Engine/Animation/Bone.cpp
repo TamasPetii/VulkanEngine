@@ -108,5 +108,9 @@ double Bone::GetFactor(double lastTimeStamp, double nextTimeStamp, double time) 
 
 glm::mat4 Bone::GetTransform(double time) const
 {
-	return InterpolatePosition(time) * InterpolateRotation(time) * InterpolateScale(time);
+	[[likely]]
+	if(positions.size() > 0 && scales.size() > 0 && rotations.size() > 0)
+		return InterpolatePosition(time) * InterpolateRotation(time) * InterpolateScale(time);
+
+	return glm::mat4(1);
 }

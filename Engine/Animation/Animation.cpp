@@ -55,7 +55,6 @@ void Animation::PreFetch(const aiScene* scene)
 
         uint32_t nodeIndex = nodeProcessInfos.size();
 
-
         NodeProcessInfo nodeProcessInfo;
         nodeProcessInfo.name = std::string(currentNode->mName.C_Str());
         nodeProcessInfo.parentIndex = parentNodeIndex;
@@ -122,15 +121,17 @@ void Animation::ProcessMeshVertexBone(const MeshProcessInfo& meshProcessInfo)
     for (uint32_t b = 0; b < meshProcessInfo.mesh->mNumBones; ++b)
     {
         auto bone = meshProcessInfo.mesh->mBones[b];
+        uint32_t nodeIndex = nodeIndexMap.at(std::string(bone->mName.C_Str()));
         for (uint32_t w = 0; w < bone->mNumWeights; ++w)
         {
+            uint32_t vertexIndex = meshProcessInfo.vertexOffset + bone->mWeights[w].mVertexId;      
             for (uint32_t i = 0; i < 4; i++)
             {
-                uint32_t vertexIndex = meshProcessInfo.vertexOffset + bone->mWeights[w].mVertexId;
                 if (vertexBoneDatas[vertexIndex].indices[i] == UINT32_MAX)
                 {
-                    vertexBoneDatas[vertexIndex].indices[i] = nodeIndexMap.at(std::string(bone->mName.C_Str()));
+                    vertexBoneDatas[vertexIndex].indices[i] = nodeIndex;
                     vertexBoneDatas[vertexIndex].weights[i] = bone->mWeights[w].mWeight;
+                    break;
                 }
             }
         }
@@ -144,10 +145,23 @@ void Animation::ProcessBoneKeyFrames(const aiScene* scene)
     std::for_each(std::execution::seq, index_range.begin(), index_range.end(),
         [&](auto channelIndex) -> void {
             auto channel = animation->mChannels[channelIndex];
-            std::string channelName = std::string(channel->mNodeName.C_Str());
 
+            std::string channelName = std::string(channel->mNodeName.C_Str());
+            
             if (boneIndexMap.find(channelName) != boneIndexMap.end())
+            {
                 boneProcessInfos[boneIndexMap.at(channelName)].bone = Bone(channel);
+            }
+            else if(nodeIndexMap.find(channelName) != nodeIndexMap.end())
+            {            
+                boneIndexMap[channelName] = boneCount++;
+                BoneProcessInfo boneProcessInfo;
+                boneProcessInfo.bone = Bone(channel);
+                boneProcessInfo.name = channelName;
+                boneProcessInfo.offsetMatrix = glm::mat4(1);
+                boneProcessInfos.push_back(boneProcessInfo);
+                nodeProcessInfos[nodeIndexMap[channelName]].boneIndex = boneIndexMap.at(channelName);
+            }
         }
     );
 }
@@ -177,4 +191,6 @@ void Animation::InitVertexBoneBuffer()
             Vk::Buffer::CopyBufferToBuffer(commandBuffer, vertexBoneStagingBuffer.Value(), vertexBoneBuffer->Value(), vertexBoneBufferSize);
         }
     );
+
+    //vertexBoneDatas.clear();
 }
