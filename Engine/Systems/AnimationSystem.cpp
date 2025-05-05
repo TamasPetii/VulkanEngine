@@ -85,7 +85,7 @@ void AnimationSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_p
 						animationComponent.animationNodeTransforms[i].nodeTransform.transform = parentTransform * animationComponent.animationNodeTransforms[i].nodeTransform.transform;
 					}
 					
-					animationComponent.animationNodeTransforms[i].nodeTransform.transformIT = glm::inverse(glm::transpose(animationComponent.animationNodeTransforms[i].nodeTransform.transform));
+					animationComponent.animationNodeTransforms[i].nodeTransform.transformIT = glm::transpose(glm::inverse(animationComponent.animationNodeTransforms[i].nodeTransform.transform));
 				}
 
 				animationPool->ResetBit<UPDATE_BIT>(entity);

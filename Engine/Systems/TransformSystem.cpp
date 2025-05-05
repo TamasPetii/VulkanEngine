@@ -32,7 +32,7 @@ void TransformSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_p
 					if (relationShipComponent.parent != NULL_ENTITY && transformPool->HasComponent(relationShipComponent.parent))
 						transformComponent.transform = transformPool->GetData(relationShipComponent.parent).transform * transformComponent.transform;
 
-					transformComponent.transformIT = glm::inverse(glm::transpose(transformComponent.transform));
+					transformComponent.transformIT = glm::transpose(glm::inverse(transformComponent.transform));
 
 					transformPool->SetBit<CHANGED_BIT>(entity);
 					transformComponent.versionID++;

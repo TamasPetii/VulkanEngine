@@ -75,8 +75,7 @@ void GeometryRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Reg
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetLayout(), 0, 1, &textureDescriptorSet->Value(), 0, nullptr);
 
 	RenderShapesInstanced(commandBuffer, pipeline->GetLayout(), resourceManager, frameIndex);
-	//RenderModelsInstanced(commandBuffer, pipeline->GetLayout(), resourceManager, frameIndex);
-	RenderModelsInstancedTest(commandBuffer, pipeline->GetLayout(), resourceManager, frameIndex, registry);
+	RenderModelsInstanced(commandBuffer, pipeline->GetLayout(), resourceManager, frameIndex);
 	vkCmdEndRendering(commandBuffer);
 }
 
@@ -124,41 +123,11 @@ void GeometryRenderer::RenderModelsInstanced(VkCommandBuffer commandBuffer, VkPi
 				pushConstants.materialBuffer = model->GetMaterialBuffer()->GetAddress();
 				pushConstants.renderIndicesBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("ModelRenderIndicesData", frameIndex)->buffer->GetAddress();
 				pushConstants.nodeTransformBuffers = resourceManager->GetComponentBufferManager()->GetComponentBuffer("NodeTransformBuffers", frameIndex)->buffer->GetAddress();
+				pushConstants.animationVertexBoneBuffers = resourceManager->GetAnimationManager()->GetAnimationAddressBuffer()->GetAddress();
 
 				vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(GeometryRendererPushConstants), &pushConstants);
 				vkCmdBindIndexBuffer(commandBuffer, model->GetIndexBuffer()->Value(), 0, VK_INDEX_TYPE_UINT32);
 				vkCmdDrawIndexed(commandBuffer, model->GetIndexCount(), model->GetInstanceCount(), 0, 0, 0);
-			}
-		}
-	);
-}
-
-void GeometryRenderer::RenderModelsInstancedTest(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex, std::shared_ptr<Registry> registry)
-{
-	auto modelManager = resourceManager->GetModelManager();
-	std::for_each(std::execution::seq, modelManager->GetModels().begin(), modelManager->GetModels().end(),
-		[&](const std::pair<std::string, std::shared_ptr<Model>>& data) -> void {
-			auto model = data.second;
-			if (model && model->state == LoadState::Ready && model->GetInstanceCount() > 0)
-			{
-				if (registry->HasComponent<AnimationComponent>(1) && registry->GetComponent<AnimationComponent>(1).animation && registry->GetComponent<AnimationComponent>(1).animation->state == LoadState::Ready)
-				{
-					GeometryRendererPushConstants pushConstants;
-					pushConstants.renderMode = MODEL_INSTANCED;
-					pushConstants.cameraIndex = 0;
-					pushConstants.cameraBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("CameraData", frameIndex)->buffer->GetAddress();
-					pushConstants.vertexBuffer = model->GetVertexBuffer()->GetAddress();
-					pushConstants.instanceIndexBuffer = model->GetInstanceIndexBuffer(frameIndex)->GetAddress();
-					pushConstants.transformBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("TransformData", frameIndex)->buffer->GetAddress();
-					pushConstants.materialBuffer = model->GetMaterialBuffer()->GetAddress();
-					pushConstants.renderIndicesBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("ModelRenderIndicesData", frameIndex)->buffer->GetAddress();
-					pushConstants.nodeTransformBuffers = resourceManager->GetComponentBufferManager()->GetComponentBuffer("NodeTransformBuffers", frameIndex)->buffer->GetAddress();
-					pushConstants.animationVertexBoneBuffers = resourceManager->GetAnimationManager()->GetAnimationAddressBuffer()->GetAddress();
-
-					vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(GeometryRendererPushConstants), &pushConstants);
-					vkCmdBindIndexBuffer(commandBuffer, model->GetIndexBuffer()->Value(), 0, VK_INDEX_TYPE_UINT32);
-					vkCmdDrawIndexed(commandBuffer, model->GetIndexCount(), model->GetInstanceCount(), 0, 0, 0);
-				}		
 			}
 		}
 	);

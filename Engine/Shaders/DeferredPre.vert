@@ -37,9 +37,9 @@ void main()
 	RenderIndices indices = RenderIndicesBuffer(PushConstants.renderIndicesBuffer).indices[InstanceIndexBuffer(PushConstants.instanceIndexBuffer).indices[gl_InstanceIndex]];
 
 	vec4 position = vec4(v.position, 1.0);
-	vec4 normal = TransformBuffer(PushConstants.transformBuffer).transforms[indices.transformIndex].transformIT * vec4(v.normal, 0.0);
-	vec4 tangent = TransformBuffer(PushConstants.transformBuffer).transforms[indices.transformIndex].transformIT * vec4(v.tangent, 0.0);
-	vec4 bitangent = TransformBuffer(PushConstants.transformBuffer).transforms[indices.transformIndex].transformIT * vec4(v.bitangent, 0.0);
+	vec4 normal = vec4(v.normal, 0.0);
+	vec4 tangent = vec4(v.tangent, 0.0);
+	vec4 bitangent = vec4(v.bitangent, 0.0);
 
 	if(PushConstants.renderMode == MODEL_INSTANCED)
 	{	
@@ -89,11 +89,11 @@ void main()
 	vec4 worldPosition = TransformBuffer(PushConstants.transformBuffer).transforms[indices.transformIndex].transform * position;
 	gl_Position = CameraBuffer(PushConstants.cameraBuffer).cameras[PushConstants.cameraIndex].viewProj * worldPosition;
 
-	vec3 finalNormal = normalize(normal.xyz);
-	vec3 finalTangent = normalize(tangent.xyz);
+	vec3 finalNormal = normalize(TransformBuffer(PushConstants.transformBuffer).transforms[indices.transformIndex].transformIT * normal).xyz;
+	vec3 finalTangent = normalize(TransformBuffer(PushConstants.transformBuffer).transforms[indices.transformIndex].transformIT * tangent).xyz;
 	finalTangent = normalize(finalTangent - dot(finalTangent, finalNormal) * finalNormal);
 	vec3 finalBitangent = normalize(cross(finalNormal, finalTangent));
-	//finalBitangent = normalize(bitangent.xyz);
+	//finalBitangent = normalize(TransformBuffer(PushConstants.transformBuffer).transforms[indices.transformIndex].transformIT * bitangent).xyz;
 
 	vs_out_pos = worldPosition.xyz;
 	vs_out_norm = finalNormal;

@@ -106,7 +106,7 @@ void Model::PreFetch(const aiScene* scene)
         NodeTransformInfo nodeTransformInfo;
         nodeTransformInfo.localTransform = nodeTransform;
         nodeTransformInfo.globalTransform = parentTransform * nodeTransformInfo.localTransform;
-        nodeTransformInfo.globalTransformIT = glm::inverse(glm::transpose(nodeTransformInfo.globalTransform));
+        nodeTransformInfo.globalTransformIT = glm::transpose(glm::inverse(nodeTransformInfo.globalTransform));
         nodeTransformInfos.push_back(nodeTransformInfo);
 
         for (uint32_t i = 0; i < currentNode->mNumChildren; ++i)
