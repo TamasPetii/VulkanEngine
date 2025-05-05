@@ -63,7 +63,6 @@ void Scene::InitializeRegistry()
 		modelComponent.hasDirectxNormals = true;
 	}
 
-	/*
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
@@ -71,15 +70,6 @@ void Scene::InitializeRegistry()
 		transformComponent.scale = glm::vec3(0.01);
 		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/VulkanEngine/Assets/Sponza/sponza.obj");
 	}
-
-	{
-		auto entity = registry->CreateEntity();
-		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
-		auto [transformComponent, modelComponent] = registry->GetComponents<TransformComponent, ModelComponent>(entity);
-		transformComponent.scale = glm::vec3(500);
-		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/VulkanEngine/Assets/Man/Walking.dae");
-	}
-	*/
 
 	/*
 	{
@@ -101,16 +91,6 @@ void Scene::InitializeRegistry()
 	}
 	*/
 
-	/*
-	auto entity = registry->CreateEntity();
-	registry->AddComponents<TransformComponent, ModelComponent, AnimationComponent, DefaultColliderComponent>(entity);
-	auto [transformComponent, modelComponent, animationComponent] = registry->GetComponents<TransformComponent, ModelComponent, AnimationComponent>(entity);
-	modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/DancingSoldier/DancingSoldier.dae");
-	animationComponent.animation = resourceManager->GetAnimationManager()->LoadAnimation("C:/Users/User/Desktop/DancingSoldier/DancingSoldier.dae");
-
-	std::array<std::string, 5> shapes = { "Cube", "Sphere", "Cone", "Pyramid", "Cylinder" };
-	std::uniform_int_distribution<size_t> shapeDist(0, shapes.size() - 1); // for shape selection
-	*/
 	/*
 	for (uint32_t i = 0; i < 1000; ++i)
 	{
