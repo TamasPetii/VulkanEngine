@@ -13,7 +13,7 @@
 class ENGINE_API AnimationManager : public DescriptorArrayIndexed
 {
 public:
-	AnimationManager() = default;
+	AnimationManager();
 	AnimationManager(const AnimationManager&) = delete;
 	AnimationManager& operator=(const AnimationManager&) = delete;
 
@@ -21,8 +21,10 @@ public:
 	std::shared_ptr<Animation> LoadAnimation(const std::string& path);
 	std::shared_ptr<Animation> GetAnimation(const std::string& path);
 	const auto& GetAnimations() { return animations; }
+	const auto& GetAnimationAddressBuffer() { return animationAddressBuffer; }
 private:
 	std::mutex loadMutex;
+	std::shared_ptr<Vk::Buffer> animationAddressBuffer;
 	std::unordered_map<std::string, std::shared_ptr<Animation>> animations;
 	std::unordered_map<std::string, std::future<void>> futures;
 };

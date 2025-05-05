@@ -48,18 +48,23 @@ void ModelSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared_
 	if (!modelPool)
 		return;
 
-	auto componentBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("ModelRenderIndicesData", frameIndex);
-	auto bufferHandler = static_cast<RenderIndicesGPU*>(componentBuffer->buffer->GetHandler());
+	auto renderIndicesBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("ModelRenderIndicesData", frameIndex);
+	auto renderIndicesBufferHandler = static_cast<RenderIndicesGPU*>(renderIndicesBuffer->buffer->GetHandler());
+
+	auto nodeTransformBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("NodeTransformBuffers", frameIndex);
+	auto nodeTransformBufferHandler = static_cast<VkDeviceAddress*>(nodeTransformBuffer->buffer->GetHandler());
 
 	std::for_each(std::execution::par, modelPool->GetDenseIndices().begin(), modelPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
 			auto& modelComponent = modelPool->GetData(entity);
 			auto modelIndex = modelPool->GetDenseIndex(entity);
 
+			bool hasAnimation = animationPool && animationPool->HasComponent(entity) && animationPool->GetData(entity).animation && animationPool->GetData(entity).animation->state == LoadState::Ready;
+
 			[[unlikely]]
-			if (componentBuffer->versions[modelIndex] != modelComponent.versionID)
+			if (renderIndicesBuffer->versions[modelIndex] != modelComponent.versionID)
 			{
-				componentBuffer->versions[modelIndex] = modelComponent.versionID;
+				renderIndicesBuffer->versions[modelIndex] = modelComponent.versionID;
 
 				uint32_t flags = 0;
 				flags |= (modelComponent.receiveShadow ? 1u : 0u) << 0;       // Bit 0
@@ -70,12 +75,17 @@ void ModelSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared_
 					.transformIndex = transformPool && transformPool->HasComponent(entity) ? transformPool->GetDenseIndex(entity) : UINT32_MAX,
 					.materialIndex = UINT32_MAX,
 					.receiveShadow = flags,
-					.animationIndex = animationPool && animationPool->HasComponent(entity) && animationPool->GetData(entity).animation && animationPool->GetData(entity).animation->state == LoadState::Ready ? animationPool->GetData(entity).animation->GetDescriptorArrayIndex() : UINT32_MAX,
-					.animationTransformIndex = animationPool && animationPool->HasComponent(entity) ? animationPool->GetDenseIndex(entity) : UINT32_MAX
+					.nodeTransformIndex = modelIndex,
+					.animationIndex = hasAnimation ? animationPool->GetData(entity).animation->GetDescriptorArrayIndex() : UINT32_MAX,
 				};
 
-				bufferHandler[modelIndex] = renderIndices;
+				renderIndicesBufferHandler[modelIndex] = renderIndices;
 			}
+
+			if (hasAnimation)
+				nodeTransformBufferHandler[modelIndex] = animationPool->GetData(entity).nodeTransformBuffers[frameIndex].buffer->GetAddress();
+			else if (modelComponent.model && modelComponent.model->state == LoadState::Ready)
+				nodeTransformBufferHandler[modelIndex] = modelComponent.model->GetNodeTransformBuffer()->GetAddress();
 		}
 	);
 }

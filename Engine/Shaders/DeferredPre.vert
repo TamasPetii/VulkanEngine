@@ -27,8 +27,8 @@ layout( push_constant ) uniform constants
 	uvec2 transformBuffer;
 	uvec2 materialBuffer;
 	uvec2 renderIndicesBuffer;
-	uvec2 nodeTransformBuffer;
-	uvec2 vertexBoneBuffer;
+	uvec2 nodeTransformBuffers;
+	uvec2 animationVertexBoneBuffers;
 } PushConstants;
 
 void main() 
@@ -43,11 +43,13 @@ void main()
 
 	if(PushConstants.renderMode == MODEL_INSTANCED)
 	{	
+		NodeTransformBuffer nodeTransformBuffer = NodeTransformBuffer(NodeTransformBuffers(PushConstants.nodeTransformBuffers).nodeTransformBufferAddresses[indices.nodeTransformIndex]);
+
 		bool hasBone = false;
 		//Animation index is packed into materialIndex
 		if(indices.animationIndex != INVALID_RENDER_INDEX)
 		{
-			VertexBone vertexBone = VertexBoneBuffer(PushConstants.vertexBoneBuffer).vertexBones[gl_VertexIndex];	
+			VertexBone vertexBone = VertexBoneBuffer(AnimationVertexBoneBuffers(PushConstants.animationVertexBoneBuffers).animationVertexBonebufferAddresses[indices.animationIndex]).vertexBones[gl_VertexIndex];
 			hasBone = vertexBone.indices[0] != INVALID_VERTEX_BONE_INDEX;
 
 			if(hasBone)
@@ -62,10 +64,10 @@ void main()
 					if(vertexBone.indices[i] == INVALID_VERTEX_BONE_INDEX)
 					   continue;
 
-					totalPosition += (NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[vertexBone.indices[i]].transform * position) * vertexBone.weights[i];
-					totalNormal += (NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[vertexBone.indices[i]].transformIT * normal) * vertexBone.weights[i];
-					totalTanget += (NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[vertexBone.indices[i]].transformIT * tangent) * vertexBone.weights[i];
-					totalBitangent += (NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[vertexBone.indices[i]].transformIT * bitangent) * vertexBone.weights[i];
+					totalPosition += (nodeTransformBuffer.transforms[vertexBone.indices[i]].transform * position) * vertexBone.weights[i];
+					totalNormal += (nodeTransformBuffer.transforms[vertexBone.indices[i]].transformIT * normal) * vertexBone.weights[i];
+					totalTanget += (nodeTransformBuffer.transforms[vertexBone.indices[i]].transformIT * tangent) * vertexBone.weights[i];
+					totalBitangent += (nodeTransformBuffer.transforms[vertexBone.indices[i]].transformIT * bitangent) * vertexBone.weights[i];
 				}
 					
 				position = totalPosition;
@@ -77,10 +79,10 @@ void main()
 		
 		if(!hasBone)
 		{
-			position = NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[v.nodeIndex].transform * position;
-			normal = NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[v.nodeIndex].transformIT * normal;
-			tangent = NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[v.nodeIndex].transformIT * tangent;
-			bitangent = NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[v.nodeIndex].transformIT * bitangent;
+			position = nodeTransformBuffer.transforms[v.nodeIndex].transform * position;
+			normal = nodeTransformBuffer.transforms[v.nodeIndex].transformIT * normal;
+			tangent = nodeTransformBuffer.transforms[v.nodeIndex].transformIT * tangent;
+			bitangent = nodeTransformBuffer.transforms[v.nodeIndex].transformIT * bitangent;
 		}
 	}
 

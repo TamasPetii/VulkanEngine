@@ -123,7 +123,7 @@ void GeometryRenderer::RenderModelsInstanced(VkCommandBuffer commandBuffer, VkPi
 				pushConstants.transformBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("TransformData", frameIndex)->buffer->GetAddress();
 				pushConstants.materialBuffer = model->GetMaterialBuffer()->GetAddress();
 				pushConstants.renderIndicesBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("ModelRenderIndicesData", frameIndex)->buffer->GetAddress();
-				pushConstants.nodeTransformBuffer = model->GetNodeTransformBuffer()->GetAddress();
+				pushConstants.nodeTransformBuffers = resourceManager->GetComponentBufferManager()->GetComponentBuffer("NodeTransformBuffers", frameIndex)->buffer->GetAddress();
 
 				vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(GeometryRendererPushConstants), &pushConstants);
 				vkCmdBindIndexBuffer(commandBuffer, model->GetIndexBuffer()->Value(), 0, VK_INDEX_TYPE_UINT32);
@@ -152,9 +152,8 @@ void GeometryRenderer::RenderModelsInstancedTest(VkCommandBuffer commandBuffer, 
 					pushConstants.transformBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("TransformData", frameIndex)->buffer->GetAddress();
 					pushConstants.materialBuffer = model->GetMaterialBuffer()->GetAddress();
 					pushConstants.renderIndicesBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("ModelRenderIndicesData", frameIndex)->buffer->GetAddress();
-
-					pushConstants.nodeTransformBuffer = registry->GetComponent<AnimationComponent>(1).nodeTransformBuffers[frameIndex].buffer->GetAddress();
-					pushConstants.vertexBoneBuffer = resourceManager->GetAnimationManager()->GetAnimation("C:/Users/User/Desktop/DancingSoldier/DancingSoldier.dae")->GetVertexBoneBuffer()->GetAddress();
+					pushConstants.nodeTransformBuffers = resourceManager->GetComponentBufferManager()->GetComponentBuffer("NodeTransformBuffers", frameIndex)->buffer->GetAddress();
+					pushConstants.animationVertexBoneBuffers = resourceManager->GetAnimationManager()->GetAnimationAddressBuffer()->GetAddress();
 
 					vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(GeometryRendererPushConstants), &pushConstants);
 					vkCmdBindIndexBuffer(commandBuffer, model->GetIndexBuffer()->Value(), 0, VK_INDEX_TYPE_UINT32);

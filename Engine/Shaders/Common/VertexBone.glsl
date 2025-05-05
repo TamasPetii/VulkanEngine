@@ -1,4 +1,5 @@
 #extension GL_EXT_buffer_reference : require
+#extension GL_EXT_buffer_reference_uvec2 : require
 
 #define INVALID_VERTEX_BONE_INDEX 0xFFFFFFFFu
 
@@ -9,4 +10,8 @@ struct VertexBone {
 
 layout(buffer_reference, std430) readonly buffer VertexBoneBuffer { 
 	VertexBone vertexBones[];
+};
+
+layout(buffer_reference, std430) readonly buffer AnimationVertexBoneBuffers { 
+	uvec2 animationVertexBonebufferAddresses[];
 };

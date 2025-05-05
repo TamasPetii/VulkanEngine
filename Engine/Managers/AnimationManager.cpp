@@ -23,6 +23,17 @@ std::shared_ptr<Animation> AnimationManager::GetAnimation(const std::string& pat
     return animations.at(path);
 }
 
+AnimationManager::AnimationManager()
+{
+    //Todo: make this dynamic with animation index size 
+    Vk::BufferConfig config;
+    config.size = sizeof(VkDeviceAddress) * 1024;
+    config.usage = VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT;
+    config.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    animationAddressBuffer = std::make_shared<Vk::Buffer>(config);
+    animationAddressBuffer->MapMemory();
+}
+
 void AnimationManager::Update()
 {
     //Need the lock, might delete future from futures map while LoadModel inserts future in it.
@@ -48,6 +59,9 @@ void AnimationManager::Update()
     for (auto& [path, animation] : animations)
     {
         if (futures.find(path) == futures.end() && animation->state == LoadState::GpuUploaded)
+        {
+            static_cast<VkDeviceAddress*>(animationAddressBuffer->GetHandler())[animation->GetDescriptorArrayIndex()] = animation->GetVertexBoneBuffer()->GetAddress();
             animation->state = LoadState::Ready;
+        }
     }
 }

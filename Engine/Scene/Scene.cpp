@@ -103,6 +103,7 @@ void Scene::InitializeRegistry()
 	}
 	*/
 
+	/*
 	auto entity = registry->CreateEntity();
 	registry->AddComponents<TransformComponent, ModelComponent, AnimationComponent, DefaultColliderComponent>(entity);
 	auto [transformComponent, modelComponent, animationComponent] = registry->GetComponents<TransformComponent, ModelComponent, AnimationComponent>(entity);
@@ -111,7 +112,7 @@ void Scene::InitializeRegistry()
 
 	std::array<std::string, 5> shapes = { "Cube", "Sphere", "Cone", "Pyramid", "Cylinder" };
 	std::uniform_int_distribution<size_t> shapeDist(0, shapes.size() - 1); // for shape selection
-
+	*/
 	/*
 	for (uint32_t i = 0; i < 1000; ++i)
 	{
@@ -129,6 +130,38 @@ void Scene::InitializeRegistry()
 		shapeComponent.shape = resourceManager->GetGeometryManager()->GetShape(shapes[shapeDist(rng)]);
 	}
 	*/
+
+	{
+		auto entity = registry->CreateEntity();
+		registry->AddComponents<TransformComponent, ModelComponent, AnimationComponent, DefaultColliderComponent>(entity);
+		auto [transformComponent, modelComponent, animationComponent] = registry->GetComponents<TransformComponent, ModelComponent, AnimationComponent>(entity);
+		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Animations/Worker_Standing.dae");
+		animationComponent.animation = resourceManager->GetAnimationManager()->LoadAnimation("C:/Users/User/Desktop/Animations/Worker_Standing.dae");
+	}
+
+	{
+		auto entity = registry->CreateEntity();
+		registry->AddComponents<TransformComponent, ModelComponent, AnimationComponent, DefaultColliderComponent>(entity);
+		auto [transformComponent, modelComponent, animationComponent] = registry->GetComponents<TransformComponent, ModelComponent, AnimationComponent>(entity);
+		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Animations/Worker_Standing.dae");
+		animationComponent.animation = resourceManager->GetAnimationManager()->LoadAnimation("C:/Users/User/Desktop/Animations/Worker_Walking.dae");
+	}
+
+	{
+		auto entity = registry->CreateEntity();
+		registry->AddComponents<TransformComponent, ModelComponent, AnimationComponent, DefaultColliderComponent>(entity);
+		auto [transformComponent, modelComponent, animationComponent] = registry->GetComponents<TransformComponent, ModelComponent, AnimationComponent>(entity);
+		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Animations/Worker_Standing.dae");
+		animationComponent.animation = resourceManager->GetAnimationManager()->LoadAnimation("C:/Users/User/Desktop/Animations/Worker_Running.dae");
+	}
+
+	{
+		auto entity = registry->CreateEntity();
+		registry->AddComponents<TransformComponent, ModelComponent, AnimationComponent, DefaultColliderComponent>(entity);
+		auto [transformComponent, modelComponent, animationComponent] = registry->GetComponents<TransformComponent, ModelComponent, AnimationComponent>(entity);
+		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Animations/Worker_Standing.dae");
+		animationComponent.animation = resourceManager->GetAnimationManager()->LoadAnimation("C:/Users/User/Desktop/Animations/Worker_Dancing.dae");
+	}
 }
 
 void Scene::Update(std::shared_ptr<Timer> frameTimer, uint32_t frameIndex)
@@ -300,6 +333,7 @@ void Scene::UpdateComponentBuffers(uint32_t frameIndex)
 	RecalculateGpuBufferSize<MaterialComponent, MaterialComponentGPU>("MaterialData", frameIndex);
 	RecalculateGpuBufferSize<ShapeComponent, RenderIndicesGPU>("ShapeRenderIndicesData", frameIndex);
 	RecalculateGpuBufferSize<ModelComponent, RenderIndicesGPU>("ModelRenderIndicesData", frameIndex);
+	RecalculateGpuBufferSize<ModelComponent, VkDeviceAddress>("NodeTransformBuffers", frameIndex);
 	RecalculateGpuBufferSize<DefaultColliderComponent, glm::mat4>("DefaultColliderAabbData", frameIndex);
 	RecalculateGpuBufferSize<DefaultColliderComponent, glm::mat4>("DefaultColliderObbData", frameIndex);
 	RecalculateGpuBufferSize<DefaultColliderComponent, glm::mat4>("DefaultColliderSphereData", frameIndex);

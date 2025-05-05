@@ -8,8 +8,8 @@ struct RenderIndices
 	uint transformIndex;
 	uint materialIndex;
 	uint flag;
+	uint nodeTransformIndex;
 	uint animationIndex;
-	uint animationTransformIndex;
 	uint filler1;
 	uint filler2;
 };

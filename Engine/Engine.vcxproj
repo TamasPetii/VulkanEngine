@@ -388,6 +388,7 @@
     <None Include="Shaders\Basic.vert" />
     <None Include="Shaders\BoundingVolume.frag" />
     <None Include="Shaders\BoundingVolume.vert" />
+    <None Include="Shaders\Common\VertexBone.glsl" />
     <None Include="Shaders\Common\BoundingVolume.glsl" />
     <None Include="Shaders\Common\Camera.glsl" />
     <None Include="Shaders\Common\NodeTransform.glsl" />
@@ -398,7 +399,6 @@
     <None Include="Shaders\Common\RenderIndices.glsl" />
     <None Include="Shaders\Common\Transform.glsl" />
     <None Include="Shaders\Common\Vertex.glsl" />
-    <None Include="Shaders\Common\VertexBone.glsl" />
     <None Include="Shaders\DeferredDir.frag" />
     <None Include="Shaders\DeferredDir.vert" />
     <None Include="Shaders\DeferredPre.frag" />
