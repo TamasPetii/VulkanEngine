@@ -7,7 +7,7 @@
 
 //Inputs
 layout (location = 0) in vec3 fs_in_pos;
-layout (location = 1) in vec3 fs_in_normal;
+layout (location = 1) in vec3 fs_in_norm;
 layout (location = 2) in vec2 fs_in_tex;
 layout (location = 3) in flat uvec3 fs_in_index;
 layout (location = 4) in mat3 fs_in_tbn;
@@ -46,7 +46,7 @@ void main()
 	if(albedo.w < 0.1)
 		discard;
 
-	vec3 normal = vec3(normalize(fs_in_normal));
+	vec3 normal = vec3(normalize(fs_in_norm));
 	if(materialBuffer.materials[materialIndex].normalIndex != uint(INVALID_IMAGE_INDEX))
 	{
 		normal = sampleTexture2D(materialBuffer.materials[materialIndex].normalIndex, LINEAR_ANISOTROPY_SAMPLER_ID, fs_in_tex).xyz;

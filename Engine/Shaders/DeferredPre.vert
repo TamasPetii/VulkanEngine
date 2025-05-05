@@ -12,7 +12,7 @@
 #include "Common/VertexBone.glsl"
 
 layout (location = 0) out vec3 vs_out_pos;
-layout (location = 1) out vec3 vs_out_normal;
+layout (location = 1) out vec3 vs_out_norm;
 layout (location = 2) out vec2 vs_out_tex;
 layout (location = 3) out flat uvec3 vs_out_index;
 layout (location = 4) out mat3 vs_out_tbn;
@@ -36,10 +36,10 @@ void main()
 	Vertex v = VertexBuffer(PushConstants.vertexBuffer).vertices[gl_VertexIndex];
 	RenderIndices indices = RenderIndicesBuffer(PushConstants.renderIndicesBuffer).indices[InstanceIndexBuffer(PushConstants.instanceIndexBuffer).indices[gl_InstanceIndex]];
 
-	mat4 localTransform = TransformBuffer(PushConstants.transformBuffer).transforms[indices.transformIndex].transform;
-	mat4 localTransformIT = TransformBuffer(PushConstants.transformBuffer).transforms[indices.transformIndex].transformIT;
-
 	vec4 position = vec4(v.position, 1.0);
+	vec4 normal = TransformBuffer(PushConstants.transformBuffer).transforms[indices.transformIndex].transformIT * vec4(v.normal, 0.0);
+	vec4 tangent = TransformBuffer(PushConstants.transformBuffer).transforms[indices.transformIndex].transformIT * vec4(v.tangent, 0.0);
+	vec4 bitangent = TransformBuffer(PushConstants.transformBuffer).transforms[indices.transformIndex].transformIT * vec4(v.bitangent, 0.0);
 
 	if(PushConstants.renderMode == MODEL_INSTANCED)
 	{	
@@ -53,41 +53,51 @@ void main()
 			if(hasBone)
 			{
 				vec4 totalPosition = vec4(0);
+				vec4 totalNormal = vec4(0);
+				vec4 totalTanget = vec4(0);
+				vec4 totalBitangent = vec4(0);
 
 				for(int i = 0; i < 4; i++)
 				{
 					if(vertexBone.indices[i] == INVALID_VERTEX_BONE_INDEX)
 					   continue;
 
-					vec4 localPosition = NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[vertexBone.indices[i]].transform * vec4(v.position, 1);
-					totalPosition += localPosition * vertexBone.weights[i];
+					totalPosition += (NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[vertexBone.indices[i]].transform * position) * vertexBone.weights[i];
+					totalNormal += (NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[vertexBone.indices[i]].transformIT * normal) * vertexBone.weights[i];
+					totalTanget += (NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[vertexBone.indices[i]].transformIT * tangent) * vertexBone.weights[i];
+					totalBitangent += (NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[vertexBone.indices[i]].transformIT * bitangent) * vertexBone.weights[i];
 				}
-
+					
 				position = totalPosition;
+				normal = totalNormal;
+				tangent = totalTanget;
+				bitangent = totalBitangent;
 			}
 		}
 		
 		if(!hasBone)
 		{
-			localTransform *= NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[v.nodeIndex].transform;
-			localTransformIT = NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[v.nodeIndex].transformIT * localTransformIT;
+			position = NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[v.nodeIndex].transform * position;
+			normal = NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[v.nodeIndex].transformIT * normal;
+			tangent = NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[v.nodeIndex].transformIT * tangent;
+			bitangent = NodeTransformBuffer(PushConstants.nodeTransformBuffer).transforms[v.nodeIndex].transformIT * bitangent;
 		}
 	}
 
-	vec4 worldPosition = localTransform * position;
+	vec4 worldPosition = TransformBuffer(PushConstants.transformBuffer).transforms[indices.transformIndex].transform * position;
 	gl_Position = CameraBuffer(PushConstants.cameraBuffer).cameras[PushConstants.cameraIndex].viewProj * worldPosition;
 
-	vec3 normal = normalize(vec3(localTransformIT * vec4(v.normal, 0)));
-	vec3 tangent = normalize(vec3(localTransformIT * vec4(v.tangent, 0)));
-	tangent = normalize(tangent - dot(tangent, normal) * normal);
-	vec3 bitangent = normalize(cross(normal, tangent));
-	//vec3 bitangent = normalize(vec3(localTransformIT * vec4(v.bitangent, 0)));
+	vec3 finalNormal = normalize(normal.xyz);
+	vec3 finalTangent = normalize(tangent.xyz);
+	finalTangent = normalize(finalTangent - dot(finalTangent, finalNormal) * finalNormal);
+	vec3 finalBitangent = normalize(cross(finalNormal, finalTangent));
+	//finalBitangent = normalize(bitangent.xyz);
 
 	vs_out_pos = worldPosition.xyz;
-	vs_out_normal = normal;
+	vs_out_norm = finalNormal;
 	vs_out_tex = vec2(v.uv_x, 1.0 - v.uv_y);
-	vs_out_index.x = indices.entityIndex; //Entity ID
+	vs_out_index.x = indices.entityIndex;
 	vs_out_index.y = PushConstants.renderMode == SHAPE_INSTANCED ? indices.materialIndex : v.matIndex; //Material Index
 	vs_out_index.z = indices.flag;
-	vs_out_tbn = mat3(tangent, bitangent, normal);
+	vs_out_tbn = mat3(finalTangent, finalBitangent, finalNormal);
 }
