@@ -318,7 +318,7 @@
     <ClInclude Include="Vulkan\ComputePipeline.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Async\AsyncLoaded.h">
+    <ClInclude Include="Utils\AsyncLoaded.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Utils\ImageTexture.h">
@@ -327,7 +327,7 @@
     <ClInclude Include="Vulkan\VulkanMutex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Async\BatchUploaded.h">
+    <ClInclude Include="Utils\BatchUploaded.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Animation\Animation.h">
@@ -348,7 +348,19 @@
     <ClInclude Include="Managers\AnimationManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Managers\DescriptorArrayIndexed.h">
+    <ClInclude Include="Managers\BaseManagers\ArrayIndexedManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Managers\BaseManagers\DeviceAddressedManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Managers\BaseManagers\AsyncManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Managers\BaseManagers\BatchedGpuUploadedManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\Hashable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -635,13 +647,13 @@
     <ClCompile Include="Vulkan\ComputePipeline.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Async\AsyncLoaded.cpp">
+    <ClCompile Include="Utils\AsyncLoaded.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Utils\ImageTexture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Async\BatchUploaded.cpp">
+    <ClCompile Include="Utils\BatchUploaded.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Animation\Animation.cpp">
@@ -662,7 +674,16 @@
     <ClCompile Include="Managers\AnimationManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Managers\DescriptorArrayIndexed.cpp">
+    <ClCompile Include="Managers\BaseManagers\ArrayIndexedManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Managers\BaseManagers\DeviceAddressedManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Managers\BaseManagers\AsyncManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Managers\BaseManagers\BatchedGpuUploadedManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

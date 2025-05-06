@@ -11,9 +11,11 @@
 
 #include "Engine/Utils/ImageTexture.h"
 #include "Engine/Managers/VulkanManager.h"
-#include "DescriptorArrayIndexed.h"
+#include "BaseManagers/ArrayIndexedManager.h"
+#include "BaseManagers/AsyncManager.h"
+#include "BaseManagers/BatchedGpuUploadedManager.h"
 
-class ENGINE_API ImageManager : public DescriptorArrayIndexed
+class ENGINE_API ImageManager : public ArrayIndexedManager, public AsyncManager<std::string> 
 {
 public:
 	ImageManager(std::shared_ptr<VulkanManager> vulkanManager);
@@ -29,13 +31,7 @@ public:
 private:
 	void UploadBatchedImages(std::vector<std::shared_ptr<ImageTexture>> images);
 private:
-	std::mutex loadMutex;
 	std::shared_ptr<VulkanManager> vulkanManager = nullptr;
 	std::unordered_map<std::string, std::shared_ptr<ImageTexture>> images;
-	std::unordered_map<std::string, std::future<void>> imageLoadFutures;
-
-	constexpr static inline uint32_t minSubmitBatchSize = 16;
-	std::vector<std::shared_ptr<ImageTexture>> imagesToUploadGpu;
-	std::unordered_set<std::unique_ptr<std::future<void>>> imagesToUploadGpuFutures;
 };
 

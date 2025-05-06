@@ -6,14 +6,19 @@ ModelManager::ModelManager(std::shared_ptr<ImageManager> imageManager) :
 {
 }
 
+ModelManager::~ModelManager()
+{
+    models.clear();
+}
+
 std::shared_ptr<Model> ModelManager::LoadModel(const std::string& path)
 {
-    std::unique_lock<std::mutex> lock(loadMutex);
+    std::lock_guard<std::mutex> lock(asyncMutex);
 
     if (models.find(path) != models.end())
         return models.at(path);
 
-    std::shared_ptr<Model> model = std::make_shared<Model>(imageManager);
+    std::shared_ptr<Model> model = std::make_shared<Model>(imageManager, GetAvailableIndex());
     models[path] = model;
 
     futures.emplace(path, std::async(std::launch::async, &Model::Load, models.at(path), path));
@@ -23,6 +28,8 @@ std::shared_ptr<Model> ModelManager::LoadModel(const std::string& path)
 
 std::shared_ptr<Model> ModelManager::GetModel(const std::string& path)
 {
+    std::lock_guard<std::mutex> lock(asyncMutex);
+
     if (models.find(path) == models.end())
         return nullptr;
 
@@ -31,29 +38,22 @@ std::shared_ptr<Model> ModelManager::GetModel(const std::string& path)
 
 void ModelManager::Update()
 {
-    //Need the lock, might delete future from futures map while LoadModel inserts future in it.
-    std::unique_lock<std::mutex> lock(loadMutex);
+    std::lock_guard<std::mutex> lock(asyncMutex);
     
-    for (auto it = futures.begin(); it != futures.end();) {
-        if (it->second.valid() && it->second.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
-            try {
-                it->second.get();
-                it = futures.erase(it);
-                std::cout << "Async model loading thread finished successfuly" << "\n";
-            }
-            catch (const std::exception& e) {
-                std::cout << "Async model loading thread error: " << e.what() << std::endl;
-                it = futures.erase(it);
-            }
-        }
-        else {
-            ++it;
-        }
-    }
+    auto completedFutures = AsyncManager::CompleteFinishedFutures();
 
-    for (auto& [path, model] : models)
+    for (auto path : completedFutures)
     {
-        if (futures.find(path) == futures.end() && model->state == LoadState::GpuUploaded)
+        auto model = models.at(path);
+        if (model->state == LoadState::GpuUploaded)
+        {
+            static_cast<ModelDevicesAddresses*>(deviceAddresses->GetHandler())[model->GetAddressArrayIndex()] = ModelDevicesAddresses{
+                .vertexBufferAddress = model->GetVertexBuffer()->GetAddress(), 
+                .materialBufferAddress = model->GetMaterialBuffer()->GetAddress(),
+                .nodeTransformBufferAddress = model->GetNodeTransformBuffer()->GetAddress()
+            };
+            
             model->state = LoadState::Ready;
+        }
     }
 }

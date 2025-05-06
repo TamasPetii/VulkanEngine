@@ -7,8 +7,9 @@
 #include <thread>
 #include "Engine/Vulkan/VulkanContext.h"
 
-Model::Model(std::shared_ptr<ImageManager> imageManager) : 
-    imageManager(imageManager)
+Model::Model(std::shared_ptr<ImageManager> imageManager, uint32_t addressArrayIndex) :
+    imageManager(imageManager),
+    addressArrayIndex(addressArrayIndex)
 {
 }
 

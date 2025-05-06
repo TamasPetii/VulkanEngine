@@ -1,6 +1,6 @@
 #pragma once
 #include "Engine/EngineApi.h"
-#include "Engine/Async/AsyncLoaded.h"
+#include "Engine/Utils/AsyncLoaded.h"
 #include "Engine/Vulkan/Buffer.h"
 #include "Bone.h"
 
@@ -40,14 +40,14 @@ public:
 		uint32_t parentIndex = UINT32_MAX;
 	};
 public:
-	Animation(uint32_t descriptorArrayIndex) : descriptorArrayIndex(descriptorArrayIndex) {}
+	Animation(uint32_t addressArrayIndex) : addressArrayIndex(addressArrayIndex) {}
 	void Load(const std::string& path);
 	auto GetDuration() { return duration; }
 	auto GetTicksPerSeconds() { return ticksPerSecond; }
 	auto GetVertexCount() { return vertexCount; }
 	auto GetBoneCount() { return boneCount; }
 	auto GetMeshCount() { return meshCount; }
-	auto GetDescriptorArrayIndex() { return descriptorArrayIndex; }
+	auto GetAddressArrayIndex() { return addressArrayIndex; }
 	const auto& GetBoneIndexMap() { return boneIndexMap; }
 	const auto& GetNodeProcessInfo() { return nodeProcessInfos; }
 	const auto& GetBoneProcessInfo() { return boneProcessInfos; }
@@ -59,7 +59,7 @@ private:
 	void ProcessMeshVertexBone(const MeshProcessInfo& meshProcessInfo);
 	void InitVertexBoneBuffer();
 
-	uint32_t descriptorArrayIndex;
+	uint32_t addressArrayIndex;
 
 	double duration;
 	double ticksPerSecond;

@@ -1,6 +1,6 @@
-#include "DescriptorArrayIndexed.h"
+#include "ArrayIndexedManager.h"
 
-uint32_t DescriptorArrayIndexed::GetAvailableIndex()
+uint32_t ArrayIndexedManager::GetAvailableIndex()
 {
 	std::unique_lock<std::mutex> lock(availableIndexMutex);
 

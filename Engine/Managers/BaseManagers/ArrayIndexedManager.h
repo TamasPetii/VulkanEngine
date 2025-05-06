@@ -1,9 +1,10 @@
 #pragma once
+#include "Engine/EngineApi.h"
 #include <set>
 #include <mutex>
 #include <atomic>
 
-class DescriptorArrayIndexed
+class ENGINE_API ArrayIndexedManager
 {
 protected:
 	uint32_t GetAvailableIndex();
@@ -12,4 +13,3 @@ protected:
 	std::atomic<uint32_t> counter = 0;
 	std::set<uint32_t> availableIndices;
 };
-

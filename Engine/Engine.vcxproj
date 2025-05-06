@@ -163,15 +163,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Managers\DescriptorArrayIndexed.h" />
+    <ClInclude Include="Managers\BaseManagers\BatchedGpuUploadedManager.h" />
+    <ClInclude Include="Managers\BaseManagers\AsyncManager.h" />
+    <ClInclude Include="Managers\BaseManagers\DeviceAddressedManager.h" />
+    <ClInclude Include="Managers\BaseManagers\ArrayIndexedManager.h" />
     <ClInclude Include="Managers\AnimationManager.h" />
     <ClInclude Include="Renderable\Model\NodeTransform.h" />
     <ClInclude Include="Systems\AnimationSystem.h" />
     <ClInclude Include="Components\AnimationComponent.h" />
     <ClInclude Include="Animation\Animation.h" />
-    <ClInclude Include="Async\AsyncLoaded.h" />
-    <ClInclude Include="Async\BatchUploaded.h" />
+    <ClInclude Include="Utils\AsyncLoaded.h" />
+    <ClInclude Include="Utils\BatchUploaded.h" />
     <ClInclude Include="Animation\Bone.h" />
+    <ClInclude Include="Utils\Hashable.h" />
     <ClInclude Include="Utils\ImageTexture.h" />
     <ClInclude Include="Vulkan\ComputePipeline.h" />
     <ClInclude Include="Registry\Pools\ComponentPool.h" />
@@ -277,14 +281,17 @@
     <ClInclude Include="Vulkan\VulkanMutex.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Managers\DescriptorArrayIndexed.cpp" />
+    <ClCompile Include="Managers\BaseManagers\BatchedGpuUploadedManager.cpp" />
+    <ClCompile Include="Managers\BaseManagers\AsyncManager.cpp" />
+    <ClCompile Include="Managers\BaseManagers\DeviceAddressedManager.cpp" />
+    <ClCompile Include="Managers\BaseManagers\ArrayIndexedManager.cpp" />
     <ClCompile Include="Managers\AnimationManager.cpp" />
     <ClCompile Include="Renderable\Model\NodeTransform.cpp" />
     <ClCompile Include="Systems\AnimationSystem.cpp" />
     <ClCompile Include="Components\AnimationComponent.cpp" />
     <ClCompile Include="Animation\Animation.cpp" />
-    <ClCompile Include="Async\AsyncLoaded.cpp" />
-    <ClCompile Include="Async\BatchUploaded.cpp" />
+    <ClCompile Include="Utils\AsyncLoaded.cpp" />
+    <ClCompile Include="Utils\BatchUploaded.cpp" />
     <ClCompile Include="Animation\Bone.cpp" />
     <ClCompile Include="Utils\ImageTexture.cpp" />
     <ClCompile Include="Vulkan\ComputePipeline.cpp" />

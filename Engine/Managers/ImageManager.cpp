@@ -1,6 +1,7 @@
 #include "ImageManager.h"
 
-ImageManager::ImageManager(std::shared_ptr<VulkanManager> vulkanManager) :
+ImageManager::ImageManager(std::shared_ptr<VulkanManager> vulkanManager) : 
+    ArrayIndexedManager(),
 	vulkanManager(vulkanManager)
 {
 }
@@ -12,6 +13,8 @@ ImageManager::~ImageManager()
 
 std::shared_ptr<ImageTexture> ImageManager::GetImage(const std::string& path)
 {
+    std::lock_guard<std::mutex> lock(asyncMutex);
+
 	if (images.find(path) == images.end())
 		return nullptr;
 
@@ -20,7 +23,7 @@ std::shared_ptr<ImageTexture> ImageManager::GetImage(const std::string& path)
 
 std::shared_ptr<ImageTexture> ImageManager::LoadImage(const std::string& path, bool generateMipMap)
 {
-	std::unique_lock<std::mutex> lock(loadMutex);
+    std::lock_guard<std::mutex> lock(asyncMutex);
 
 	if (images.find(path) != images.end())
 		return images.at(path);
@@ -28,7 +31,7 @@ std::shared_ptr<ImageTexture> ImageManager::LoadImage(const std::string& path, b
 	std::shared_ptr<ImageTexture> imageTexture = std::make_shared<ImageTexture>(GetAvailableIndex());
 	images[path] = imageTexture;
 
-    imageLoadFutures.emplace(path, std::async(std::launch::async, &ImageTexture::Load, images.at(path), path, generateMipMap));
+    futures.emplace(path, std::async(std::launch::async, &ImageTexture::Load, images.at(path), path, generateMipMap));
 
 	return images.at(path);
 }
@@ -36,26 +39,9 @@ std::shared_ptr<ImageTexture> ImageManager::LoadImage(const std::string& path, b
 void ImageManager::Update()
 {
     //Need the lock, might delete future from futures map while LoadModel inserts future in it.
-    std::unique_lock<std::mutex> lock(loadMutex);
+    std::lock_guard<std::mutex> lock(asyncMutex);
 
-    for (auto it = imageLoadFutures.begin(); it != imageLoadFutures.end();) {
-        if (it->second.valid() && it->second.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
-            try {
-                it->second.get();
-
-                std::string path = it->first;
-                imagesToUploadGpu.push_back(images.at(path));
-
-                it = imageLoadFutures.erase(it);
-            }
-            catch (const std::exception& e) {
-                it = imageLoadFutures.erase(it);
-            }
-        }
-        else {
-            ++it;
-        }
-    }
+    auto completedFutures = AsyncManager::CompleteFinishedFutures();
 
     if (imagesToUploadGpu.size() >= minSubmitBatchSize || (!imagesToUploadGpu.empty() && imageLoadFutures.empty())) 
     {
@@ -87,23 +73,6 @@ void ImageManager::Update()
             vulkanManager->GetDescriptorSet("LoadedImages")->UpdateImageArrayElement("Images", images.at(path)->GetImage()->GetImageView(), VK_NULL_HANDLE, images.at(path)->GetImage()->GetDescriptorArrayIndex());
             image->state = LoadState::Ready;
         }   
-    }
-}
-
-void ImageManager::UploadBatchedImages(std::vector<std::shared_ptr<ImageTexture>> imagesToUploadGpu)
-{
-    std::vector<VkCommandBufferSubmitInfo> submitInfos;
-    submitInfos.reserve(imagesToUploadGpu.size());
-
-    for (auto& image : imagesToUploadGpu)
-        submitInfos.push_back(image->GetCommandBufferSubmitInfo());
-
-    Vk::VulkanContext::GetContext()->GetImmediateQueue()->SubmitGraphics(submitInfos);
-
-    for (auto& image : imagesToUploadGpu)
-    {
-        image->DestoryCommandPoolAndBuffer();
-        image->state = LoadState::GpuUploaded;
     }
 }
 

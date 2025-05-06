@@ -34,6 +34,7 @@ void Scene::InitializeRegistry()
 	std::random_device dev;
 	std::mt19937 rng(dev());
 	std::uniform_real_distribution<float> dist(0, 1);
+	std::uniform_int_distribution<uint32_t> distAnimation(0, 3);
 
 	/*
 	std::string imagePath = "../Assets/Texture.jpg";
@@ -47,6 +48,7 @@ void Scene::InitializeRegistry()
 		registry->GetComponent<CameraComponent>(entity).isMain = true;
 	}
 
+	/*
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
@@ -62,7 +64,9 @@ void Scene::InitializeRegistry()
 		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Bistro_v5_2/BistroExterior.fbx");
 		modelComponent.hasDirectxNormals = true;
 	}
+	*/
 
+	/*
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
@@ -70,6 +74,7 @@ void Scene::InitializeRegistry()
 		transformComponent.scale = glm::vec3(0.01);
 		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/VulkanEngine/Assets/Sponza/sponza.obj");
 	}
+	*/
 
 	/*
 	{
@@ -108,7 +113,7 @@ void Scene::InitializeRegistry()
 		shapeComponent.shape = resourceManager->GetGeometryManager()->GetShape(shapes[shapeDist(rng)]);
 	}
 	*/
-
+	/*
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, AnimationComponent, DefaultColliderComponent>(entity);
@@ -139,6 +144,26 @@ void Scene::InitializeRegistry()
 		auto [transformComponent, modelComponent, animationComponent] = registry->GetComponents<TransformComponent, ModelComponent, AnimationComponent>(entity);
 		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Animations/Worker_Standing.dae");
 		animationComponent.animation = resourceManager->GetAnimationManager()->LoadAnimation("C:/Users/User/Desktop/Animations/Worker_Dancing.dae");
+	}
+	*/
+
+	std::vector<std::string> animationPaths = {
+		"C:/Users/User/Desktop/Animations/Worker_Standing.dae",
+		"C:/Users/User/Desktop/Animations/Worker_Walking.dae",
+		"C:/Users/User/Desktop/Animations/Worker_Running.dae",
+		"C:/Users/User/Desktop/Animations/Worker_Dancing.dae"
+	};
+
+	for (uint32_t i = 0; i < 10; ++i)
+	{
+		{
+			auto entity = registry->CreateEntity();
+			registry->AddComponents<TransformComponent, ModelComponent, AnimationComponent, DefaultColliderComponent>(entity);
+			auto [transformComponent, modelComponent, animationComponent] = registry->GetComponents<TransformComponent, ModelComponent, AnimationComponent>(entity);
+			modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Animations/Worker_Standing.dae");
+			animationComponent.animation = resourceManager->GetAnimationManager()->LoadAnimation(animationPaths[distAnimation(rng)]);
+			transformComponent.translation = 100.f * glm::vec3(dist(rng), 0, dist(rng));
+		}
 	}
 }
 

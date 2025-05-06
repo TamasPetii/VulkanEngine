@@ -8,11 +8,21 @@
 #include <unordered_map>
 
 #include "Engine/Renderable/Model/Model.h"
+#include "BaseManagers/DeviceAddressedManager.h"
+#include "BaseManagers/AsyncManager.h"
 
-class ENGINE_API ModelManager
+struct ENGINE_API ModelDevicesAddresses
+{
+	VkDeviceAddress vertexBufferAddress;
+	VkDeviceAddress materialBufferAddress;
+	VkDeviceAddress nodeTransformBufferAddress;
+};
+
+class ENGINE_API ModelManager : public DeviceAddressedManager<ModelDevicesAddresses>, public AsyncManager<std::string>
 {
 public:
 	ModelManager(std::shared_ptr<ImageManager> imageManager);
+	~ModelManager();
 	ModelManager(const ModelManager&) = delete;
 	ModelManager& operator=(const ModelManager&) = delete;
 
@@ -21,9 +31,7 @@ public:
 	const auto& GetModels() { return models; }
 	void Update();
 private:
-	std::mutex loadMutex;
 	std::shared_ptr<ImageManager> imageManager = nullptr;
 	std::unordered_map<std::string, std::shared_ptr<Model>> models;
-	std::unordered_map<std::string, std::future<void>> futures;
 };
 

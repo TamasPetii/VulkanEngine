@@ -7,13 +7,15 @@
 #include <mutex>
 #include <unordered_map>
 
-#include "DescriptorArrayIndexed.h"
 #include "Engine/Animation/Animation.h"
+#include "BaseManagers/DeviceAddressedManager.h"
+#include "BaseManagers/AsyncManager.h"
 
-class ENGINE_API AnimationManager : public DescriptorArrayIndexed
+class ENGINE_API AnimationManager : public DeviceAddressedManager<VkDeviceAddress>, public AsyncManager<std::string>
 {
 public:
 	AnimationManager();
+	~AnimationManager();
 	AnimationManager(const AnimationManager&) = delete;
 	AnimationManager& operator=(const AnimationManager&) = delete;
 
@@ -21,11 +23,7 @@ public:
 	std::shared_ptr<Animation> LoadAnimation(const std::string& path);
 	std::shared_ptr<Animation> GetAnimation(const std::string& path);
 	const auto& GetAnimations() { return animations; }
-	const auto& GetAnimationAddressBuffer() { return animationAddressBuffer; }
 private:
-	std::mutex loadMutex;
-	std::shared_ptr<Vk::Buffer> animationAddressBuffer;
 	std::unordered_map<std::string, std::shared_ptr<Animation>> animations;
-	std::unordered_map<std::string, std::future<void>> futures;
 };
 

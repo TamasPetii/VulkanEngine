@@ -2,16 +2,16 @@
 #include "Engine/EngineApi.h"
 #include "Engine/Vulkan/Buffer.h"
 
-struct PendingUpload
+class ENGINE_API BatchUploaded
 {
-	VkCommandPool commandPool = VK_NULL_HANDLE;
-	VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
-	VkCommandBufferSubmitInfo submitInfo{};
-	std::shared_ptr<Vk::Buffer> stagingBuffer = nullptr;
-};
-
-class BatchUploaded
-{
+public:
+	struct ENGINE_API PendingUploadData
+	{
+		VkCommandPool commandPool = VK_NULL_HANDLE;
+		VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+		VkCommandBufferSubmitInfo submitInfo{};
+		std::shared_ptr<Vk::Buffer> stagingBuffer = nullptr;
+	};
 public:
 	const VkCommandBufferSubmitInfo& GetCommandBufferSubmitInfo() const { return uploadData.submitInfo; }
 	void CreateCommandPoolAndBuffer();
@@ -19,6 +19,5 @@ public:
 protected:
 	void BeginCommandBuffer();
 	void EndCommandBuffer();
-	PendingUpload uploadData;
+	PendingUploadData uploadData;
 };
-

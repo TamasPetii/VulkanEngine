@@ -3,7 +3,7 @@
 #include "Engine/Renderable/Materialized.h"
 #include "Engine/Renderable/Instanceable.h"
 #include "Engine/Renderable/BoundingVolume.h"
-#include "Engine/Async/AsyncLoaded.h"
+#include "Engine/Utils/AsyncLoaded.h"
 
 #include "AssimpConverter.h"
 #include <Assimp/Importer.hpp>
@@ -36,12 +36,13 @@ public:
 		glm::mat4 globalTransformIT;
 	};
 public:
-	Model(std::shared_ptr<ImageManager> imageManager);
+	Model(std::shared_ptr<ImageManager> imageManager, uint32_t addressArrayIndex);
 	void Load(const std::string& path);
 	auto GetMeshCount() { return meshCount; }
 	auto GetVertexCount() { return vertexCount; }
 	auto GetIndexCount() { return indexCount; }
 	auto GetNodeTransformBuffer() { return nodeTransformBuffer; }
+	auto GetAddressArrayIndex() { return addressArrayIndex; }
 	const auto& GetMeshProcessInfos() { return meshProcessInfos; }
 	const auto& GetNodeTransformInfos() { return nodeTransformInfos; }
 private:
@@ -59,6 +60,7 @@ private:
 private:
 	std::string path;
 	std::string directory;
+	uint32_t addressArrayIndex;
 private:
 	uint32_t meshCount = 0;
 	std::vector<MeshProcessInfo> meshProcessInfos;
