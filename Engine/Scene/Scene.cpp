@@ -3,6 +3,7 @@
 #include <future>
 #include <thread>
 #include "Engine/Animation/Animation.h"
+#include "Engine/Components/RenderIndicesComponent.h"
 
 Scene::Scene(std::shared_ptr<ResourceManager> resourceManager) : 
 	resourceManager(resourceManager)
@@ -48,7 +49,6 @@ void Scene::InitializeRegistry()
 		registry->GetComponent<CameraComponent>(entity).isMain = true;
 	}
 
-	/*
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
@@ -64,7 +64,6 @@ void Scene::InitializeRegistry()
 		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Bistro_v5_2/BistroExterior.fbx");
 		modelComponent.hasDirectxNormals = true;
 	}
-	*/
 
 	/*
 	{
@@ -154,7 +153,7 @@ void Scene::InitializeRegistry()
 		"C:/Users/User/Desktop/Animations/Worker_Dancing.dae"
 	};
 
-	for (uint32_t i = 0; i < 10; ++i)
+	for (uint32_t i = 0; i < 100; ++i)
 	{
 		{
 			auto entity = registry->CreateEntity();
@@ -336,8 +335,8 @@ void Scene::UpdateComponentBuffers(uint32_t frameIndex)
 	RecalculateGpuBufferSize<MaterialComponent, MaterialComponentGPU>("MaterialData", frameIndex);
 	RecalculateGpuBufferSize<ShapeComponent, RenderIndicesGPU>("ShapeRenderIndicesData", frameIndex);
 	RecalculateGpuBufferSize<ModelComponent, RenderIndicesGPU>("ModelRenderIndicesData", frameIndex);
-	RecalculateGpuBufferSize<ModelComponent, VkDeviceAddress>("NodeTransformBuffers", frameIndex);
 	RecalculateGpuBufferSize<DefaultColliderComponent, glm::mat4>("DefaultColliderAabbData", frameIndex);
 	RecalculateGpuBufferSize<DefaultColliderComponent, glm::mat4>("DefaultColliderObbData", frameIndex);
 	RecalculateGpuBufferSize<DefaultColliderComponent, glm::mat4>("DefaultColliderSphereData", frameIndex);
+	RecalculateGpuBufferSize<AnimationComponent, VkDeviceAddress>("AnimationNodeTransformDeviceAddressesBuffers", frameIndex);
 }

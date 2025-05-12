@@ -1,20 +1,27 @@
 #version 460
 #extension GL_EXT_buffer_reference_uvec2 : require
 
-#include "Common/RenderIndices.glsl"
-#include "Common/RenderDefines.glsl"
-#include "Common/Vertex.glsl"
-#include "Common/Transform.glsl"
+#include "Common/Animation/AnimationNodeTransform.glsl"
+#include "Common/Animation/AnimationVertexBone.glsl"
+#include "Common/Animation/AnimationBufferAddresses.glsl"
+
+#include "Common/Model/ModelNodeTransform.glsl"
+#include "Common/Model/ModelBufferAddresses.glsl"
+
+
+#include "Common/Render/InstanceIndex.glsl"
+#include "Common/Render/RenderDefines.glsl"
+#include "Common/Render/RenderIndices.glsl"
+
 #include "Common/Camera.glsl"
+#include "Common/Vertex.glsl"
 #include "Common/Material.glsl"
-#include "Common/InstanceIndex.glsl"
-#include "Common/NodeTransform.glsl"
-#include "Common/VertexBone.glsl"
+#include "Common/Transform.glsl"
 
 layout (location = 0) out vec3 vs_out_pos;
 layout (location = 1) out vec3 vs_out_norm;
 layout (location = 2) out vec2 vs_out_tex;
-layout (location = 3) out flat uvec3 vs_out_index;
+layout (location = 3) out flat uvec4 vs_out_index;
 layout (location = 4) out mat3 vs_out_tbn;
 
 layout( push_constant ) uniform constants
@@ -22,19 +29,19 @@ layout( push_constant ) uniform constants
 	uint renderMode;
 	uint cameraIndex;
 	uvec2 cameraBuffer;
-	uvec2 vertexBuffer;
-	uvec2 instanceIndexBuffer;
 	uvec2 transformBuffer;
-	uvec2 materialBuffer;
+	uvec2 instanceIndexBuffer;
 	uvec2 renderIndicesBuffer;
-	uvec2 nodeTransformBuffers;
-	uvec2 animationVertexBoneBuffers;
+	uvec2 modelBufferAddresses;
+	uvec2 animationTransformBufferAddresses;
+	uvec2 animationVertexBoneBufferAddresses;
 } PushConstants;
 
 void main() 
 {
-	Vertex v = VertexBuffer(PushConstants.vertexBuffer).vertices[gl_VertexIndex];
-	RenderIndices indices = RenderIndicesBuffer(PushConstants.renderIndicesBuffer).indices[InstanceIndexBuffer(PushConstants.instanceIndexBuffer).indices[gl_InstanceIndex]];
+    uint modelIndex = InstanceIndexBuffer(PushConstants.instanceIndexBuffer).indices[gl_InstanceIndex];
+	RenderIndices renderIndices = RenderIndicesBuffer(PushConstants.renderIndicesBuffer).indices[modelIndex];
+	Vertex v = VertexBuffer(ModelDeviceAddressesBuffer(PushConstants.modelBufferAddresses).deviceAddresses[modelIndex].vertexBuffer).vertices[gl_VertexIndex];
 
 	vec4 position = vec4(v.position, 1.0);
 	vec4 normal = vec4(v.normal, 0.0);
@@ -43,15 +50,16 @@ void main()
 
 	if(PushConstants.renderMode == MODEL_INSTANCED)
 	{	
-		NodeTransformBuffer nodeTransformBuffer = NodeTransformBuffer(NodeTransformBuffers(PushConstants.nodeTransformBuffers).nodeTransformBufferAddresses[indices.nodeTransformIndex]);
-
-		bool hasBone = false;
-		//Animation index is packed into materialIndex
-		if(indices.animationIndex != INVALID_RENDER_INDEX)
+		//Has valid animation, render dynamic model
+		if(renderIndices.animationIndex != INVALID_RENDER_INDEX && renderIndices.animationTransformIndex != INVALID_RENDER_INDEX)
 		{
-			VertexBone vertexBone = VertexBoneBuffer(AnimationVertexBoneBuffers(PushConstants.animationVertexBoneBuffers).animationVertexBonebufferAddresses[indices.animationIndex]).vertexBones[gl_VertexIndex];
-			hasBone = vertexBone.indices[0] != INVALID_VERTEX_BONE_INDEX;
+			AnimationNodeTransformBuffer animationNodeTransformBuffer = AnimationNodeTransformBuffer(AnimationNodeTransformDeviceAddressesBuffer(PushConstants.animationTransformBufferAddresses).deviceAddresses[renderIndices.animationTransformIndex]);
+			AnimationVertexBone vertexBone = AnimationVertexBoneBuffer(AnimationVertexBoneDeviceAddressesBuffer(PushConstants.animationVertexBoneBufferAddresses).deviceAddresses[renderIndices.animationIndex]).vertexBones[gl_VertexIndex];
 
+			bool hasBone = vertexBone.indices.x != INVALID_VERTEX_BONE_INDEX || 
+						   vertexBone.indices.y != INVALID_VERTEX_BONE_INDEX || 
+						   vertexBone.indices.z != INVALID_VERTEX_BONE_INDEX ||
+						   vertexBone.indices.w != INVALID_VERTEX_BONE_INDEX;
 			if(hasBone)
 			{
 				vec4 totalPosition = vec4(0);
@@ -62,12 +70,12 @@ void main()
 				for(int i = 0; i < 4; i++)
 				{
 					if(vertexBone.indices[i] == INVALID_VERTEX_BONE_INDEX)
-					   continue;
+						continue;
 
-					totalPosition += (nodeTransformBuffer.transforms[vertexBone.indices[i]].transform * position) * vertexBone.weights[i];
-					totalNormal += (nodeTransformBuffer.transforms[vertexBone.indices[i]].transformIT * normal) * vertexBone.weights[i];
-					totalTanget += (nodeTransformBuffer.transforms[vertexBone.indices[i]].transformIT * tangent) * vertexBone.weights[i];
-					totalBitangent += (nodeTransformBuffer.transforms[vertexBone.indices[i]].transformIT * bitangent) * vertexBone.weights[i];
+					totalPosition += (animationNodeTransformBuffer.nodeTransforms[vertexBone.indices[i]].transform * position) * vertexBone.weights[i];
+					totalNormal += (animationNodeTransformBuffer.nodeTransforms[vertexBone.indices[i]].transformIT * normal) * vertexBone.weights[i];
+					totalTanget += (animationNodeTransformBuffer.nodeTransforms[vertexBone.indices[i]].transformIT * tangent) * vertexBone.weights[i];
+					totalBitangent += (animationNodeTransformBuffer.nodeTransforms[vertexBone.indices[i]].transformIT * bitangent) * vertexBone.weights[i];
 				}
 					
 				position = totalPosition;
@@ -75,31 +83,40 @@ void main()
 				tangent = totalTanget;
 				bitangent = totalBitangent;
 			}
+			else
+			{
+				position = animationNodeTransformBuffer.nodeTransforms[v.nodeIndex].transform * position;
+				normal = animationNodeTransformBuffer.nodeTransforms[v.nodeIndex].transformIT * normal;
+				tangent = animationNodeTransformBuffer.nodeTransforms[v.nodeIndex].transformIT * tangent;
+				bitangent = animationNodeTransformBuffer.nodeTransforms[v.nodeIndex].transformIT * bitangent;
+			}
 		}
-		
-		if(!hasBone)
+		//No animation render static model
+		else
 		{
-			position = nodeTransformBuffer.transforms[v.nodeIndex].transform * position;
-			normal = nodeTransformBuffer.transforms[v.nodeIndex].transformIT * normal;
-			tangent = nodeTransformBuffer.transforms[v.nodeIndex].transformIT * tangent;
-			bitangent = nodeTransformBuffer.transforms[v.nodeIndex].transformIT * bitangent;
+			ModelNodeTransformBuffer modelNodeTransformBuffer = ModelNodeTransformBuffer(ModelDeviceAddressesBuffer(PushConstants.modelBufferAddresses).deviceAddresses[modelIndex].nodeTransformBuffer);
+			position = modelNodeTransformBuffer.nodeTransforms[v.nodeIndex].transform * position;
+			normal = modelNodeTransformBuffer.nodeTransforms[v.nodeIndex].transformIT * normal;
+			tangent = modelNodeTransformBuffer.nodeTransforms[v.nodeIndex].transformIT * tangent;
+			bitangent = modelNodeTransformBuffer.nodeTransforms[v.nodeIndex].transformIT * bitangent;
 		}
 	}
 
-	vec4 worldPosition = TransformBuffer(PushConstants.transformBuffer).transforms[indices.transformIndex].transform * position;
+	vec4 worldPosition = TransformBuffer(PushConstants.transformBuffer).transforms[renderIndices.transformIndex].transform * position;
 	gl_Position = CameraBuffer(PushConstants.cameraBuffer).cameras[PushConstants.cameraIndex].viewProj * worldPosition;
 
-	vec3 finalNormal = normalize((TransformBuffer(PushConstants.transformBuffer).transforms[indices.transformIndex].transformIT * normal).xyz);
-	vec3 finalTangent = normalize((TransformBuffer(PushConstants.transformBuffer).transforms[indices.transformIndex].transformIT * tangent).xyz);
+	vec3 finalNormal = normalize((TransformBuffer(PushConstants.transformBuffer).transforms[renderIndices.transformIndex].transformIT * normal).xyz);
+	vec3 finalTangent = normalize((TransformBuffer(PushConstants.transformBuffer).transforms[renderIndices.transformIndex].transformIT * tangent).xyz);
 	finalTangent = normalize(finalTangent - dot(finalTangent, finalNormal) * finalNormal);
 	vec3 finalBitangent = normalize(cross(finalNormal, finalTangent));
-	//finalBitangent = normalize((TransformBuffer(PushConstants.transformBuffer).transforms[indices.transformIndex].transformIT * bitangent).xyz);
+	//finalBitangent = normalize((TransformBuffer(PushConstants.transformBuffer).transforms[renderIndices.transformIndex].transformIT * bitangent).xyz);
 
 	vs_out_pos = worldPosition.xyz;
 	vs_out_norm = finalNormal;
 	vs_out_tex = vec2(v.uv_x, 1.0 - v.uv_y);
-	vs_out_index.x = indices.entityIndex;
-	vs_out_index.y = PushConstants.renderMode == SHAPE_INSTANCED ? indices.materialIndex : v.matIndex; //Material Index
-	vs_out_index.z = indices.flag;
+	vs_out_index.x = renderIndices.entityIndex; // Need to store entity index into texture -> Object picking
+	vs_out_index.y = modelIndex; //Need model index to get material buffer
+	vs_out_index.z = v.matIndex; //Vertex Material Index
+	vs_out_index.w = renderIndices.bitflag; //Stores invert normal, and shadow flags
 	vs_out_tbn = mat3(finalTangent, finalBitangent, finalNormal);
 }

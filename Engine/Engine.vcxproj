@@ -163,6 +163,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Components\RenderIndicesComponent.h" />
+    <ClInclude Include="Systems\RenderIndicesSystem.h" />
     <ClInclude Include="Managers\BaseManagers\BatchedGpuUploadedManager.h" />
     <ClInclude Include="Managers\BaseManagers\AsyncManager.h" />
     <ClInclude Include="Managers\BaseManagers\DeviceAddressedManager.h" />
@@ -281,6 +283,8 @@
     <ClInclude Include="Vulkan\VulkanMutex.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Components\RenderIndicesComponent.cpp" />
+    <ClCompile Include="Systems\RenderIndicesSystem.cpp" />
     <ClCompile Include="Managers\BaseManagers\BatchedGpuUploadedManager.cpp" />
     <ClCompile Include="Managers\BaseManagers\AsyncManager.cpp" />
     <ClCompile Include="Managers\BaseManagers\DeviceAddressedManager.cpp" />
@@ -395,15 +399,18 @@
     <None Include="Shaders\Basic.vert" />
     <None Include="Shaders\BoundingVolume.frag" />
     <None Include="Shaders\BoundingVolume.vert" />
-    <None Include="Shaders\Common\VertexBone.glsl" />
+    <None Include="Shaders\Common\Animation\AnimationBufferAddresses.glsl" />
+    <None Include="Shaders\Common\Animation\AnimationNodeTransform.glsl" />
+    <None Include="Shaders\Common\Animation\AnimationVertexBone.glsl" />
+    <None Include="Shaders\Common\Render\RenderDefines.glsl" />
+    <None Include="Shaders\Common\Model\ModelBufferAddresses.glsl" />
     <None Include="Shaders\Common\BoundingVolume.glsl" />
     <None Include="Shaders\Common\Camera.glsl" />
-    <None Include="Shaders\Common\NodeTransform.glsl" />
-    <None Include="Shaders\Common\RenderDefines.glsl" />
+    <None Include="Shaders\Common\Model\ModelNodeTransform.glsl" />
     <None Include="Shaders\Common\Images.glsl" />
-    <None Include="Shaders\Common\InstanceIndex.glsl" />
+    <None Include="Shaders\Common\Render\InstanceIndex.glsl" />
     <None Include="Shaders\Common\Material.glsl" />
-    <None Include="Shaders\Common\RenderIndices.glsl" />
+    <None Include="Shaders\Common\Render\RenderIndices.glsl" />
     <None Include="Shaders\Common\Transform.glsl" />
     <None Include="Shaders\Common\Vertex.glsl" />
     <None Include="Shaders\DeferredDir.frag" />

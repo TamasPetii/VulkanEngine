@@ -121,6 +121,8 @@ void Model::PreFetch(const aiScene* scene)
     aabbMax = glm::vec3(std::numeric_limits<float>::lowest());
     aabbMin = glm::vec3(std::numeric_limits<float>::max());
 
+    meshColliderInfos.resize(meshProcessInfos.size());
+
     std::cout << "-----------------------------------------\n";
     std::cout << "PreFetch: " << timer.GetElapsedTime() << "\n";
     std::cout << "NodeSize: " << nodeTransformInfos.size() << "\n";
@@ -142,9 +144,10 @@ void Model::ProcessMeshVertices(const aiScene* scene)
 {
     Timer timer;
 
-    std::for_each(std::execution::seq, meshProcessInfos.begin(), meshProcessInfos.end(),
-        [&](const auto& meshProcessInfo) -> void {
-            ProcessMeshVertex(scene, meshProcessInfo);
+    auto mesh_index_range = std::views::iota(0u, static_cast<uint32_t>(meshProcessInfos.size()));
+    std::for_each(std::execution::seq, mesh_index_range.begin(), mesh_index_range.end(),
+        [&](auto meshIndex) -> void {
+            ProcessMeshVertex(scene, meshIndex);
         }
     );
 
@@ -153,8 +156,13 @@ void Model::ProcessMeshVertices(const aiScene* scene)
     std::cout << "-----------------------------------------\n";
 }
 
-void Model::ProcessMeshVertex(const aiScene* scene, const MeshProcessInfo& meshProcessInfo)
+void Model::ProcessMeshVertex(const aiScene* scene, uint32_t meshIndex)
 {
+    const MeshProcessInfo& meshProcessInfo = meshProcessInfos[meshIndex];
+
+    glm::vec3 meshAabbMax = glm::vec3(std::numeric_limits<float>::lowest());
+    glm::vec3 meshAabbMin = glm::vec3(std::numeric_limits<float>::max());
+
     auto vertex_index_range = std::views::iota(0u, meshProcessInfo.vertexCount);
     std::for_each(std::execution::seq, vertex_index_range.begin(), vertex_index_range.end(),
         [&](auto vertexIndex) -> void {
@@ -167,6 +175,9 @@ void Model::ProcessMeshVertex(const aiScene* scene, const MeshProcessInfo& meshP
 
                 aabbMax = glm::max(aabbMax, transformedPosition);
                 aabbMin = glm::min(aabbMin, transformedPosition);
+
+                meshAabbMax = glm::max(meshAabbMax, transformedPosition);
+                meshAabbMin = glm::min(meshAabbMin, transformedPosition);
             }
 
             //Normals
@@ -201,6 +212,23 @@ void Model::ProcessMeshVertex(const aiScene* scene, const MeshProcessInfo& meshP
             vertices[meshProcessInfo.vertexOffset + vertexIndex] = Vertex(position, normal, uv, tangent, bitangent, meshProcessInfo.mesh->mMaterialIndex, meshProcessInfo.nodeIndex);
         }
     );
+
+    DefaultColliderComponent defaultCollider;
+    defaultCollider.obbPositions[0] = glm::vec3(meshAabbMax.x, meshAabbMax.y, meshAabbMax.z);
+    defaultCollider.obbPositions[1] = glm::vec3(meshAabbMax.x, meshAabbMax.y, meshAabbMin.z);
+    defaultCollider.obbPositions[2] = glm::vec3(meshAabbMax.x, meshAabbMin.y, meshAabbMax.z);
+    defaultCollider.obbPositions[3] = glm::vec3(meshAabbMax.x, meshAabbMin.y, meshAabbMin.z);
+    defaultCollider.obbPositions[4] = glm::vec3(meshAabbMin.x, meshAabbMax.y, meshAabbMax.z);
+    defaultCollider.obbPositions[5] = glm::vec3(meshAabbMin.x, meshAabbMax.y, meshAabbMin.z);
+    defaultCollider.obbPositions[6] = glm::vec3(meshAabbMin.x, meshAabbMin.y, meshAabbMax.z);
+    defaultCollider.obbPositions[7] = glm::vec3(meshAabbMin.x, meshAabbMin.y, meshAabbMin.z);
+    defaultCollider.aabbMax = meshAabbMax;
+    defaultCollider.aabbMin = meshAabbMin;
+    defaultCollider.aabbOrigin = 0.5f * (meshAabbMin + meshAabbMax);
+    defaultCollider.aabbExtents = 0.5f * (meshAabbMax - meshAabbMin);
+    defaultCollider.origin = aabbOrigin;
+    defaultCollider.radius = glm::max(defaultCollider.aabbExtents.x, glm::max(defaultCollider.aabbExtents.y, defaultCollider.aabbExtents.z));
+    meshColliderInfos[meshIndex] = defaultCollider;
 }
 
 void Model::ProcessMeshIndices(const aiScene* scene)

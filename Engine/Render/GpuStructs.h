@@ -11,13 +11,12 @@ struct GeometryRendererPushConstants
 	uint32_t renderMode;
 	uint32_t cameraIndex;
 	VkDeviceAddress cameraBuffer;
-	VkDeviceAddress vertexBuffer;
-	VkDeviceAddress instanceIndexBuffer;
 	VkDeviceAddress transformBuffer;
-	VkDeviceAddress materialBuffer;
+	VkDeviceAddress instanceIndexBuffer;
 	VkDeviceAddress renderIndicesBuffer;
-	VkDeviceAddress nodeTransformBuffers; 
-	VkDeviceAddress animationVertexBoneBuffers;
+	VkDeviceAddress modelBufferAddresses;
+	VkDeviceAddress animationTransformBufferAddresses;
+	VkDeviceAddress animationVertexBoneBufferAddresses;
 };
 
 struct BoundingVolumeRendererPushConstants

@@ -3,6 +3,7 @@
 #include "Engine/Components/ModelComponent.h"
 #include "Engine/Components/TransformComponent.h"
 #include "Engine/Components/AnimationComponent.h"
+#include "Engine/Components/RenderIndicesComponent.h"
 
 void ModelSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex, float deltaTime)
 {
@@ -51,9 +52,6 @@ void ModelSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared_
 	auto renderIndicesBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("ModelRenderIndicesData", frameIndex);
 	auto renderIndicesBufferHandler = static_cast<RenderIndicesGPU*>(renderIndicesBuffer->buffer->GetHandler());
 
-	auto nodeTransformBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("NodeTransformBuffers", frameIndex);
-	auto nodeTransformBufferHandler = static_cast<VkDeviceAddress*>(nodeTransformBuffer->buffer->GetHandler());
-
 	std::for_each(std::execution::par, modelPool->GetDenseIndices().begin(), modelPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
 			auto& modelComponent = modelPool->GetData(entity);
@@ -61,6 +59,24 @@ void ModelSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared_
 
 			bool hasAnimation = animationPool && animationPool->HasComponent(entity) && animationPool->GetData(entity).animation && animationPool->GetData(entity).animation->state == LoadState::Ready;
 
+			uint32_t flags = 0;
+			flags |= (modelComponent.receiveShadow ? 1u : 0u) << 0;        // Bit 0
+			flags |= (modelComponent.hasDirectxNormals ? 1u : 0u) << 1;    // Bit 1
+
+			auto renderIndices = RenderIndicesGPU{
+				.entityIndex = entity,
+				.transformIndex = transformPool && transformPool->HasComponent(entity) ? transformPool->GetDenseIndex(entity) : UINT32_MAX,
+				.modelIndex = modelIndex,
+				.animationIndex = hasAnimation ? animationPool->GetDenseIndex(entity) : UINT32_MAX,
+				.animationTransformIndex = hasAnimation ? animationPool->GetData(entity).animation->GetAddressArrayIndex() : UINT32_MAX,
+				.bitflag = flags,
+			};
+
+			renderIndicesBufferHandler[modelIndex] = renderIndices;
+
+			//MAYBE EACH SYSTEM UPDATES ITS INDEX????
+
+			/*
 			[[unlikely]]
 			if (renderIndicesBuffer->versions[modelIndex] != modelComponent.versionID)
 			{
@@ -73,19 +89,15 @@ void ModelSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared_
 				auto renderIndices = RenderIndicesGPU{
 					.entityIndex = entity,
 					.transformIndex = transformPool && transformPool->HasComponent(entity) ? transformPool->GetDenseIndex(entity) : UINT32_MAX,
-					.materialIndex = UINT32_MAX,
-					.receiveShadow = flags,
-					.nodeTransformIndex = modelIndex,
-					.animationIndex = hasAnimation ? animationPool->GetData(entity).animation->GetDescriptorArrayIndex() : UINT32_MAX,
+					.modelIndex = modelIndex,
+					.animationIndex = hasAnimation ? animationPool->GetDenseIndex(entity) : UINT32_MAX,
+					.animationComponentIndex = hasAnimation ? animationPool->GetData(entity).animation->GetAddressArrayIndex() : UINT32_MAX,
+					.bitflag = flags,
 				};
 
 				renderIndicesBufferHandler[modelIndex] = renderIndices;
 			}
-
-			if (hasAnimation)
-				nodeTransformBufferHandler[modelIndex] = animationPool->GetData(entity).nodeTransformBuffers[frameIndex].buffer->GetAddress();
-			else if (modelComponent.model && modelComponent.model->state == LoadState::Ready)
-				nodeTransformBufferHandler[modelIndex] = modelComponent.model->GetNodeTransformBuffer()->GetAddress();
+			*/
 		}
 	);
 }

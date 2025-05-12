@@ -1,5 +1,4 @@
 #extension GL_EXT_buffer_reference : require
-
 #define INVALID_IMAGE_INDEX 0xFFFFFFFFu
 
 struct Material {

@@ -11,8 +11,6 @@
 
 void Animation::Load(const std::string& path)
 {
-    std::cout << std::format("[Thread Started] : Loading animation path={}", path) << "\n";
-
     Timer timer;
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_CalcTangentSpace);
@@ -192,5 +190,5 @@ void Animation::InitVertexBoneBuffer()
         }
     );
 
-    //vertexBoneDatas.clear();
+    vertexBoneDatas.clear();
 }

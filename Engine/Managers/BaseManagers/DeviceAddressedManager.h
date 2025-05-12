@@ -4,11 +4,12 @@
 #include "Engine/Vulkan/Buffer.h"
 
 template<typename T>
-class ENGINE_API DeviceAddressedManager : public ArrayIndexedManager
+class DeviceAddressedManager : public ArrayIndexedManager
 {
 public:
 	DeviceAddressedManager();
-	const auto& GetDeviceAddresses() const { return deviceAddresses; }
+    virtual ~DeviceAddressedManager() { deviceAddresses.reset(); }
+	const auto& GetDeviceAddressesBuffer() const { return deviceAddresses; }
 protected:
 	std::shared_ptr<Vk::Buffer> deviceAddresses;
 };

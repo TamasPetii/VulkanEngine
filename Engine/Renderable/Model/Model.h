@@ -15,6 +15,7 @@
 
 #include "NodeTransform.h"
 #include "Engine/Managers/ImageManager.h"
+#include "Engine/Components/DefaultColliderComponent.h"
 
 class ENGINE_API Model : public Renderable, public Materialized, public Instanceable, public BoundingVolume, public AsyncLoaded
 {
@@ -51,7 +52,7 @@ private:
 	void PreFetch(const aiScene* scene);
 	void Process(const aiScene* scene);
 	void ProcessMeshVertices(const aiScene* scene);
-	void ProcessMeshVertex(const aiScene* scene, const MeshProcessInfo& meshProcessInfo);
+	void ProcessMeshVertex(const aiScene* scene, uint32_t meshIndex);
 	void ProcessMeshIndices(const aiScene* scene);
 	void ProcessMeshIndex(const aiScene* scene, const MeshProcessInfo& meshProcessInfo);
 	void ProcessMaterials(const aiScene* scene);
@@ -66,6 +67,7 @@ private:
 	std::vector<MeshProcessInfo> meshProcessInfos;
 	std::vector<NodeTransformInfo> nodeTransformInfos;
 	std::shared_ptr<Vk::Buffer> nodeTransformBuffer;
+	std::vector<DefaultColliderComponent> meshColliderInfos;
 private:
 	std::shared_ptr<ImageManager> imageManager;
 };

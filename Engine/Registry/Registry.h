@@ -2,12 +2,12 @@
 #include "Engine/EngineApi.h"
 #include "Pools/ComponentPool.h"
 #include "Unique.h"
+#include "Relationship.h"
 
 #include <set>
 #include <array>
 #include <memory>
 #include <unordered_map>
-#include "Relationship.h"
 
 using ComponentBitsetMask = std::bitset<32>;
 

@@ -1,4 +1,6 @@
 #include "Registry.h"
+#include "Relationship.h"
+#include "Engine/Components/RenderIndicesComponent.h"
 
 Registry::Registry()
 {
@@ -19,7 +21,7 @@ Entity Registry::CreateEntity()
 		destroyedEntities.erase(it);
 	}
 
-	AddComponents<ComponentBitsetMask, Relationship>(entity);
+	AddComponents<ComponentBitsetMask, Relationship, RenderIndicesComponent>(entity);
 	levels[0].insert(entity);
 	return entity;
 }

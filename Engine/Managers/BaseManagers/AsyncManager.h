@@ -9,7 +9,7 @@
 #include <unordered_map>
 
 template <Hashable T>
-class ENGINE_API AsyncManager
+class AsyncManager
 {
 public:
 	AsyncManager() = default;

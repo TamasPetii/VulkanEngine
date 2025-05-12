@@ -1,7 +1,7 @@
 #pragma once
 #include "Engine/EngineApi.h"
 #include "Engine/Vulkan/Image.h"
-#include "Engine/Async/AsyncLoaded.h"
+#include "Engine/Utils/AsyncLoaded.h"
 #include "Engine/Utils/BatchUploaded.h"
 #include <memory>
 #include <string>

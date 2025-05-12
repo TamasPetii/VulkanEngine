@@ -118,7 +118,8 @@ void AnimationSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::sha
 	if (!animationPool || !modelPool)
 		return;
 
-	//TODO: UPDATE ANIMATION TRANSFORM BUFFER DEVICE ADDRESS
+	auto animationNodeTransformBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("AnimationNodeTransformDeviceAddressesBuffers", frameIndex);
+	auto animationNodeTransformBufferHandler = static_cast<VkDeviceAddress*>(animationNodeTransformBuffer->buffer->GetHandler());
 
 	std::for_each(std::execution::par, animationPool->GetDenseIndices().begin(), animationPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
@@ -135,6 +136,13 @@ void AnimationSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::sha
 
 				for (uint32_t i = 0; i < animationComponent.animationNodeTransforms.size(); ++i)
 					animationBufferHandler[i] = animationComponent.animationNodeTransforms[i].nodeTransform;
+
+				[[unlikely]]
+				if (animationNodeTransformBuffer->versions[animationIndex] != animationComponent.nodeTransformVersion)
+				{
+					animationNodeTransformBuffer->versions[animationIndex] = animationComponent.nodeTransformVersion;
+					animationNodeTransformBufferHandler[animationIndex] = animationComponent.nodeTransformBuffers[frameIndex].buffer->GetAddress();
+				}
 			}
 		}
 	);

@@ -28,6 +28,8 @@ std::shared_ptr<ImageTexture> ImageManager::LoadImage(const std::string& path, b
 	if (images.find(path) != images.end())
 		return images.at(path);
 
+    std::cout << std::format("[Image Thread Started] : {}", path) << "\n";
+
 	std::shared_ptr<ImageTexture> imageTexture = std::make_shared<ImageTexture>(GetAvailableIndex());
 	images[path] = imageTexture;
 
@@ -43,54 +45,29 @@ void ImageManager::Update()
 
     auto completedFutures = AsyncManager::CompleteFinishedFutures();
 
-    if (imagesToUploadGpu.size() >= minSubmitBatchSize || (!imagesToUploadGpu.empty() && imageLoadFutures.empty())) 
+    for (const auto& path : completedFutures)
     {
-        std::cout << "Images Uploaded with batch size: " << imagesToUploadGpu.size() << "\n";
-        imagesToUploadGpuFutures.insert(std::make_unique<std::future<void>>(std::async(std::launch::async, &ImageManager::UploadBatchedImages, this, imagesToUploadGpu)));
-        imagesToUploadGpu.clear();
-    }
-
-    for (auto it = imagesToUploadGpuFutures.begin(); it != imagesToUploadGpuFutures.end();) {
-        auto& future = *it;
-        if (future->valid() && future->wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
-            try {
-                future->get();
-                it = imagesToUploadGpuFutures.erase(it);
-            }
-            catch (const std::exception& e) {
-                it = imagesToUploadGpuFutures.erase(it);
-            }
-        }
-        else {
-            ++it;
-        }
-    }
-
-    for (auto& [path, image] : images)
-    {
-        if (image->state == LoadState::GpuUploaded)
+        auto image = images.at(path);
+        if (image->state == LoadState::CpuLoaded)
         {
-            vulkanManager->GetDescriptorSet("LoadedImages")->UpdateImageArrayElement("Images", images.at(path)->GetImage()->GetImageView(), VK_NULL_HANDLE, images.at(path)->GetImage()->GetDescriptorArrayIndex());
+            std::cout << std::format("[Image Thread Finished] : {}", path) << "\n";
+            batch.push_back(image.get());
+        }
+    }
+    
+    AsyncBatchedGpuUploadedManager::TryToSubmitBatch(futures.empty());
+
+    auto completedBatchFutures = AsyncBatchedGpuUploadedManager::CompleteFinishedFutures();
+
+    if(!completedBatchFutures.empty())
+        std::cout << std::format("[Image Batch Upload Thread Finished] : Batch size = {}", completedBatchFutures.size()) << "\n";
+
+    for (auto image : completedBatchFutures)
+    {
+        if (image && image->state == LoadState::GpuUploaded)
+        {
+            vulkanManager->GetDescriptorSet("LoadedImages")->UpdateImageArrayElement("Images", image->GetImage()->GetImageView(), VK_NULL_HANDLE, image->GetImage()->GetDescriptorArrayIndex());
             image->state = LoadState::Ready;
         }   
     }
-}
-
-void ImageManager::WaitForImageFuture(const std::string& path)
-{
-    /*
-    std::unique_lock<std::mutex> lock(loadMutex);
-
-    if (imageLoadFutures.find(path) == imageLoadFutures.end() )
-        return;
-
-    if (imageLoadFutures.at(path).valid())
-    {
-        imageLoadFutures.at(path).get();
-        images.at(path)->state = LoadState::Ready;
-        vulkanManager->GetDescriptorSet("LoadedImages")->UpdateImageArrayElement("Images", images.at(path)->GetImage()->GetImageView(), VK_NULL_HANDLE, images.at(path)->GetImage()->GetDescriptorArrayIndex());
-    }
-
-    imageLoadFutures.erase(path);
-    */
 }

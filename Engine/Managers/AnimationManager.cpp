@@ -7,6 +7,8 @@ std::shared_ptr<Animation> AnimationManager::LoadAnimation(const std::string& pa
     if (animations.find(path) != animations.end())
         return animations.at(path);
 
+    std::cout << std::format("[Animation Thread Started] : {}", path) << "\n";
+
     std::shared_ptr<Animation> animation = std::make_shared<Animation>(GetAvailableIndex());
     animations[path] = animation;
 
@@ -42,8 +44,10 @@ void AnimationManager::Update()
 
     for (auto path : completedFutures)
     {
+        std::cout << std::format("[Animation Thread Finished] : {}", path) << "\n";
+
         auto animation = animations.at(path);
-        if (animation->state == LoadState::GpuUploaded)
+        if (animation && animation->state == LoadState::GpuUploaded)
         {
             static_cast<VkDeviceAddress*>(deviceAddresses->GetHandler())[animation->GetAddressArrayIndex()] = animation->GetVertexBoneBuffer()->GetAddress();
             animation->state = LoadState::Ready;
