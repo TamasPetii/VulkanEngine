@@ -52,7 +52,8 @@ void ModelManager::Update()
         if (model && model->state == LoadState::GpuUploaded)
         {
             static_cast<ModelDevicesAddresses*>(deviceAddresses->GetHandler())[model->GetAddressArrayIndex()] = ModelDevicesAddresses{
-                .vertexBufferAddress = model->GetVertexBuffer()->GetAddress(), 
+                .vertexBufferAddress = model->GetVertexBuffer()->GetAddress(),
+                .indexBufferAddress = model->GetIndexBuffer()->GetAddress(),
                 .materialBufferAddress = model->GetMaterialBuffer()->GetAddress(),
                 .nodeTransformBufferAddress = model->GetNodeTransformBuffer()->GetAddress()
             };

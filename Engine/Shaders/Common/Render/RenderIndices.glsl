@@ -5,7 +5,7 @@ struct RenderIndices
 {
 	uint entityIndex;
 	uint transformIndex;
-	uint modelIndex;
+	uint modelIndex; //This is the loaded model array index! This is not the model component dense index!!
 	uint animationIndex;
 	uint animationTransformIndex;
 	uint bitflag;

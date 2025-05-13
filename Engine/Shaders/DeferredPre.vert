@@ -8,7 +8,6 @@
 #include "Common/Model/ModelNodeTransform.glsl"
 #include "Common/Model/ModelBufferAddresses.glsl"
 
-
 #include "Common/Render/InstanceIndex.glsl"
 #include "Common/Render/RenderDefines.glsl"
 #include "Common/Render/RenderIndices.glsl"
@@ -17,6 +16,7 @@
 #include "Common/Vertex.glsl"
 #include "Common/Material.glsl"
 #include "Common/Transform.glsl"
+#include "Common/Index.glsl"
 
 layout (location = 0) out vec3 vs_out_pos;
 layout (location = 1) out vec3 vs_out_norm;
@@ -41,7 +41,9 @@ void main()
 {
     uint modelIndex = InstanceIndexBuffer(PushConstants.instanceIndexBuffer).indices[gl_InstanceIndex];
 	RenderIndices renderIndices = RenderIndicesBuffer(PushConstants.renderIndicesBuffer).indices[modelIndex];
-	Vertex v = VertexBuffer(ModelDeviceAddressesBuffer(PushConstants.modelBufferAddresses).deviceAddresses[modelIndex].vertexBuffer).vertices[gl_VertexIndex];
+	
+	uint vertexIndex = IndexBuffer(ModelDeviceAddressesBuffer(PushConstants.modelBufferAddresses).deviceAddresses[renderIndices.modelIndex].indexBuffer).indices[gl_VertexIndex];
+	Vertex v = VertexBuffer(ModelDeviceAddressesBuffer(PushConstants.modelBufferAddresses).deviceAddresses[renderIndices.modelIndex].vertexBuffer).vertices[vertexIndex];
 
 	vec4 position = vec4(v.position, 1.0);
 	vec4 normal = vec4(v.normal, 0.0);
@@ -53,13 +55,14 @@ void main()
 		//Has valid animation, render dynamic model
 		if(renderIndices.animationIndex != INVALID_RENDER_INDEX && renderIndices.animationTransformIndex != INVALID_RENDER_INDEX)
 		{
-			AnimationNodeTransformBuffer animationNodeTransformBuffer = AnimationNodeTransformBuffer(AnimationNodeTransformDeviceAddressesBuffer(PushConstants.animationTransformBufferAddresses).deviceAddresses[renderIndices.animationTransformIndex]);
-			AnimationVertexBone vertexBone = AnimationVertexBoneBuffer(AnimationVertexBoneDeviceAddressesBuffer(PushConstants.animationVertexBoneBufferAddresses).deviceAddresses[renderIndices.animationIndex]).vertexBones[gl_VertexIndex];
-
+			AnimationNodeTransformBuffer animationNodeTransformBuffer = AnimationNodeTransformBuffer(AnimationNodeTransformDeviceAddressesBuffer(PushConstants.animationTransformBufferAddresses).deviceAddresses[renderIndices.animationTransformIndex]);	
+			AnimationVertexBone vertexBone = AnimationVertexBoneBuffer(AnimationVertexBoneDeviceAddressesBuffer(PushConstants.animationVertexBoneBufferAddresses).deviceAddresses[renderIndices.animationIndex]).vertexBones[vertexIndex];
+			
 			bool hasBone = vertexBone.indices.x != INVALID_VERTEX_BONE_INDEX || 
 						   vertexBone.indices.y != INVALID_VERTEX_BONE_INDEX || 
 						   vertexBone.indices.z != INVALID_VERTEX_BONE_INDEX ||
 						   vertexBone.indices.w != INVALID_VERTEX_BONE_INDEX;
+
 			if(hasBone)
 			{
 				vec4 totalPosition = vec4(0);
@@ -94,7 +97,7 @@ void main()
 		//No animation render static model
 		else
 		{
-			ModelNodeTransformBuffer modelNodeTransformBuffer = ModelNodeTransformBuffer(ModelDeviceAddressesBuffer(PushConstants.modelBufferAddresses).deviceAddresses[modelIndex].nodeTransformBuffer);
+			ModelNodeTransformBuffer modelNodeTransformBuffer = ModelNodeTransformBuffer(ModelDeviceAddressesBuffer(PushConstants.modelBufferAddresses).deviceAddresses[renderIndices.modelIndex].nodeTransformBuffer);
 			position = modelNodeTransformBuffer.nodeTransforms[v.nodeIndex].transform * position;
 			normal = modelNodeTransformBuffer.nodeTransforms[v.nodeIndex].transformIT * normal;
 			tangent = modelNodeTransformBuffer.nodeTransforms[v.nodeIndex].transformIT * tangent;
@@ -115,7 +118,7 @@ void main()
 	vs_out_norm = finalNormal;
 	vs_out_tex = vec2(v.uv_x, 1.0 - v.uv_y);
 	vs_out_index.x = renderIndices.entityIndex; // Need to store entity index into texture -> Object picking
-	vs_out_index.y = modelIndex; //Need model index to get material buffer
+	vs_out_index.y = renderIndices.modelIndex; //Need model array index to get material buffer
 	vs_out_index.z = v.matIndex; //Vertex Material Index
 	vs_out_index.w = renderIndices.bitflag; //Stores invert normal, and shadow flags
 	vs_out_tbn = mat3(finalTangent, finalBitangent, finalNormal);

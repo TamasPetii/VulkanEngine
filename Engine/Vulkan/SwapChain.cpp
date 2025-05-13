@@ -180,6 +180,7 @@ VkSurfaceFormatKHR Vk::SwapChain::ChooseSwapSurfaceFormat()
 
 VkPresentModeKHR Vk::SwapChain::ChooseSwapPresentMode()
 {
+	//VK_PRESENT_MODE_MAILBOX_KHR
 	for (const auto& availablePresentMode : swapChainSupportDetails.presentModes) {
 		if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
 			return availablePresentMode;

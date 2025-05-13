@@ -3,6 +3,7 @@
 
 struct ModelDeviceAddresses {
 	uvec2 vertexBuffer;
+	uvec2 indexBuffer;
 	uvec2 materialBuffer;
 	uvec2 nodeTransformBuffer;
 }; 

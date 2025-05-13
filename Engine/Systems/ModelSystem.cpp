@@ -57,22 +57,27 @@ void ModelSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared_
 			auto& modelComponent = modelPool->GetData(entity);
 			auto modelIndex = modelPool->GetDenseIndex(entity);
 
+			bool hasModel = modelComponent.model && modelComponent.model->state == LoadState::Ready;
 			bool hasAnimation = animationPool && animationPool->HasComponent(entity) && animationPool->GetData(entity).animation && animationPool->GetData(entity).animation->state == LoadState::Ready;
 
-			uint32_t flags = 0;
-			flags |= (modelComponent.receiveShadow ? 1u : 0u) << 0;        // Bit 0
-			flags |= (modelComponent.hasDirectxNormals ? 1u : 0u) << 1;    // Bit 1
+			if (hasModel)
+			{
+				uint32_t flags = 0;
+				flags |= (modelComponent.receiveShadow ? 1u : 0u) << 0;        // Bit 0
+				flags |= (modelComponent.hasDirectxNormals ? 1u : 0u) << 1;    // Bit 1
 
-			auto renderIndices = RenderIndicesGPU{
-				.entityIndex = entity,
-				.transformIndex = transformPool && transformPool->HasComponent(entity) ? transformPool->GetDenseIndex(entity) : UINT32_MAX,
-				.modelIndex = modelIndex,
-				.animationIndex = hasAnimation ? animationPool->GetDenseIndex(entity) : UINT32_MAX,
-				.animationTransformIndex = hasAnimation ? animationPool->GetData(entity).animation->GetAddressArrayIndex() : UINT32_MAX,
-				.bitflag = flags,
-			};
+				auto renderIndices = RenderIndicesGPU{
+					.entityIndex = entity,
+					.transformIndex = transformPool && transformPool->HasComponent(entity) ? transformPool->GetDenseIndex(entity) : UINT32_MAX,
+					.modelIndex = hasModel ? modelComponent.model->GetAddressArrayIndex() : UINT32_MAX,
+					.animationIndex = hasAnimation ? animationPool->GetData(entity).animation->GetAddressArrayIndex() : UINT32_MAX,
+					.animationTransformIndex = hasAnimation ? animationPool->GetDenseIndex(entity) : UINT32_MAX,
+					.bitflag = flags
+				};
 
-			renderIndicesBufferHandler[modelIndex] = renderIndices;
+				renderIndicesBufferHandler[modelIndex] = renderIndices;
+			}
+
 
 			//MAYBE EACH SYSTEM UPDATES ITS INDEX????
 

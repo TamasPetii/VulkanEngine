@@ -14,6 +14,7 @@
 struct ENGINE_API ModelDevicesAddresses
 {
 	VkDeviceAddress vertexBufferAddress;
+	VkDeviceAddress indexBufferAddress;
 	VkDeviceAddress materialBufferAddress;
 	VkDeviceAddress nodeTransformBufferAddress;
 };

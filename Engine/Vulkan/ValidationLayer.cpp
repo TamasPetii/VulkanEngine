@@ -1,5 +1,6 @@
 #include "ValidationLayer.h"
 
+/*
 #ifdef NDEBUG
 bool Vk::ValidationLayer::enableValidationLayers = false;
 std::vector<const char*> Vk::ValidationLayer::validationLayers = {};
@@ -7,6 +8,10 @@ std::vector<const char*> Vk::ValidationLayer::validationLayers = {};
 bool Vk::ValidationLayer::enableValidationLayers = true;
 std::vector<const char*> Vk::ValidationLayer::validationLayers = { "VK_LAYER_KHRONOS_validation" };
 #endif
+*/
+
+bool Vk::ValidationLayer::enableValidationLayers = true;
+std::vector<const char*> Vk::ValidationLayer::validationLayers = { "VK_LAYER_KHRONOS_validation" };
 
 bool Vk::ValidationLayer::ValidationLayerEnabled()
 {

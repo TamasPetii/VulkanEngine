@@ -402,6 +402,7 @@
     <None Include="Shaders\Common\Animation\AnimationBufferAddresses.glsl" />
     <None Include="Shaders\Common\Animation\AnimationNodeTransform.glsl" />
     <None Include="Shaders\Common\Animation\AnimationVertexBone.glsl" />
+    <None Include="Shaders\Common\Index.glsl" />
     <None Include="Shaders\Common\Render\RenderDefines.glsl" />
     <None Include="Shaders\Common\Model\ModelBufferAddresses.glsl" />
     <None Include="Shaders\Common\BoundingVolume.glsl" />

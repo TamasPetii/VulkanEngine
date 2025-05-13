@@ -86,6 +86,7 @@ void Engine::Update()
 		resourceManager->GetBenchmarkManager()->ResetBenchmarkTimes();
 
 		std::cout << std::format("Fps: {}", counter) << std::endl;
+
 		time = 0;
 		counter = 0;
 	}

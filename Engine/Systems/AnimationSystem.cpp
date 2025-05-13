@@ -18,10 +18,6 @@ void AnimationSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_p
 				[[unlikely]]
 				if (animationPool->IsBitSet<REGENERATE_BIT>(entity))
 				{
-					//Model handles component indices -> need to update animation index to gpu.
-					if (modelPool && modelPool->HasComponent(entity))
-						modelPool->SetBit<UPDATE_BIT>(entity);
-
 					animationComponent.nodeTransformVersion++;
 					animationPool->ResetBit<REGENERATE_BIT>(entity);
 				}

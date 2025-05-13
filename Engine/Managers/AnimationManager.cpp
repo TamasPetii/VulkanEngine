@@ -50,7 +50,9 @@ void AnimationManager::Update()
         if (animation && animation->state == LoadState::GpuUploaded)
         {
             static_cast<VkDeviceAddress*>(deviceAddresses->GetHandler())[animation->GetAddressArrayIndex()] = animation->GetVertexBoneBuffer()->GetAddress();
-            animation->state = LoadState::Ready;
+            animation->state = LoadState::Ready; 
+
+            std::cout << std::format("Animation Vertex Bone Buffer Uploaded: {}", animation->GetAddressArrayIndex()) << "\n";
         }
     }
 }

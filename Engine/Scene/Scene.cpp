@@ -153,16 +153,14 @@ void Scene::InitializeRegistry()
 		"C:/Users/User/Desktop/Animations/Worker_Dancing.dae"
 	};
 
-	for (uint32_t i = 0; i < 100; ++i)
+	for (uint32_t i = 0; i < 1; ++i)
 	{
-		{
-			auto entity = registry->CreateEntity();
-			registry->AddComponents<TransformComponent, ModelComponent, AnimationComponent, DefaultColliderComponent>(entity);
-			auto [transformComponent, modelComponent, animationComponent] = registry->GetComponents<TransformComponent, ModelComponent, AnimationComponent>(entity);
-			modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Animations/Worker_Standing.dae");
-			animationComponent.animation = resourceManager->GetAnimationManager()->LoadAnimation(animationPaths[distAnimation(rng)]);
-			transformComponent.translation = 100.f * glm::vec3(dist(rng), 0, dist(rng));
-		}
+		auto entity = registry->CreateEntity();
+		registry->AddComponents<TransformComponent, ModelComponent, AnimationComponent, DefaultColliderComponent>(entity);
+		auto [transformComponent, modelComponent, animationComponent] = registry->GetComponents<TransformComponent, ModelComponent, AnimationComponent>(entity);
+		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Animations/Worker_Standing.dae");
+		animationComponent.animation = resourceManager->GetAnimationManager()->LoadAnimation(animationPaths[distAnimation(rng)]);
+		transformComponent.translation = 100.f * glm::vec3(dist(rng), 0, dist(rng));
 	}
 }
 
