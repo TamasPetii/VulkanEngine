@@ -18,7 +18,7 @@ std::shared_ptr<Model> ModelManager::LoadModel(const std::string& path)
     if (models.find(path) != models.end())
         return models.at(path);
 
-    std::cout << std::format("[Model Thread Started] : {}", path) << "\n";
+    log << std::format("[Model Thread Started] : {}", path) << "\n";
 
     std::shared_ptr<Model> model = std::make_shared<Model>(imageManager, GetAvailableIndex());
     models[path] = model;
@@ -46,7 +46,7 @@ void ModelManager::Update()
 
     for (auto path : completedFutures)
     {
-        std::cout << std::format("[Model Thread Finished] : {}", path) << "\n";
+        log << std::format("[Model Thread Finished] : {}", path) << "\n";
 
         auto model = models.at(path);
         if (model && model->state == LoadState::GpuUploaded)

@@ -6,6 +6,7 @@
 #include <string>
 #include <future>
 #include <vector>
+#include <sstream>
 #include <unordered_map>
 
 template <Hashable T>
@@ -22,6 +23,7 @@ protected:
 protected:
 	std::mutex asyncMutex;
 	std::unordered_map<T, std::future<void>> futures;
+    std::stringstream log;
 };
 
 template <Hashable T>

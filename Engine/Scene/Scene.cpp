@@ -153,7 +153,7 @@ void Scene::InitializeRegistry()
 		"C:/Users/User/Desktop/Animations/Worker_Dancing.dae"
 	};
 
-	for (uint32_t i = 0; i < 1; ++i)
+	for (uint32_t i = 0; i < 100; ++i)
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, AnimationComponent, DefaultColliderComponent>(entity);

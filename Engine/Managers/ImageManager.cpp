@@ -28,7 +28,7 @@ std::shared_ptr<ImageTexture> ImageManager::LoadImage(const std::string& path, b
 	if (images.find(path) != images.end())
 		return images.at(path);
 
-    std::cout << std::format("[Image Thread Started] : {}", path) << "\n";
+    log << std::format("[Image Thread Started] : {}", path) << "\n";
 
 	std::shared_ptr<ImageTexture> imageTexture = std::make_shared<ImageTexture>(GetAvailableIndex());
 	images[path] = imageTexture;
@@ -50,7 +50,7 @@ void ImageManager::Update()
         auto image = images.at(path);
         if (image->state == LoadState::CpuLoaded)
         {
-            std::cout << std::format("[Image Thread Finished] : {}", path) << "\n";
+            log << std::format("[Image Thread Finished] : {}", path) << "\n";
             batch.push_back(image.get());
         }
     }
@@ -60,7 +60,7 @@ void ImageManager::Update()
     auto completedBatchFutures = AsyncBatchedGpuUploadedManager::CompleteFinishedFutures();
 
     if(!completedBatchFutures.empty())
-        std::cout << std::format("[Image Batch Upload Thread Finished] : Batch size = {}", completedBatchFutures.size()) << "\n";
+        log << std::format("[Image Batch Upload Thread Finished] : Batch size = {}", completedBatchFutures.size()) << "\n";
 
     for (auto image : completedBatchFutures)
     {
