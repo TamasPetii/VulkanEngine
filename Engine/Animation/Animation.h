@@ -12,6 +12,8 @@
 #include <assimp/types.h>
 #include <Assimp/scene.h>
 
+#include "Engine/Components/DefaultColliderComponent.h"
+
 class ENGINE_API Animation : public AsyncLoaded
 {
 public:
@@ -74,5 +76,9 @@ private:
 	std::vector<BoneProcessInfo> boneProcessInfos;
 	std::unordered_map<std::string, uint32_t> boneIndexMap;
 	std::unordered_map<std::string, uint32_t> nodeIndexMap;
+private:
+	void InitBoundingVolumeBuffer();
+	std::shared_ptr<Vk::Buffer> frameBoundingVolumesBuffer;
+	std::vector<DefaultColliderComponent> frameBoundingVolumes;
 };
 

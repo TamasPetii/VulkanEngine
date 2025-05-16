@@ -1,10 +1,8 @@
 #pragma once
 #include "Engine/EngineApi.h"
-#include <stdint.h>
+#include "VersionIndexed.h"
 
-struct ENGINE_API Component
+struct ENGINE_API Component : public VersionIndexed
 {
 	virtual ~Component() = default;
-	uint32_t versionID = 0;
 };
-

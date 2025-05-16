@@ -2,6 +2,12 @@
 #include "Engine/EngineApi.h"
 #include <glm/glm.hpp>
 
+struct ENGINE_API AABBGPU
+{
+	glm::vec4 aabbMin;
+	glm::vec4 aabbMax;
+};
+
 struct ENGINE_API ColliderAABB
 {
 	glm::vec3 aabbMin;

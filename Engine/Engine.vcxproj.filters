@@ -171,9 +171,6 @@
     <ClInclude Include="Systems\Systems.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Components\Component.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Managers\ComponentBufferManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -369,6 +366,18 @@
     <ClInclude Include="Components\RenderIndicesComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Components\DirectionLightComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\DirectionLightSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\BaseComponents\Component.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\BaseComponents\VersionIndexed.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -504,9 +513,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Systems\System.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Components\Component.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Managers\ComponentBufferManager.cpp">
@@ -698,6 +704,18 @@
     <ClCompile Include="Components\RenderIndicesComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Components\DirectionLightComponent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Systems\DirectionLightSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Components\BaseComponents\Component.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Components\BaseComponents\VersionIndexed.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Registry\Registry.inl">
@@ -727,5 +745,6 @@
     <None Include="Shaders\Common\Animation\AnimationVertexBone.glsl" />
     <None Include="Shaders\Common\Render\RenderDefines.glsl" />
     <None Include="Shaders\Common\Index.glsl" />
+    <None Include="Shaders\Common\Light\DirectionLight.glsl" />
   </ItemGroup>
 </Project>

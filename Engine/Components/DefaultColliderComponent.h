@@ -1,5 +1,5 @@
 #pragma once
-#include "Component.h"
+#include "BaseComponents/Component.h"
 #include "Engine/Physics/Collider/ColliderAABB.h"
 #include "Engine/Physics/Collider/ColliderOBB.h"
 #include "Engine/Physics/Collider/SphereColliderGJK.h"

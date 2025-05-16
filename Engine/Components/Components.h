@@ -6,3 +6,4 @@
 #include "ModelComponent.h"
 #include "DefaultColliderComponent.h"
 #include "AnimationComponent.h"
+#include "DirectionLightComponent.h"

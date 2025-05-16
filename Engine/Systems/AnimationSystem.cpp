@@ -18,19 +18,19 @@ void AnimationSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_p
 				[[unlikely]]
 				if (animationPool->IsBitSet<REGENERATE_BIT>(entity))
 				{
-					animationComponent.nodeTransformVersion++;
+					animationComponent.nodeTransformBuffers.version++;
 					animationPool->ResetBit<REGENERATE_BIT>(entity);
 				}
 
 				[[unlikely]]
-				if (animationComponent.nodeTransformBuffers[frameIndex].version != animationComponent.nodeTransformVersion)
+				if (animationComponent.nodeTransformBuffers.buffers[frameIndex].version != animationComponent.nodeTransformBuffers.version)
 				{
-					animationComponent.nodeTransformBuffers[frameIndex].version = animationComponent.nodeTransformVersion;
+					animationComponent.nodeTransformBuffers.buffers[frameIndex].version = animationComponent.nodeTransformBuffers.version;
 
 					uint32_t nodeCount = animationPool->GetData(entity).animation->GetNodeProcessInfo().size();
 
-					animationComponent.animationNodeTransforms.clear();
-					animationComponent.animationNodeTransforms.resize(nodeCount);
+					animationComponent.nodeTransforms.clear();
+					animationComponent.nodeTransforms.resize(nodeCount);
 
 					VkDeviceSize nodeBufferSize = sizeof(NodeTransform) * nodeCount;
 
@@ -39,8 +39,8 @@ void AnimationSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_p
 					nodeBufferConfig.usage = VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT;
 					nodeBufferConfig.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
-					animationComponent.nodeTransformBuffers[frameIndex].buffer = std::make_shared<Vk::Buffer>(nodeBufferConfig);
-					animationComponent.nodeTransformBuffers[frameIndex].buffer->MapMemory();
+					animationComponent.nodeTransformBuffers.buffers[frameIndex].buffer = std::make_shared<Vk::Buffer>(nodeBufferConfig);
+					animationComponent.nodeTransformBuffers.buffers[frameIndex].buffer->MapMemory();
 				}
 			}
 		}
@@ -65,23 +65,23 @@ void AnimationSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_p
 				auto& nodeTransformInfos = modelComponent.model->GetNodeTransformInfos();
 				for (uint32_t i = 0; i < nodeProcessInfos.size(); ++i)
 				{
-					animationComponent.animationNodeTransforms[i].localTransform = nodeTransformInfos[i].localTransform;
+					animationComponent.nodeTransforms[i].localTransform = nodeTransformInfos[i].localTransform;
 
 					if (nodeProcessInfos[i].boneIndex != UINT32_MAX)
 					{
 						auto& boneProcessInfo = boneProcesInfos[nodeProcessInfos[i].boneIndex];
-						animationComponent.animationNodeTransforms[i].localTransform = boneProcessInfo.bone.GetTransform(animationComponent.time);
-						animationComponent.animationNodeTransforms[i].nodeTransform.transform = animationComponent.animationNodeTransforms[i].localTransform * boneProcessInfo.offsetMatrix;
+						animationComponent.nodeTransforms[i].localTransform = boneProcessInfo.bone.GetTransform(animationComponent.time);
+						animationComponent.nodeTransforms[i].nodeTransform.transform = animationComponent.nodeTransforms[i].localTransform * boneProcessInfo.offsetMatrix;
 					}
 
 					if (nodeProcessInfos[i].parentIndex != UINT32_MAX)
 					{
-						auto& parentTransform = animationComponent.animationNodeTransforms[nodeProcessInfos[i].parentIndex].localTransform;
-						animationComponent.animationNodeTransforms[i].localTransform = parentTransform * animationComponent.animationNodeTransforms[i].localTransform;
-						animationComponent.animationNodeTransforms[i].nodeTransform.transform = parentTransform * animationComponent.animationNodeTransforms[i].nodeTransform.transform;
+						auto& parentTransform = animationComponent.nodeTransforms[nodeProcessInfos[i].parentIndex].localTransform;
+						animationComponent.nodeTransforms[i].localTransform = parentTransform * animationComponent.nodeTransforms[i].localTransform;
+						animationComponent.nodeTransforms[i].nodeTransform.transform = parentTransform * animationComponent.nodeTransforms[i].nodeTransform.transform;
 					}
 					
-					animationComponent.animationNodeTransforms[i].nodeTransform.transformIT = glm::transpose(glm::inverse(animationComponent.animationNodeTransforms[i].nodeTransform.transform));
+					animationComponent.nodeTransforms[i].nodeTransform.transformIT = glm::transpose(glm::inverse(animationComponent.nodeTransforms[i].nodeTransform.transform));
 				}
 
 				animationPool->ResetBit<UPDATE_BIT>(entity);
@@ -128,16 +128,16 @@ void AnimationSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::sha
 				auto& animationComponent = animationPool->GetData(entity);
 				auto animationIndex = animationPool->GetDenseIndex(entity);		
 
-				NodeTransform* animationBufferHandler = static_cast<NodeTransform*>(animationComponent.nodeTransformBuffers[frameIndex].buffer->GetHandler());
+				NodeTransform* animationBufferHandler = static_cast<NodeTransform*>(animationComponent.nodeTransformBuffers.buffers[frameIndex].buffer->GetHandler());
 
-				for (uint32_t i = 0; i < animationComponent.animationNodeTransforms.size(); ++i)
-					animationBufferHandler[i] = animationComponent.animationNodeTransforms[i].nodeTransform;
+				for (uint32_t i = 0; i < animationComponent.nodeTransforms.size(); ++i)
+					animationBufferHandler[i] = animationComponent.nodeTransforms[i].nodeTransform;
 
 				[[unlikely]]
-				if (animationNodeTransformBuffer->versions[animationIndex] != animationComponent.nodeTransformVersion)
+				if (animationNodeTransformBuffer->versions[animationIndex] != animationComponent.nodeTransformBuffers.version)
 				{
-					animationNodeTransformBuffer->versions[animationIndex] = animationComponent.nodeTransformVersion;
-					animationNodeTransformBufferHandler[animationIndex] = animationComponent.nodeTransformBuffers[frameIndex].buffer->GetAddress();
+					animationNodeTransformBuffer->versions[animationIndex] = animationComponent.nodeTransformBuffers.version;
+					animationNodeTransformBufferHandler[animationIndex] = animationComponent.nodeTransformBuffers.buffers[frameIndex].buffer->GetAddress();
 				}
 			}
 		}

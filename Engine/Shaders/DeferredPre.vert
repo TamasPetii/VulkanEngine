@@ -1,5 +1,4 @@
 #version 460
-#extension GL_EXT_buffer_reference_uvec2 : require
 
 #include "Common/Animation/AnimationNodeTransform.glsl"
 #include "Common/Animation/AnimationVertexBone.glsl"

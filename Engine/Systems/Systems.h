@@ -9,3 +9,4 @@
 #include "DefaultColliderSystem.h"
 #include "FrustumCullingSystem.h"
 #include "AnimationSystem.h"
+#include "DirectionLightSystem.h"

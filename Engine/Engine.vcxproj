@@ -163,7 +163,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Components\BaseComponents\Component.h" />
     <ClInclude Include="Components\RenderIndicesComponent.h" />
+    <ClInclude Include="Components\DirectionLightComponent.h" />
+    <ClInclude Include="Systems\DirectionLightSystem.h" />
     <ClInclude Include="Systems\RenderIndicesSystem.h" />
     <ClInclude Include="Managers\BaseManagers\BatchedGpuUploadedManager.h" />
     <ClInclude Include="Managers\BaseManagers\AsyncManager.h" />
@@ -179,6 +182,7 @@
     <ClInclude Include="Animation\Bone.h" />
     <ClInclude Include="Utils\Hashable.h" />
     <ClInclude Include="Utils\ImageTexture.h" />
+    <ClInclude Include="Components\BaseComponents\VersionIndexed.h" />
     <ClInclude Include="Vulkan\ComputePipeline.h" />
     <ClInclude Include="Registry\Pools\ComponentPool.h" />
     <ClInclude Include="Registry\Pools\DataPool.h" />
@@ -221,7 +225,6 @@
     <ClInclude Include="Render\Renderers\GuiRenderer.h" />
     <ClInclude Include="Managers\InputManager.h" />
     <ClInclude Include="Managers\ComponentBufferManager.h" />
-    <ClInclude Include="Components\Component.h" />
     <ClInclude Include="Managers\GeometryManager.h" />
     <ClInclude Include="Renderable\Geometry\Cone.h" />
     <ClInclude Include="Renderable\Geometry\Cylinder.h" />
@@ -283,7 +286,10 @@
     <ClInclude Include="Vulkan\VulkanMutex.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Components\BaseComponents\Component.cpp" />
     <ClCompile Include="Components\RenderIndicesComponent.cpp" />
+    <ClCompile Include="Components\DirectionLightComponent.cpp" />
+    <ClCompile Include="Systems\DirectionLightSystem.cpp" />
     <ClCompile Include="Systems\RenderIndicesSystem.cpp" />
     <ClCompile Include="Managers\BaseManagers\BatchedGpuUploadedManager.cpp" />
     <ClCompile Include="Managers\BaseManagers\AsyncManager.cpp" />
@@ -298,6 +304,7 @@
     <ClCompile Include="Utils\BatchUploaded.cpp" />
     <ClCompile Include="Animation\Bone.cpp" />
     <ClCompile Include="Utils\ImageTexture.cpp" />
+    <ClCompile Include="Components\BaseComponents\VersionIndexed.cpp" />
     <ClCompile Include="Vulkan\ComputePipeline.cpp" />
     <ClCompile Include="Registry\Pools\ComponentPool.cpp" />
     <ClCompile Include="Registry\Pools\DataPool.cpp" />
@@ -340,7 +347,6 @@
     <ClCompile Include="Render\Renderers\GuiRenderer.cpp" />
     <ClCompile Include="Managers\InputManager.cpp" />
     <ClCompile Include="Managers\ComponentBufferManager.cpp" />
-    <ClCompile Include="Components\Component.cpp" />
     <ClCompile Include="Managers\GeometryManager.cpp" />
     <ClCompile Include="Renderable\Geometry\Cone.cpp" />
     <ClCompile Include="Renderable\Geometry\Cylinder.cpp" />
@@ -403,6 +409,7 @@
     <None Include="Shaders\Common\Animation\AnimationNodeTransform.glsl" />
     <None Include="Shaders\Common\Animation\AnimationVertexBone.glsl" />
     <None Include="Shaders\Common\Index.glsl" />
+    <None Include="Shaders\Common\Light\DirectionLight.glsl" />
     <None Include="Shaders\Common\Render\RenderDefines.glsl" />
     <None Include="Shaders\Common\Model\ModelBufferAddresses.glsl" />
     <None Include="Shaders\Common\BoundingVolume.glsl" />

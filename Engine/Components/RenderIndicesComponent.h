@@ -1,8 +1,9 @@
 #pragma once
+#include "BaseComponents/Component.h"
 #include "Engine/EngineApi.h"
 #include <stdint.h>
 
-struct ENGINE_API RenderIndicesComponent
+struct ENGINE_API RenderIndicesComponent : public Component
 {
 	uint32_t entityIndex;
 	uint32_t transformIndex;

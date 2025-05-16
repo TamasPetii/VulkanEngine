@@ -192,3 +192,26 @@ void Animation::InitVertexBoneBuffer()
 
     vertexBoneDatas.clear();
 }
+
+void Animation::InitBoundingVolumeBuffer()
+{
+    /*
+    VkDeviceSize aabbBufferConfig = sizeof(AABBGPU) * vertexBoneDatas.size();
+
+    Vk::BufferConfig vertexBoneStagingConfig;
+    vertexBoneStagingConfig.size = vertexBoneBufferSize;
+    vertexBoneStagingConfig.usage = VK_BUFFER_USAGE_2_TRANSFER_SRC_BIT;
+    vertexBoneStagingConfig.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+    Vk::Buffer vertexBoneStagingBuffer{ vertexBoneStagingConfig };
+
+    void* vertexBoneStagigngBufferHandler = vertexBoneStagingBuffer.MapMemory();
+    memcpy(vertexBoneStagigngBufferHandler, vertexBoneDatas.data(), vertexBoneBufferSize);
+    vertexBoneStagingBuffer.UnmapMemory();
+
+    Vk::BufferConfig aabbBufferConfig;
+    aabbBufferConfig.size = vertexBoneBufferSize;
+    aabbBufferConfig.usage = VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT;
+    aabbBufferConfig.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    vertexBoneBuffer = std::make_shared<Vk::Buffer>(vertexBoneBufferConfig);
+    */
+}

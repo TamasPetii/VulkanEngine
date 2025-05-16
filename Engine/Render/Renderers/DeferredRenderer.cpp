@@ -1,19 +1,10 @@
 #include "DeferredRenderer.h"
+#include "Engine/Components/DirectionLightComponent.h"
+#include "Engine/Render/GpuStructs.h"
 
 void DeferredRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex)
 {
-	auto vulkanContext = Vk::VulkanContext::GetContext();
-	auto device = vulkanContext->GetDevice();
-	auto graphicsQueue = device->GetQueue(Vk::QueueType::GRAPHICS);
-
 	auto frameBuffer = resourceManager->GetVulkanManager()->GetFrameDependentFrameBuffer("Main", frameIndex);
-	auto pipeline = resourceManager->GetVulkanManager()->GetGraphicsPipeline("DeferredDir");
-
-	VkClearValue clearValue;
-	clearValue.color.float32[0] = 0.f;
-	clearValue.color.float32[1] = 0.f;
-	clearValue.color.float32[2] = 0.f;
-	clearValue.color.float32[3] = 1.f;
 
 	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, frameBuffer->GetImage("Position")->Value(),
 		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
@@ -27,11 +18,47 @@ void DeferredRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Reg
 		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
 		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, VK_ACCESS_2_SHADER_READ_BIT);
 
+	VkClearValue clearValue;
+	clearValue.color.float32[0] = 0.f;
+	clearValue.color.float32[1] = 0.f;
+	clearValue.color.float32[2] = 0.f;
+	clearValue.color.float32[3] = 1.f;
+
+	VkImageSubresourceRange range = {};
+	range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	range.baseMipLevel = 0;
+	range.levelCount = 1;
+	range.baseArrayLayer = 0;
+	range.layerCount = 1;
+
 	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, frameBuffer->GetImage("Main")->Value(),
 		VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, VK_ACCESS_2_NONE,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT);
+
+	vkCmdClearColorImage(commandBuffer, frameBuffer->GetImage("Main")->Value(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &clearValue.color, 1, &range);
+
+	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, frameBuffer->GetImage("Main")->Value(),
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT,
 		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT);
 
-	VkRenderingAttachmentInfo colorAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(frameBuffer->GetImage("Main")->GetImageView(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, &clearValue);
+	RenderDirectionLights(commandBuffer, registry, resourceManager, frameIndex);
+}
+
+void DeferredRenderer::RenderDirectionLights(VkCommandBuffer commandBuffer, std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex)
+{
+	auto directionLightPool = registry->GetPool<DirectionLightComponent>();
+
+	if (!directionLightPool || directionLightPool->GetDenseSize() == 0)
+		return;
+
+	auto vulkanContext = Vk::VulkanContext::GetContext();
+	auto device = vulkanContext->GetDevice();
+	auto graphicsQueue = device->GetQueue(Vk::QueueType::GRAPHICS);
+
+	auto frameBuffer = resourceManager->GetVulkanManager()->GetFrameDependentFrameBuffer("Main", frameIndex);
+	auto pipeline = resourceManager->GetVulkanManager()->GetGraphicsPipeline("DeferredDir");
+
+	VkRenderingAttachmentInfo colorAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(frameBuffer->GetImage("Main")->GetImageView(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, nullptr);
 	std::vector<VkRenderingAttachmentInfo> renderTargetAttachments = { colorAttachment };
 	VkRenderingInfo renderingInfo = Vk::DynamicRendering::BuildRenderingInfo(frameBuffer->GetSize(), renderTargetAttachments, nullptr);
 
@@ -52,10 +79,19 @@ void DeferredRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Reg
 	scissor.extent = frameBuffer->GetSize();
 	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
+	DeferredDirectionLightPushConstants pushConstants;
+	pushConstants.cameraIndex = 0;
+	pushConstants.cameraBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("CameraData", frameIndex)->buffer->GetAddress();
+	pushConstants.directionLightBufferAddress = resourceManager->GetComponentBufferManager()->GetComponentBuffer("DirectionLightData", frameIndex)->buffer->GetAddress();
+
+	vkCmdPushConstants(commandBuffer, pipeline->GetLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(DeferredDirectionLightPushConstants), &pushConstants);
+
 	auto frameBufferDescriptorSet = resourceManager->GetVulkanManager()->GetFrameDependentDescriptorSet("MainFrameBuffer", frameIndex);
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetLayout(), 0, 1, &frameBufferDescriptorSet->Value(), 0, nullptr);
 
-	vkCmdDraw(commandBuffer, 4, 1, 0, 0);
+	//TODO: BIND DIRLIGHT DYNAMIC DESCRIPTOR ARRAY INDICES
+
+	vkCmdDraw(commandBuffer, 4, directionLightPool->GetDenseSize(), 0, 0);
 
 	vkCmdEndRendering(commandBuffer);
 }

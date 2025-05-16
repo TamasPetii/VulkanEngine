@@ -1,5 +1,5 @@
 #pragma once
-#include "Component.h"
+#include "BaseComponents/Component.h"
 
 struct ENGINE_API RenderComponent : public Component
 {

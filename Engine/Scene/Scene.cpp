@@ -49,6 +49,11 @@ void Scene::InitializeRegistry()
 		registry->GetComponent<CameraComponent>(entity).isMain = true;
 	}
 
+	{ 
+		auto entity = registry->CreateEntity();
+		registry->AddComponents<TransformComponent, DirectionLightComponent>(entity);
+	}
+
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
@@ -218,6 +223,7 @@ void Scene::InitializeSystems()
 	InitSystem<DefaultColliderSystem>();
 	InitSystem<FrustumCullingSystem>();
 	InitSystem<AnimationSystem>();
+	InitSystem<DirectionLightSystem>();
 }
 
 void Scene::UpdateSystems(uint32_t frameIndex, float deltaTime)
@@ -245,6 +251,8 @@ void Scene::UpdateSystems(uint32_t frameIndex, float deltaTime)
 
 	//DefaultColliderSystem uses these systems output as input
 	futures[Unique::typeID<TransformSystem>()].get();
+	LaunchSystemUpdateAsync.template operator() < DirectionLightSystem > ();
+
 	futures[Unique::typeID<ShapeSystem>()].get();
 	futures[Unique::typeID<ModelSystem>()].get();
 	LaunchSystemUpdateAsync.template operator() < DefaultColliderSystem > ();
@@ -287,6 +295,7 @@ void Scene::FinishSystems()
 	LaunchSystemFinishAsync.template operator() < InstanceSystem > ();
 	LaunchSystemFinishAsync.template operator() < DefaultColliderSystem > ();
 	LaunchSystemFinishAsync.template operator() < AnimationSystem > ();
+	LaunchSystemFinishAsync.template operator() < DirectionLightSystem > ();
 
 	for (auto& [_, future] : futures) {
 		if (future.valid())
@@ -317,6 +326,7 @@ void Scene::UpdateSystemsGPU(uint32_t frameIndex)
 	LaunchSystemUpdateGpuAsync.template operator() < InstanceSystem > ();
 	LaunchSystemUpdateGpuAsync.template operator() < DefaultColliderSystem > ();
 	LaunchSystemUpdateGpuAsync.template operator() < AnimationSystem > ();
+	LaunchSystemUpdateGpuAsync.template operator() < DirectionLightSystem > ();
 
 	for (auto& [_, future] : futures) {
 		if (future.valid())
@@ -337,4 +347,5 @@ void Scene::UpdateComponentBuffers(uint32_t frameIndex)
 	RecalculateGpuBufferSize<DefaultColliderComponent, glm::mat4>("DefaultColliderObbData", frameIndex);
 	RecalculateGpuBufferSize<DefaultColliderComponent, glm::mat4>("DefaultColliderSphereData", frameIndex);
 	RecalculateGpuBufferSize<AnimationComponent, VkDeviceAddress>("AnimationNodeTransformDeviceAddressesBuffers", frameIndex);
+	RecalculateGpuBufferSize<DirectionLightComponent, DirectionLightGPU>("DirectionLightData", frameIndex);
 }

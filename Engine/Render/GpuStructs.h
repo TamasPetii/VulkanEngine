@@ -19,6 +19,13 @@ struct GeometryRendererPushConstants
 	VkDeviceAddress animationVertexBoneBufferAddresses;
 };
 
+struct DeferredDirectionLightPushConstants
+{	
+	uint32_t cameraIndex;
+	VkDeviceAddress cameraBuffer;
+	VkDeviceAddress directionLightBufferAddress;
+};
+
 struct BoundingVolumeRendererPushConstants
 {
 	uint32_t renderMode;

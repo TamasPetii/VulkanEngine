@@ -269,6 +269,21 @@ void VulkanManager::InitSamplers()
 
 		RegisterSampler("NearestAniso", config);
 	}
+
+	{
+		/*
+		VkSamplerCreateInfo samplerInfo = {};
+		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+		samplerInfo.magFilter = VK_FILTER_LINEAR;
+		samplerInfo.minFilter = VK_FILTER_LINEAR;
+		samplerInfo.compareEnable = VK_TRUE;  // <-- FONTOS!
+		samplerInfo.compareOp = VK_COMPARE_OP_LESS; // vagy más opció (LEQUAL, GREATER, stb.)
+		samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		*/
+	}
 }
 
 void VulkanManager::InitRenderPasses()
@@ -293,7 +308,7 @@ void VulkanManager::InitFrameBuffers()
 	mainImageSpec.viewType = VK_IMAGE_VIEW_TYPE_2D;
 	mainImageSpec.format = VK_FORMAT_R16G16B16A16_SFLOAT;
 	mainImageSpec.tiling = VK_IMAGE_TILING_OPTIMAL;
-	mainImageSpec.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	mainImageSpec.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 	mainImageSpec.aspectFlag = VK_IMAGE_ASPECT_COLOR_BIT;
 	mainImageSpec.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
@@ -489,6 +504,8 @@ void VulkanManager::InitGraphicsPipelines()
 	}
 
 	{
+		uint32_t pushConsantSize = sizeof(DeferredDirectionLightPushConstants);
+
 		Vk::GraphicsPipelineBuilder pipelineBuilder;
 		pipelineBuilder
 			.ResetToDefault()
@@ -502,8 +519,9 @@ void VulkanManager::InitGraphicsPipelines()
 			.SetMultisampling(VK_SAMPLE_COUNT_1_BIT)
 			.SetDepthStencil(VK_FALSE, VK_FALSE, VK_COMPARE_OP_LESS)
 			.SetColorBlend(VK_FALSE)
-			.AddColorBlendAttachment(VK_FALSE)
+			.AddColorBlendAttachment(VK_TRUE, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_ONE, VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_ONE, VK_BLEND_OP_ADD)
 			.SetColorAttachmentFormats(VK_FORMAT_R16G16B16A16_SFLOAT, 0)
+			.AddPushConstant(0, pushConsantSize, VK_SHADER_STAGE_FRAGMENT_BIT)
 			.AddDescriptorSetLayout(GetFrameDependentDescriptorSet("MainFrameBuffer", 0)->Layout());
 
 		RegisterGraphicsPipeline("DeferredDir", pipelineBuilder.BuildDynamic());		

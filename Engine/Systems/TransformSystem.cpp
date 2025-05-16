@@ -35,7 +35,7 @@ void TransformSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_p
 					transformComponent.transformIT = glm::transpose(glm::inverse(transformComponent.transform));
 
 					transformPool->SetBit<CHANGED_BIT>(entity);
-					transformComponent.versionID++;
+					transformComponent.version++;
 				}
 			}
 		);
@@ -143,9 +143,9 @@ void TransformSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::sha
 			auto& transformComponent = transformPool->GetData(entity);
 			auto transformIndex = transformPool->GetDenseIndex(entity);
 
-			if (componentBuffer->versions[transformIndex] != transformComponent.versionID)
+			if (componentBuffer->versions[transformIndex] != transformComponent.version)
 			{
-				componentBuffer->versions[transformIndex] = transformComponent.versionID;
+				componentBuffer->versions[transformIndex] = transformComponent.version;
 				bufferHandler[transformIndex] = TransformComponentGPU(transformComponent);
 			}
 		}

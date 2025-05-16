@@ -68,7 +68,7 @@ void CameraSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<
 				cameraComponent.viewProjInv = glm::inverse(cameraComponent.viewProj);
 
 				cameraPool->SetBit<CHANGED_BIT>(entity);
-				cameraComponent.versionID++;
+				cameraComponent.version++;
 			}
 		}
 	);
@@ -104,16 +104,15 @@ void CameraSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared
 			auto& cameraComponent = cameraPool->GetData(entity);
 			auto cameraIndex = cameraPool->GetDenseIndex(entity);
 
-			if (componentBuffer->versions[cameraIndex] != cameraComponent.versionID)
+			if (componentBuffer->versions[cameraIndex] != cameraComponent.version)
 			{
-				CameraComponent component = cameraComponent;
+				componentBuffer->versions[cameraIndex] = cameraComponent.version;
 
+				CameraComponent component = cameraComponent;
 				component.proj[1][1] *= -1;
 				component.projInv = glm::inverse(component.proj);
 				component.viewProj = component.proj * component.view;
 				component.viewProjInv = glm::inverse(component.viewProj);
-
-				componentBuffer->versions[cameraIndex] = cameraComponent.versionID;
 				bufferHandler[cameraIndex] = CameraComponentGPU(component);
 			}
 		}

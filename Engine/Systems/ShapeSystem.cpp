@@ -19,7 +19,7 @@ void ShapeSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<R
 				(materialPool && materialPool->HasComponent(entity) && materialPool->IsBitSet<INDEX_CHANGED_BIT>(entity))
 			){
 				shapePool->SetBit<CHANGED_BIT>(entity);
-				shapePool->GetData(entity).versionID++;
+				shapePool->GetData(entity).version++;
 			}
 		}
 	);

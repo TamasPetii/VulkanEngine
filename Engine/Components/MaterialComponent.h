@@ -1,5 +1,5 @@
 #pragma once
-#include "Component.h"
+#include "BaseComponents/Component.h"
 #include <glm/glm.hpp>
 #include "Engine/Utils/ImageTexture.h"
 

@@ -18,7 +18,7 @@ void ModelSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<R
 			if (modelPool->IsBitSet<UPDATE_BIT>(entity) || (transformPool && transformPool->HasComponent(entity) && transformPool->IsBitSet<INDEX_CHANGED_BIT>(entity)))
 			{
 				modelPool->SetBit<CHANGED_BIT>(entity);
-				modelPool->GetData(entity).versionID++;
+				modelPool->GetData(entity).version++;
 			}
 		}
 	);
