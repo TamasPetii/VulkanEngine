@@ -9,15 +9,38 @@ void ComponentWindow::Render(std::shared_ptr<Registry> registry, std::shared_ptr
 
 	Window::RenderWindow(windowConfig, [&]() -> void
 		{
-			static Panel::Config transformConfig{
+			RenderTransformPanel();
+			RenderAnimationPanel();
+		}
+	);
+}
+
+void ComponentWindow::RenderTransformPanel()
+{
+	//STATIC IS NOT GOOD!
+
+	Panel::Config transformConfig{
 				.name = "TransformComponent",
 				.isVisible = true
-			};
+	};
 
-			Panel::Render(transformConfig, [&]() -> void
-				{
-				}
-			);
+	Panel::Render(transformConfig, [&]() -> void
+		{
+
+		}
+	);
+}
+
+void ComponentWindow::RenderAnimationPanel()
+{
+	Panel::Config animationConfig{
+			.name = "AnimationComponent",
+			.isVisible = true
+	};
+
+	Panel::Render(animationConfig, [&]() -> void
+		{
+
 		}
 	);
 }

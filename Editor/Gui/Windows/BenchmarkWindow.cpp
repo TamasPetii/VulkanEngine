@@ -9,6 +9,8 @@ void BenchmarkWindow::Render(std::shared_ptr<Registry> registry, std::shared_ptr
 
 	Window::RenderWindow(windowConfig, [&]() -> void
 		{
+			for (auto& [typeIndex, time] : resourceManager->GetBenchmarkManager()->GetAverageBenchmarkTimes())
+				ImGui::Text(std::format("{} : {} ms", typeIndex.name(), time).c_str());
 		}
 	);
 }
