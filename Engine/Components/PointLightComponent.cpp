@@ -13,7 +13,8 @@ PointLightComponent::PointLightComponent() :
 	radius(1.f),
 	weakenDistance(0.f),
 	strength(1.f),
-	shininess(32)
+	shininess(32),
+	transform(glm::mat4(1))
 {
 }
 

@@ -193,7 +193,7 @@
     <ClInclude Include="Physics\Collider\FrustumCollider.h" />
     <ClInclude Include="Registry\Pools\SparseSet.h" />
     <ClInclude Include="Systems\FrustumCullingSystem.h" />
-    <ClInclude Include="Render\Renderers\BoundingVolumeRenderer.h" />
+    <ClInclude Include="Render\Renderers\WireframeRenderer.h" />
     <ClInclude Include="Systems\DefaultColliderSystem.h" />
     <ClInclude Include="Physics\Collider\ColliderOBB.h" />
     <ClInclude Include="Components\ModelComponent.h" />
@@ -318,7 +318,7 @@
     <ClCompile Include="Physics\Collider\FrustumCollider.cpp" />
     <ClCompile Include="Registry\Pools\SparseSet.cpp" />
     <ClCompile Include="Systems\FrustumCullingSystem.cpp" />
-    <ClCompile Include="Render\Renderers\BoundingVolumeRenderer.cpp" />
+    <ClCompile Include="Render\Renderers\WireframeRenderer.cpp" />
     <ClCompile Include="Systems\DefaultColliderSystem.cpp" />
     <ClCompile Include="Physics\Collider\ColliderOBB.cpp" />
     <ClCompile Include="Components\ModelComponent.cpp" />
@@ -409,8 +409,8 @@
     <None Include="Registry\Registry.inl" />
     <None Include="Shaders\Basic.frag" />
     <None Include="Shaders\Basic.vert" />
-    <None Include="Shaders\BoundingVolume.frag" />
-    <None Include="Shaders\BoundingVolume.vert" />
+    <None Include="Shaders\Wireframe.frag" />
+    <None Include="Shaders\Wireframe.vert" />
     <None Include="Shaders\Common\Animation\AnimationBufferAddresses.glsl" />
     <None Include="Shaders\Common\Animation\AnimationNodeTransform.glsl" />
     <None Include="Shaders\Common\Animation\AnimationVertexBone.glsl" />
@@ -419,13 +419,13 @@
     <None Include="Shaders\Common\Light\PointLight.glsl" />
     <None Include="Shaders\Common\Render\RenderDefines.glsl" />
     <None Include="Shaders\Common\Model\ModelBufferAddresses.glsl" />
-    <None Include="Shaders\Common\BoundingVolume.glsl" />
     <None Include="Shaders\Common\Camera.glsl" />
     <None Include="Shaders\Common\Model\ModelNodeTransform.glsl" />
     <None Include="Shaders\Common\Images.glsl" />
     <None Include="Shaders\Common\Render\InstanceIndex.glsl" />
     <None Include="Shaders\Common\Material.glsl" />
     <None Include="Shaders\Common\Render\RenderIndices.glsl" />
+    <None Include="Shaders\Common\SimpleTransform.glsl" />
     <None Include="Shaders\Common\Transform.glsl" />
     <None Include="Shaders\Common\Vertex.glsl" />
     <None Include="Shaders\DeferredDirectionLight.frag" />

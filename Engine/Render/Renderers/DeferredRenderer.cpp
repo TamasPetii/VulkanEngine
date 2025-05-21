@@ -43,6 +43,7 @@ void DeferredRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Reg
 		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT);
 
 	RenderDirectionLights(commandBuffer, registry, resourceManager, frameIndex);
+	RenderPointLights(commandBuffer, registry, resourceManager, frameIndex);
 }
 
 void DeferredRenderer::RenderDirectionLights(VkCommandBuffer commandBuffer, std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex)
@@ -138,7 +139,7 @@ void DeferredRenderer::RenderPointLights(VkCommandBuffer commandBuffer, std::sha
 	pushConstants.cameraIndex = 0; //TODO: MAIN CAMERA
 	pushConstants.cameraBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("CameraData", frameIndex)->buffer->GetAddress();
 	pushConstants.pointLightBufferAddress = resourceManager->GetComponentBufferManager()->GetComponentBuffer("PointLightData", frameIndex)->buffer->GetAddress();
-	pushConstants.transformBufferAddress = resourceManager->GetComponentBufferManager()->GetComponentBuffer("TransformData", frameIndex)->buffer->GetAddress();
+	pushConstants.transformBufferAddress = resourceManager->GetComponentBufferManager()->GetComponentBuffer("PointLightTransform", frameIndex)->buffer->GetAddress();
 	pushConstants.vertexBufferAddress = shape->GetVertexBuffer()->GetAddress();
 	pushConstants.indexBufferAddress = shape->GetIndexBuffer()->GetAddress();
 	pushConstants.viewPortSize = glm::vec2(viewport.width, viewport.height);

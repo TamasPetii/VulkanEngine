@@ -17,4 +17,4 @@ layout(buffer_reference, std430) readonly buffer PointLightBuffer {
 	PointLight lights[];
 };
 
-layout(set = 1, binding = 1) uniform texture2D u_pointLightShadowTextures[];
+//layout(set = 1, binding = 1) uniform texture2D u_pointLightShadowTextures[];

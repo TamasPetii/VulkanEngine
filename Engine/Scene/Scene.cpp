@@ -56,9 +56,10 @@ void Scene::InitializeRegistry()
 
 	{
 		auto entity = registry->CreateEntity();
-		registry->AddComponents<TransformComponent, DirectionLightComponent>(entity);
+		registry->AddComponents<TransformComponent, PointLightComponent>(entity);
 	}
 
+	/*
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
@@ -74,10 +75,8 @@ void Scene::InitializeRegistry()
 		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Bistro_v5_2/BistroExterior.fbx");
 		modelComponent.hasDirectxNormals = true;
 	}
-	/*
 	*/
 
-	/*
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
@@ -85,6 +84,7 @@ void Scene::InitializeRegistry()
 		transformComponent.scale = glm::vec3(0.01);
 		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/VulkanEngine/Assets/Sponza/sponza.obj");
 	}
+	/*
 	*/
 
 	/*
@@ -362,4 +362,5 @@ void Scene::UpdateComponentBuffers(uint32_t frameIndex)
 	RecalculateGpuBufferSize<AnimationComponent, VkDeviceAddress>("AnimationNodeTransformDeviceAddressesBuffers", frameIndex);
 	RecalculateGpuBufferSize<DirectionLightComponent, DirectionLightGPU>("DirectionLightData", frameIndex);
 	RecalculateGpuBufferSize<PointLightComponent, PointLightGPU>("PointLightData", frameIndex);
+	RecalculateGpuBufferSize<PointLightComponent, glm::mat4>("PointLightTransform", frameIndex);
 }

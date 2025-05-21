@@ -45,5 +45,6 @@ struct BoundingVolumeRendererPushConstants
 	VkDeviceAddress transformBufferAddress;
 	VkDeviceAddress vertexBufferAddress;
 	VkDeviceAddress indexBufferAddress;
+	VkDeviceAddress padding;
 	glm::vec4 color;
 };

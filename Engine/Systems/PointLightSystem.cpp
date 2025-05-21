@@ -24,6 +24,7 @@ void PointLightSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_
 			{
 				pointLightComponent.shadow.frameBuffers[frameIndex].version = pointLightComponent.shadow.version;
 
+				/*
 				Vk::ImageSpecification depthImageSpec;
 				depthImageSpec.type = VK_IMAGE_TYPE_2D;
 				depthImageSpec.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
@@ -40,6 +41,7 @@ void PointLightSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_
 					.AddDepthSpecification(0, depthImageSpec);
 
 				pointLightComponent.shadow.frameBuffers[frameIndex].frameBuffer = frameBufferBuilder.BuildDynamic();
+				*/
 
 				//TODO: DYNAMIC DESCRIPTOR ARRAY UPDATE
 			}
@@ -61,6 +63,7 @@ void PointLightSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_
 				scale.z = glm::length(glm::vec3(transformComponent.transform[2]));
 
 				pointLightComponent.radius = defaultPointLightRadius * std::max({ scale.x, scale.y, scale.z });
+				pointLightComponent.transform = glm::translate(pointLightComponent.position) * glm::scale(glm::vec3(pointLightComponent.radius));
 
 				pointLightPool->SetBit<CHANGED_BIT>(entity);
 				pointLightComponent.version++;
@@ -97,6 +100,9 @@ void PointLightSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::sh
 	auto pointLightComponentBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("PointLightData", frameIndex);
 	auto pointLightComponentBufferHandler = static_cast<PointLightGPU*>(pointLightComponentBuffer->buffer->GetHandler());
 
+	auto pointLightTransformBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("PointLightTransform", frameIndex);
+	auto pointLightTransformBufferHandler = static_cast<glm::mat4*>(pointLightComponentBuffer->buffer->GetHandler());
+
 	std::for_each(std::execution::seq, pointLightPool->GetDenseIndices().begin(), pointLightPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
 			auto& pointLightComponent = pointLightPool->GetData(entity);
@@ -106,6 +112,12 @@ void PointLightSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::sh
 			{
 				pointLightComponentBuffer->versions[pointLightIndex] = pointLightComponent.version;
 				pointLightComponentBufferHandler[pointLightIndex] = PointLightGPU(pointLightComponent);
+			}
+
+			if (pointLightTransformBuffer->versions[pointLightIndex] != pointLightComponent.version)
+			{
+				pointLightTransformBuffer->versions[pointLightIndex] = pointLightComponent.version;
+				pointLightTransformBufferHandler[pointLightIndex] = pointLightComponent.transform;
 			}
 		}
 	);

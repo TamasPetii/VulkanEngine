@@ -11,6 +11,8 @@
 
 constexpr float defaultPointLightRadius = 1.f;
 
+class PointLightSystem;
+
 struct ENGINE_API PointLightShadowFrameBuffer : public VersionIndexed
 {
 	std::shared_ptr<Vk::FrameBuffer> frameBuffer = nullptr;
@@ -39,6 +41,10 @@ struct ENGINE_API PointLightComponent : public Component, public FrustumCullable
 	float shininess;
 	PointLightShadow shadow;
 	//Todo: Visible entities??? Instanced???? Maybe in models???? Or like a model map?
+
+private:
+	glm::mat4 transform; //Cannot use transform component becouse of the scale can be different on xyz!
+	friend class PointLightSystem;
 };
 
 struct ENGINE_API PointLightGPU
@@ -53,5 +59,4 @@ struct ENGINE_API PointLightGPU
 	float weakenDistance;
 	uint32_t bitflag;
 	uint32_t padding;
-	//Todo: shadow viewProjs
 };

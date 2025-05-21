@@ -9,6 +9,7 @@ struct ENGINE_API GlobalConfig
 		static inline bool showColliderAABB = false;
 		static inline bool showColliderOBB = false;
 		static inline bool showColliderSphere = false;
+		static inline bool showPointLights = false;
 	};
 
 	struct ENGINE_API FrameConfig

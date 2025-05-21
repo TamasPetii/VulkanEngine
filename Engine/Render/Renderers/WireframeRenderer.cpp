@@ -1,16 +1,16 @@
-#include "BoundingVolumeRenderer.h"
+#include "WireframeRenderer.h"
 #include "../GpuStructs.h"
 #include <algorithm>
 #include <execution>
 #include "Engine/Components/DefaultColliderComponent.h"
 
-void BoundingVolumeRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex)
+void WireframeRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex)
 {
 	auto vulkanContext = Vk::VulkanContext::GetContext();
 	auto device = vulkanContext->GetDevice();
 	auto graphicsQueue = device->GetQueue(Vk::QueueType::GRAPHICS);
 	auto frameBuffer = resourceManager->GetVulkanManager()->GetFrameDependentFrameBuffer("Main", frameIndex);
-	auto pipeline = resourceManager->GetVulkanManager()->GetGraphicsPipeline("BoundingVolume");
+	auto pipeline = resourceManager->GetVulkanManager()->GetGraphicsPipeline("Wireframe");
 	
 	VkRenderingAttachmentInfo colorAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(frameBuffer->GetImage("Main")->GetImageView(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, nullptr);
 	VkRenderingAttachmentInfo depthAttachment = Vk::DynamicRendering::BuildRenderingAttachmentInfo(frameBuffer->GetImage("Depth")->GetImageView(), VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, nullptr);
@@ -63,6 +63,9 @@ void BoundingVolumeRenderer::Render(VkCommandBuffer commandBuffer, std::shared_p
 
 	if(GlobalConfig::WireframeConfig::showColliderSphere)
 		RenderBoundingVolume("ProxySphere", "DefaultColliderSphereData", glm::vec4(1, 0, 1, 1));
+
+	if (GlobalConfig::WireframeConfig::showPointLights)
+		RenderBoundingVolume("ProxySphere", "PointLightTransform", glm::vec4(1, 1, 1, 1));
 
 	vkCmdEndRendering(commandBuffer);
 }

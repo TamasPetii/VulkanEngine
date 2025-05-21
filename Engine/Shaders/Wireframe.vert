@@ -4,7 +4,7 @@
 #include "Common/Index.glsl"
 #include "Common/Vertex.glsl"
 #include "Common/Camera.glsl"
-#include "Common/BoundingVolume.glsl"
+#include "Common/SimpleTransform.glsl"
 
 layout( push_constant ) uniform constants
 {	
@@ -14,6 +14,7 @@ layout( push_constant ) uniform constants
 	uvec2 transformBufferAddress;
 	uvec2 vertexBufferAddress;
 	uvec2 indexBufferAddress;
+	uvec2 padding;
 	vec4 color;
 } PushConstants;
 
@@ -21,5 +22,5 @@ void main()
 {
 	uint vertexIndex = IndexBuffer(PushConstants.indexBufferAddress).indices[gl_VertexIndex];
 	Vertex v = VertexBuffer(PushConstants.vertexBufferAddress).vertices[vertexIndex];
-	gl_Position = CameraBuffer(PushConstants.cameraBufferAddress).cameras[PushConstants.cameraIndex].viewProj * BoundingVolumeBuffer(PushConstants.transformBufferAddress).transforms[gl_InstanceIndex] * vec4(v.position + v.normal * 0.001, 1.0);
+	gl_Position = CameraBuffer(PushConstants.cameraBufferAddress).cameras[PushConstants.cameraIndex].viewProj * SimpleTransformBuffer(PushConstants.transformBufferAddress).transforms[gl_InstanceIndex] * vec4(v.position + v.normal * 0.001, 1.0);
 }

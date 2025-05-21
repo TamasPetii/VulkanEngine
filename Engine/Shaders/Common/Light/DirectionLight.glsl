@@ -13,4 +13,4 @@ layout(buffer_reference, std430) readonly buffer DirectionLightBuffer {
 	DirectionLight lights[];
 };
 
-layout(set = 1, binding = 0) uniform texture2D u_dirLightShadowTextures[];
+//layout(set = 1, binding = 0) uniform texture2D u_dirLightShadowTextures[];

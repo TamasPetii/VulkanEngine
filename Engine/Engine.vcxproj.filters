@@ -288,7 +288,7 @@
     <ClInclude Include="Systems\DefaultColliderSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Render\Renderers\BoundingVolumeRenderer.h">
+    <ClInclude Include="Render\Renderers\WireframeRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Systems\FrustumCullingSystem.h">
@@ -641,7 +641,7 @@
     <ClCompile Include="Systems\DefaultColliderSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Render\Renderers\BoundingVolumeRenderer.cpp">
+    <ClCompile Include="Render\Renderers\WireframeRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Systems\FrustumCullingSystem.cpp">
@@ -753,9 +753,8 @@
     <None Include="Shaders\Common\Material.glsl" />
     <None Include="Shaders\Common\Render\InstanceIndex.glsl" />
     <None Include="Shaders\Common\Render\RenderIndices.glsl" />
-    <None Include="Shaders\BoundingVolume.vert" />
-    <None Include="Shaders\BoundingVolume.frag" />
-    <None Include="Shaders\Common\BoundingVolume.glsl" />
+    <None Include="Shaders\Wireframe.vert" />
+    <None Include="Shaders\Wireframe.frag" />
     <None Include="Shaders\Common\Model\ModelNodeTransform.glsl" />
     <None Include="Shaders\Common\Model\ModelBufferAddresses.glsl" />
     <None Include="Shaders\Common\Animation\AnimationBufferAddresses.glsl" />
@@ -767,5 +766,6 @@
     <None Include="Shaders\Common\Light\PointLight.glsl" />
     <None Include="Shaders\DeferredPointLight.frag" />
     <None Include="Shaders\DeferredPointLight.vert" />
+    <None Include="Shaders\Common\SimpleTransform.glsl" />
   </ItemGroup>
 </Project>

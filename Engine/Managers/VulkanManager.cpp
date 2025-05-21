@@ -446,8 +446,8 @@ void VulkanManager::InitShaderModuls()
 	RegisterShaderModule("DeferredPointLightFrag", std::make_shared<Vk::ShaderModule>("../Engine/Shaders/DeferredPointLight.frag", VK_SHADER_STAGE_FRAGMENT_BIT));
 
 	//Bounding Volume Wireframe Shaders
-	RegisterShaderModule("BoundingVolumeVert", std::make_shared<Vk::ShaderModule>("../Engine/Shaders/BoundingVolume.vert", VK_SHADER_STAGE_VERTEX_BIT));
-	RegisterShaderModule("BoundingVolumeFrag", std::make_shared<Vk::ShaderModule>("../Engine/Shaders/BoundingVolume.frag", VK_SHADER_STAGE_FRAGMENT_BIT));
+	RegisterShaderModule("WireframeVert", std::make_shared<Vk::ShaderModule>("../Engine/Shaders/Wireframe.vert", VK_SHADER_STAGE_VERTEX_BIT));
+	RegisterShaderModule("WireframeFrag", std::make_shared<Vk::ShaderModule>("../Engine/Shaders/Wireframe.frag", VK_SHADER_STAGE_FRAGMENT_BIT));
 }
 
 void VulkanManager::InitGraphicsPipelines()
@@ -561,8 +561,8 @@ void VulkanManager::InitGraphicsPipelines()
 		Vk::GraphicsPipelineBuilder pipelineBuilder;
 		pipelineBuilder
 			.ResetToDefault()
-			.AddShaderStage(shaderModuls["BoundingVolumeVert"])
-			.AddShaderStage(shaderModuls["BoundingVolumeFrag"])
+			.AddShaderStage(shaderModuls["WireframeVert"])
+			.AddShaderStage(shaderModuls["WireframeFrag"])
 			.AddDynamicState(VK_DYNAMIC_STATE_VIEWPORT)
 			.AddDynamicState(VK_DYNAMIC_STATE_SCISSOR)
 			.SetVertexInput({}, {})
@@ -576,7 +576,7 @@ void VulkanManager::InitGraphicsPipelines()
 			.SetDepthAttachmentFormat(VK_FORMAT_D32_SFLOAT)
 			.AddPushConstant(0, pushConsantSize, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
 
-		RegisterGraphicsPipeline("BoundingVolume", pipelineBuilder.BuildDynamic());
+		RegisterGraphicsPipeline("Wireframe", pipelineBuilder.BuildDynamic());
 	}
 }
 
