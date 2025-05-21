@@ -44,14 +44,14 @@ void BoundingVolumeRenderer::Render(VkCommandBuffer commandBuffer, std::shared_p
 
 				BoundingVolumeRendererPushConstants pushConstants;
 				pushConstants.cameraIndex = 0;
-				pushConstants.cameraBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("CameraData", frameIndex)->buffer->GetAddress();
-				pushConstants.vertexBuffer = shape->GetVertexBuffer()->GetAddress();
-				pushConstants.transformBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer(bufferName, frameIndex)->buffer->GetAddress();
+				pushConstants.cameraBufferAddress = resourceManager->GetComponentBufferManager()->GetComponentBuffer("CameraData", frameIndex)->buffer->GetAddress();
+				pushConstants.transformBufferAddress = resourceManager->GetComponentBufferManager()->GetComponentBuffer(bufferName, frameIndex)->buffer->GetAddress();
+				pushConstants.vertexBufferAddress = shape->GetVertexBuffer()->GetAddress();
+				pushConstants.indexBufferAddress = shape->GetIndexBuffer()->GetAddress();
 				pushConstants.color = color;
 
 				vkCmdPushConstants(commandBuffer, pipeline->GetLayout(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(BoundingVolumeRendererPushConstants), &pushConstants);
-				vkCmdBindIndexBuffer(commandBuffer, shape->GetIndexBuffer()->Value(), 0, VK_INDEX_TYPE_UINT32);
-				vkCmdDrawIndexed(commandBuffer, shape->GetIndexCount(), defaultColliderPool->GetDenseSize(), 0, 0, 0);
+				vkCmdDraw(commandBuffer, shape->GetIndexCount(), defaultColliderPool->GetDenseSize(), 0, 0);
 			}
 		};
 

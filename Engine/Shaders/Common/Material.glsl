@@ -1,4 +1,6 @@
 #extension GL_EXT_buffer_reference : require
+#extension GL_EXT_buffer_reference_uvec2 : require
+
 #define INVALID_IMAGE_INDEX 0xFFFFFFFFu
 
 struct Material {

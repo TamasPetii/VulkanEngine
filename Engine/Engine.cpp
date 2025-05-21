@@ -79,6 +79,8 @@ void Engine::Update()
 		resourceManager->GetBenchmarkManager()->AverageBenchmarkTimes();
 		resourceManager->GetBenchmarkManager()->ResetBenchmarkTimes();
 
+		std::cout << counter << std::endl;
+
 		time = 0;
 		counter = 0;
 	}

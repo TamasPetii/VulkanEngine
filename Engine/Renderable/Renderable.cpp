@@ -38,7 +38,7 @@ void Renderable::UploadToGpu()
 
 	Vk::BufferConfig indexBufferConfig;
 	indexBufferConfig.size = indexBufferSize;
-	indexBufferConfig.usage = VK_BUFFER_USAGE_2_TRANSFER_DST_BIT | VK_BUFFER_USAGE_2_INDEX_BUFFER_BIT;
+	indexBufferConfig.usage = VK_BUFFER_USAGE_2_TRANSFER_DST_BIT | VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT;
 	indexBufferConfig.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 	indexBuffer = std::make_shared<Vk::Buffer>(indexBufferConfig);
 

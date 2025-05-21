@@ -26,12 +26,24 @@ struct DeferredDirectionLightPushConstants
 	VkDeviceAddress directionLightBufferAddress;
 };
 
+struct DeferredPointLightPushConstants
+{
+	uint32_t cameraIndex;
+	VkDeviceAddress cameraBuffer;
+	VkDeviceAddress pointLightBufferAddress;
+	VkDeviceAddress transformBufferAddress;
+	VkDeviceAddress vertexBufferAddress;
+	VkDeviceAddress indexBufferAddress;
+	glm::vec2 viewPortSize;
+};
+
 struct BoundingVolumeRendererPushConstants
 {
 	uint32_t renderMode;
 	uint32_t cameraIndex;
-	VkDeviceAddress cameraBuffer;
-	VkDeviceAddress vertexBuffer;
-	VkDeviceAddress transformBuffer;
+	VkDeviceAddress cameraBufferAddress;
+	VkDeviceAddress transformBufferAddress;
+	VkDeviceAddress vertexBufferAddress;
+	VkDeviceAddress indexBufferAddress;
 	glm::vec4 color;
 };

@@ -743,8 +743,8 @@
     <None Include="Shaders\Basic.frag" />
     <None Include="Shaders\DeferredPre.vert" />
     <None Include="Shaders\DeferredPre.frag" />
-    <None Include="Shaders\DeferredDir.vert" />
-    <None Include="Shaders\DeferredDir.frag" />
+    <None Include="Shaders\DeferredDirectionLight.vert" />
+    <None Include="Shaders\DeferredDirectionLight.frag" />
     <None Include="Shaders\Common\Plane.glsl" />
     <None Include="Shaders\Common\Vertex.glsl" />
     <None Include="Shaders\Common\Transform.glsl" />
@@ -764,5 +764,8 @@
     <None Include="Shaders\Common\Render\RenderDefines.glsl" />
     <None Include="Shaders\Common\Index.glsl" />
     <None Include="Shaders\Common\Light\DirectionLight.glsl" />
+    <None Include="Shaders\Common\Light\PointLight.glsl" />
+    <None Include="Shaders\DeferredPointLight.frag" />
+    <None Include="Shaders\DeferredPointLight.vert" />
   </ItemGroup>
 </Project>

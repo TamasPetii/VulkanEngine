@@ -1,4 +1,5 @@
 #extension GL_EXT_buffer_reference : require
+#extension GL_EXT_buffer_reference_uvec2 : require
 
 struct Transform {
 	mat4 transform;

@@ -41,8 +41,8 @@ void main()
     uint modelIndex = InstanceIndexBuffer(PushConstants.instanceIndexBuffer).indices[gl_InstanceIndex];
 	RenderIndices renderIndices = RenderIndicesBuffer(PushConstants.renderIndicesBuffer).indices[modelIndex];
 	
-	uint vertexIndex = gl_VertexIndex;
-	//uint vertexIndex = IndexBuffer(ModelDeviceAddressesBuffer(PushConstants.modelBufferAddresses).deviceAddresses[renderIndices.modelIndex].indexBuffer).indices[gl_VertexIndex];
+	//uint vertexIndex = gl_VertexIndex;
+	uint vertexIndex = IndexBuffer(ModelDeviceAddressesBuffer(PushConstants.modelBufferAddresses).deviceAddresses[renderIndices.modelIndex].indexBuffer).indices[gl_VertexIndex];
 	Vertex v = VertexBuffer(ModelDeviceAddressesBuffer(PushConstants.modelBufferAddresses).deviceAddresses[renderIndices.modelIndex].vertexBuffer).vertices[vertexIndex];
 
 	vec4 position = vec4(v.position, 1.0);
