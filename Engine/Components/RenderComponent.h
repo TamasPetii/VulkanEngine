@@ -1,9 +1,9 @@
 #pragma once
 #include "BaseComponents/Component.h"
+#include "BaseComponents/FrustumCullable.h"
 
-struct ENGINE_API RenderComponent : public Component
+struct ENGINE_API RenderComponent : public Component, public FrustumCullable
 {
-	bool toRender = true;
 	bool castShadow;
 	bool receiveShadow;
 };

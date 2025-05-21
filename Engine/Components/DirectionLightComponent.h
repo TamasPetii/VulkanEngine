@@ -23,6 +23,7 @@ struct ENGINE_API DirectionLightShadow : public VersionIndexed
 	uint32_t textureSize;
 	uint32_t updateFrequency;
 	std::array<DirectionLightShadowFrameBuffer, GlobalConfig::FrameConfig::maxFramesInFlights> frameBuffers;
+	//Todo: cascade shadowmap viewProj, farPlane
 };
 
 struct ENGINE_API DirectionLightComponent : public Component
@@ -30,7 +31,7 @@ struct ENGINE_API DirectionLightComponent : public Component
 	DirectionLightComponent();
 
 	glm::vec3 color;
-	glm::vec3 direction;
+	glm::vec3 direction; //Mapped to transform component rotation!
 	float strength;
 	float shininess;
 	DirectionLightShadow shadow;
@@ -44,5 +45,7 @@ struct ENGINE_API DirectionLightGPU
 	float strength;
 	glm::vec3 direction;
 	float shininess;
+	//Todo: bitflag
+	//Todo: shadow viewProjs, farPlanes
 };
 

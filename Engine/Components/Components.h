@@ -7,3 +7,4 @@
 #include "DefaultColliderComponent.h"
 #include "AnimationComponent.h"
 #include "DirectionLightComponent.h"
+#include "PointLightComponent.h"
