@@ -99,7 +99,6 @@ void DeferredRenderer::RenderDirectionLights(VkCommandBuffer commandBuffer, std:
 
 void DeferredRenderer::RenderPointLights(VkCommandBuffer commandBuffer, std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex)
 {
-	/*
 	auto pointLightPool = registry->GetPool<PointLightComponent>();
 
 	if (!pointLightPool || pointLightPool->GetDenseSize() == 0)
@@ -133,47 +132,25 @@ void DeferredRenderer::RenderPointLights(VkCommandBuffer commandBuffer, std::sha
 	scissor.extent = frameBuffer->GetSize();
 	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-	std::for_each(std::execution::seq, geometryManager->GetShapes().begin(), geometryManager->GetShapes().end(),
-		[&](const std::pair<std::string, std::shared_ptr<Shape>>& data) -> void {
-			auto shape = data.second;
-			if (shape->GetInstanceCount() > 0)
-			{
-				GeometryRendererPushConstants pushConstants;
-				pushConstants.renderMode = SHAPE_INSTANCED;
-				pushConstants.cameraIndex = 0;
-				pushConstants.cameraBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("CameraData", frameIndex)->buffer->GetAddress();
-				pushConstants.vertexBuffer = shape->GetVertexBuffer()->GetAddress();
-				pushConstants.instanceIndexBuffer = shape->GetInstanceIndexBuffer(frameIndex)->GetAddress();
-				pushConstants.transformBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("TransformData", frameIndex)->buffer->GetAddress();
-				pushConstants.materialBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("MaterialData", frameIndex)->buffer->GetAddress();
-				pushConstants.renderIndicesBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("ShapeRenderIndicesData", frameIndex)->buffer->GetAddress();
-
-				vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(GeometryRendererPushConstants), &pushConstants);
-				vkCmdBindIndexBuffer(commandBuffer, shape->GetIndexBuffer()->Value(), 0, VK_INDEX_TYPE_UINT32);
-				vkCmdDrawIndexed(commandBuffer, shape->GetIndexCount(), shape->GetInstanceCount(), 0, 0, 0);
-			}
-		}
-	);
-
+	auto shape = resourceManager->GetGeometryManager()->GetShape("Sphere");
 
 	DeferredPointLightPushConstants pushConstants;
-	pushConstants.cameraIndex = 0;
+	pushConstants.cameraIndex = 0; //TODO: MAIN CAMERA
 	pushConstants.cameraBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("CameraData", frameIndex)->buffer->GetAddress();
 	pushConstants.pointLightBufferAddress = resourceManager->GetComponentBufferManager()->GetComponentBuffer("PointLightData", frameIndex)->buffer->GetAddress();
 	pushConstants.transformBufferAddress = resourceManager->GetComponentBufferManager()->GetComponentBuffer("TransformData", frameIndex)->buffer->GetAddress();
-	pushConstants.vertexBufferAddress = resourceManager->GetGeometryManager()->GetShape("Sphere")->GetVertexBuffer()->GetAddress();
-	pushConstants.indexBufferAddress = resourceManager->GetGeometryManager()->GetShape("Sphere")->GetIndexBuffer()->GetAddress();
+	pushConstants.vertexBufferAddress = shape->GetVertexBuffer()->GetAddress();
+	pushConstants.indexBufferAddress = shape->GetIndexBuffer()->GetAddress();
 	pushConstants.viewPortSize = glm::vec2(viewport.width, viewport.height);
 
-	vkCmdPushConstants(commandBuffer, pipeline->GetLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(DeferredDirectionLightPushConstants), &pushConstants);
+	vkCmdPushConstants(commandBuffer, pipeline->GetLayout(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(DeferredPointLightPushConstants), &pushConstants);
 
 	auto frameBufferDescriptorSet = resourceManager->GetVulkanManager()->GetFrameDependentDescriptorSet("MainFrameBuffer", frameIndex);
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetLayout(), 0, 1, &frameBufferDescriptorSet->Value(), 0, nullptr);
 
-	//TODO: BIND DIRLIGHT DYNAMIC DESCRIPTOR ARRAY INDICES
+	//TODO: BIND POINT LIGHT DYNAMIC DESCRIPTOR ARRAY INDICES
 
-	vkCmdDraw(commandBuffer, 4, directionLightPool->GetDenseSize(), 0, 0);
+	vkCmdDraw(commandBuffer, shape->GetIndexCount(), pointLightPool->GetDenseSize(), 0, 0);
 
 	vkCmdEndRendering(commandBuffer);
-	*/
 }

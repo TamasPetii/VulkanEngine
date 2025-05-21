@@ -10,7 +10,7 @@ PointLightShadow::PointLightShadow() :
 PointLightComponent::PointLightComponent() :
 	color(glm::vec3(1.f)),
 	position(glm::vec3(0.f)),
-	radius(5.f),
+	radius(1.f),
 	weakenDistance(0.f),
 	strength(1.f),
 	shininess(32)

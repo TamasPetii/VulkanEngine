@@ -9,6 +9,8 @@
 #include <memory>
 #include <array>
 
+constexpr float defaultPointLightRadius = 1.f;
+
 struct ENGINE_API PointLightShadowFrameBuffer : public VersionIndexed
 {
 	std::shared_ptr<Vk::FrameBuffer> frameBuffer = nullptr;

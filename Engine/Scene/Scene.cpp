@@ -59,7 +59,6 @@ void Scene::InitializeRegistry()
 		registry->AddComponents<TransformComponent, DirectionLightComponent>(entity);
 	}
 
-	/*
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
@@ -75,6 +74,7 @@ void Scene::InitializeRegistry()
 		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Bistro_v5_2/BistroExterior.fbx");
 		modelComponent.hasDirectxNormals = true;
 	}
+	/*
 	*/
 
 	/*
@@ -165,7 +165,7 @@ void Scene::InitializeRegistry()
 		"C:/Users/User/Desktop/Animations/Worker_Dancing.dae"
 	};
 
-	for (uint32_t i = 0; i < 100; ++i)
+	for (uint32_t i = 0; i < 5; ++i)
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, AnimationComponent, DefaultColliderComponent>(entity);

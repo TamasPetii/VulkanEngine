@@ -55,6 +55,13 @@ void PointLightSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_
 
 				pointLightComponent.position = glm::vec3(transformComponent.transform * glm::vec4(0.f, 0.f, 0.f, 1.f));
 
+				glm::vec3 scale;
+				scale.x = glm::length(glm::vec3(transformComponent.transform[0]));
+				scale.y = glm::length(glm::vec3(transformComponent.transform[1]));
+				scale.z = glm::length(glm::vec3(transformComponent.transform[2]));
+
+				pointLightComponent.radius = defaultPointLightRadius * std::max({ scale.x, scale.y, scale.z });
+
 				pointLightPool->SetBit<CHANGED_BIT>(entity);
 				pointLightComponent.version++;
 			}
