@@ -10,3 +10,4 @@
 #include "FrustumCullingSystem.h"
 #include "AnimationSystem.h"
 #include "DirectionLightSystem.h"
+#include "PointLightSystem.h"

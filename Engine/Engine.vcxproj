@@ -166,6 +166,9 @@
     <ClInclude Include="Components\BaseComponents\Component.h" />
     <ClInclude Include="Components\RenderIndicesComponent.h" />
     <ClInclude Include="Components\DirectionLightComponent.h" />
+    <ClInclude Include="Components\PointLightComponent.h" />
+    <ClInclude Include="Components\BaseComponents\FrustumCullable.h" />
+    <ClInclude Include="Systems\PointLightSystem.h" />
     <ClInclude Include="Systems\DirectionLightSystem.h" />
     <ClInclude Include="Systems\RenderIndicesSystem.h" />
     <ClInclude Include="Managers\BaseManagers\BatchedGpuUploadedManager.h" />
@@ -289,6 +292,9 @@
     <ClCompile Include="Components\BaseComponents\Component.cpp" />
     <ClCompile Include="Components\RenderIndicesComponent.cpp" />
     <ClCompile Include="Components\DirectionLightComponent.cpp" />
+    <ClCompile Include="Components\PointLightComponent.cpp" />
+    <ClCompile Include="Components\BaseComponents\FrustumCullable.cpp" />
+    <ClCompile Include="Systems\PointLightSystem.cpp" />
     <ClCompile Include="Systems\DirectionLightSystem.cpp" />
     <ClCompile Include="Systems\RenderIndicesSystem.cpp" />
     <ClCompile Include="Managers\BaseManagers\BatchedGpuUploadedManager.cpp" />

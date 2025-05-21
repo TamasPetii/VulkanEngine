@@ -15,9 +15,6 @@ void BenchmarkManager::ResetBenchmarkTimes()
 	for (auto& [typeID, time] : benchmarkTimes)
 		time = 0;
 
-	for (auto& [typeID, time] : averageBenchmarkTimes)
-		time = 0;
-
 	counter = 0;
 }
 

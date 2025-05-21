@@ -29,7 +29,7 @@ void DirectionLightSystem::OnUpdate(std::shared_ptr<Registry> registry, std::sha
 				depthImageSpec.viewType = VK_IMAGE_VIEW_TYPE_2D;
 				depthImageSpec.format = VK_FORMAT_D32_SFLOAT;
 				depthImageSpec.tiling = VK_IMAGE_TILING_OPTIMAL;
-				depthImageSpec.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+				depthImageSpec.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 				depthImageSpec.aspectFlag = VK_IMAGE_ASPECT_DEPTH_BIT;
 				depthImageSpec.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 

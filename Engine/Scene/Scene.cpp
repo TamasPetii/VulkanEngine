@@ -56,6 +56,12 @@ void Scene::InitializeRegistry()
 
 	{
 		auto entity = registry->CreateEntity();
+		registry->AddComponents<TransformComponent, DirectionLightComponent>(entity);
+	}
+
+	/*
+	{
+		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
 		auto [transformComponent, modelComponent] = registry->GetComponents<TransformComponent, ModelComponent>(entity);
 		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Bistro_v5_2/BistroInterior.fbx");
@@ -69,6 +75,7 @@ void Scene::InitializeRegistry()
 		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Bistro_v5_2/BistroExterior.fbx");
 		modelComponent.hasDirectxNormals = true;
 	}
+	*/
 
 	/*
 	{
@@ -224,6 +231,7 @@ void Scene::InitializeSystems()
 	InitSystem<FrustumCullingSystem>();
 	InitSystem<AnimationSystem>();
 	InitSystem<DirectionLightSystem>();
+	InitSystem<PointLightSystem>();
 }
 
 void Scene::UpdateSystems(uint32_t frameIndex, float deltaTime)
@@ -231,6 +239,8 @@ void Scene::UpdateSystems(uint32_t frameIndex, float deltaTime)
 	Timer timer{};
 
 	std::unordered_map<std::type_index, std::future<void>> futures;
+
+	//TODO: DEDICATED THREAD FOR EACH SYSTEM
 
 	auto LaunchSystemUpdateAsync = [&]<typename T>() -> void {
 		futures[Unique::typeID<T>()] = std::async(std::launch::async, 
@@ -252,6 +262,7 @@ void Scene::UpdateSystems(uint32_t frameIndex, float deltaTime)
 	//DefaultColliderSystem uses these systems output as input
 	futures[Unique::typeID<TransformSystem>()].get();
 	LaunchSystemUpdateAsync.template operator() < DirectionLightSystem > ();
+	LaunchSystemUpdateAsync.template operator() < PointLightSystem > ();
 
 	futures[Unique::typeID<ShapeSystem>()].get();
 	futures[Unique::typeID<ModelSystem>()].get();
@@ -296,6 +307,7 @@ void Scene::FinishSystems()
 	LaunchSystemFinishAsync.template operator() < DefaultColliderSystem > ();
 	LaunchSystemFinishAsync.template operator() < AnimationSystem > ();
 	LaunchSystemFinishAsync.template operator() < DirectionLightSystem > ();
+	LaunchSystemFinishAsync.template operator() < PointLightSystem > ();
 
 	for (auto& [_, future] : futures) {
 		if (future.valid())
@@ -327,6 +339,7 @@ void Scene::UpdateSystemsGPU(uint32_t frameIndex)
 	LaunchSystemUpdateGpuAsync.template operator() < DefaultColliderSystem > ();
 	LaunchSystemUpdateGpuAsync.template operator() < AnimationSystem > ();
 	LaunchSystemUpdateGpuAsync.template operator() < DirectionLightSystem > ();
+	LaunchSystemUpdateGpuAsync.template operator() < PointLightSystem > ();
 
 	for (auto& [_, future] : futures) {
 		if (future.valid())
@@ -348,4 +361,5 @@ void Scene::UpdateComponentBuffers(uint32_t frameIndex)
 	RecalculateGpuBufferSize<DefaultColliderComponent, glm::mat4>("DefaultColliderSphereData", frameIndex);
 	RecalculateGpuBufferSize<AnimationComponent, VkDeviceAddress>("AnimationNodeTransformDeviceAddressesBuffers", frameIndex);
 	RecalculateGpuBufferSize<DirectionLightComponent, DirectionLightGPU>("DirectionLightData", frameIndex);
+	RecalculateGpuBufferSize<PointLightComponent, PointLightGPU>("PointLightData", frameIndex);
 }
