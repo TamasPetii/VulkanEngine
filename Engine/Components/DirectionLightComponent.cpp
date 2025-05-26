@@ -1,17 +1,11 @@
 #include "DirectionLightComponent.h"
 
-DirectionLightShadow::DirectionLightShadow() : 
-	use(false),
-	textureSize(2048),
-	updateFrequency(1)
+DirectionLightShadow::DirectionLightShadow()
 {
 }
 
 DirectionLightComponent::DirectionLightComponent() : 
-	color(glm::vec3(1.f)),
-	direction(defaultDirectionLightDirection),
-	strength(1.f),
-	shininess(32)
+	direction(defaultDirectionLightDirection)
 {
 }
 

@@ -1,10 +1,9 @@
 #pragma once
-#include "BaseComponents/VersionIndexed.h"
 #include "BaseComponents/Component.h"
+#include "BaseComponents/Light.h"
+#include "BaseComponents/VersionIndexed.h"
 #include "BaseComponents/FrustumCullable.h"
 
-#include "Engine/Vulkan/FrameBuffer.h"
-#include "Engine/Config.h"
 #include <glm/glm.hpp>
 #include <memory>
 #include <array>
@@ -13,35 +12,22 @@ constexpr float defaultPointLightRadius = 1.f;
 
 class PointLightSystem;
 
-struct ENGINE_API PointLightShadowFrameBuffer : public VersionIndexed
-{
-	std::shared_ptr<Vk::FrameBuffer> frameBuffer = nullptr;
-};
-
-struct ENGINE_API PointLightShadow : public VersionIndexed
+struct ENGINE_API PointLightShadow : public LightShadow
 {
 	PointLightShadow();
-
-	bool use;
-	uint32_t textureSize;
-	uint32_t updateFrequency;
-	std::array<PointLightShadowFrameBuffer, GlobalConfig::FrameConfig::maxFramesInFlights> frameBuffers;
-	//Todo: viewProjs
+	//farplane = radius
+	std::array<glm::mat4, 6> viewProj;
 };
 
-struct ENGINE_API PointLightComponent : public Component, public FrustumCullable
+struct ENGINE_API PointLightComponent : public Light, public Component, public FrustumCullable
 {
 	PointLightComponent();
 
-	glm::vec3 color;
 	glm::vec3 position; //Mapped to transform component translation!
 	float radius; //Mapped to transform component scale (max value)
 	float weakenDistance;
-	float strength;
-	float shininess;
 	PointLightShadow shadow;
 	//Todo: Visible entities??? Instanced???? Maybe in models???? Or like a model map?
-
 private:
 	glm::mat4 transform; //Cannot use transform component becouse of the scale can be different on xyz!
 	friend class PointLightSystem;
