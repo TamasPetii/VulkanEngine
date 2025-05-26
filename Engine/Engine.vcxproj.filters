@@ -393,6 +393,9 @@
     <ClInclude Include="Components\BaseComponents\Light.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Systems\SpotLightSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -744,6 +747,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Components\BaseComponents\Light.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Systems\SpotLightSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

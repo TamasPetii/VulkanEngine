@@ -52,7 +52,10 @@ void DirectionLightSystem::OnUpdate(std::shared_ptr<Registry> registry, std::sha
 				auto& transformComponent = transformPool->GetData(entity);
 				auto& directionLightComponent = directionLightPool->GetData(entity);
 
-				directionLightComponent.direction = glm::vec3(transformComponent.transform * glm::vec4(defaultDirectionLightDirection, 0.f));
+				directionLightComponent.direction = glm::normalize(glm::vec3(transformComponent.transform * glm::vec4(defaultDirectionLightDirection, 0.f)));
+
+				//Todo: ViewProj calculation
+				//Todo: FarPlane calculation
 
 				directionLightPool->SetBit<CHANGED_BIT>(entity);
 				directionLightComponent.version++;

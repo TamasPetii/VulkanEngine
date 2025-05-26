@@ -8,3 +8,4 @@
 #include "AnimationComponent.h"
 #include "DirectionLightComponent.h"
 #include "PointLightComponent.h"
+#include "SpotLightComponent.h"

@@ -11,3 +11,4 @@
 #include "AnimationSystem.h"
 #include "DirectionLightSystem.h"
 #include "PointLightSystem.h"
+#include "SpotLightSystem.h"

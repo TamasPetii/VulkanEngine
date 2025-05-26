@@ -65,6 +65,8 @@ void PointLightSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_
 				pointLightComponent.radius = defaultPointLightRadius * std::max({ scale.x, scale.y, scale.z });
 				pointLightComponent.transform = glm::translate(pointLightComponent.position) * glm::scale(glm::vec3(pointLightComponent.radius));
 
+				//Todo: ViewProj calculation
+
 				pointLightPool->SetBit<CHANGED_BIT>(entity);
 				pointLightComponent.version++;
 

@@ -367,4 +367,6 @@ void Scene::UpdateComponentBuffers(uint32_t frameIndex)
 	RecalculateGpuBufferSize<DirectionLightComponent, DirectionLightGPU>("DirectionLightData", frameIndex);
 	RecalculateGpuBufferSize<PointLightComponent, PointLightGPU>("PointLightData", frameIndex);
 	RecalculateGpuBufferSize<PointLightComponent, glm::mat4>("PointLightTransform", frameIndex);
+	RecalculateGpuBufferSize<SpotLightComponent, SpotLightGPU>("SpotLightData", frameIndex);
+	RecalculateGpuBufferSize<SpotLightComponent, glm::mat4>("SpotLightTransform", frameIndex);
 }
