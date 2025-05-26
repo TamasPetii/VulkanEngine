@@ -9,13 +9,14 @@ layout(location = 0) out flat uint vs_out_id;
 
 layout( push_constant ) uniform constants
 {	
-	uint cameraIndex;
 	uvec2 cameraBuffer;
 	uvec2 pointLightBuffer;
 	uvec2 transformBufferAddress;
 	uvec2 vertexBufferAddress;
 	uvec2 indexBufferAddress;
 	vec2 viewPortSize;
+	vec3 padding;
+	uint cameraIndex;
 } PushConstants;
 
 void main() 

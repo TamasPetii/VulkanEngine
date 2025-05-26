@@ -25,8 +25,6 @@ layout (location = 4) out mat3 vs_out_tbn;
 
 layout( push_constant ) uniform constants
 {	
-	uint renderMode;
-	uint cameraIndex;
 	uvec2 cameraBuffer;
 	uvec2 transformBuffer;
 	uvec2 instanceIndexBuffer;
@@ -34,6 +32,8 @@ layout( push_constant ) uniform constants
 	uvec2 modelBufferAddresses;
 	uvec2 animationTransformBufferAddresses;
 	uvec2 animationVertexBoneBufferAddresses;
+	uint renderMode;
+	uint cameraIndex;
 } PushConstants;
 
 void main() 

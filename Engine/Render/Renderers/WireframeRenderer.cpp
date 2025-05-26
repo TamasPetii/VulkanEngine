@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <execution>
 #include "Engine/Components/DefaultColliderComponent.h"
+#include "Engine/Components/PointLightComponent.h"
 
 void WireframeRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex)
 {
@@ -35,10 +36,9 @@ void WireframeRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Re
 	scissor.extent = frameBuffer->GetSize();
 	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-	auto RenderBoundingVolume = [&](const std::string& shapeName, const std::string& bufferName, const glm::vec4& color) -> void 
+	auto RenderWireframeVolume = [&](const std::string& shapeName, const std::string& bufferName, const glm::vec4& color, uint32_t count) -> void 
 		{
-			auto defaultColliderPool = registry->GetPool<DefaultColliderComponent>();
-			if (defaultColliderPool && defaultColliderPool->GetDenseSize() > 0)
+			if (count > 0)
 			{
 				auto shape = resourceManager->GetGeometryManager()->GetShape(shapeName);
 
@@ -51,21 +51,31 @@ void WireframeRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Re
 				pushConstants.color = color;
 
 				vkCmdPushConstants(commandBuffer, pipeline->GetLayout(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(BoundingVolumeRendererPushConstants), &pushConstants);
-				vkCmdDraw(commandBuffer, shape->GetIndexCount(), defaultColliderPool->GetDenseSize(), 0, 0);
+				vkCmdDraw(commandBuffer, shape->GetIndexCount(), count, 0, 0);
 			}
 		};
 
-	if(GlobalConfig::WireframeConfig::showColliderAABB)
-		RenderBoundingVolume("Cube", "DefaultColliderAabbData", glm::vec4(1, 1, 1, 1));
+	if (auto defaultColliderPool = registry->GetPool<DefaultColliderComponent>())
+	{
+		uint32_t count = defaultColliderPool->GetDenseSize();
 
-	if(GlobalConfig::WireframeConfig::showColliderOBB)
-		RenderBoundingVolume("Cube", "DefaultColliderObbData", glm::vec4(1, 0, 0, 1));
+		if(GlobalConfig::WireframeConfig::showColliderAABB)
+			RenderWireframeVolume("Cube", "DefaultColliderAabbData", glm::vec4(1, 1, 1, 1), count);
 
-	if(GlobalConfig::WireframeConfig::showColliderSphere)
-		RenderBoundingVolume("ProxySphere", "DefaultColliderSphereData", glm::vec4(1, 0, 1, 1));
+		if(GlobalConfig::WireframeConfig::showColliderOBB)
+			RenderWireframeVolume("Cube", "DefaultColliderObbData", glm::vec4(1, 0, 0, 1), count);
 
-	if (GlobalConfig::WireframeConfig::showPointLights)
-		RenderBoundingVolume("ProxySphere", "PointLightTransform", glm::vec4(1, 1, 1, 1));
+		if(GlobalConfig::WireframeConfig::showColliderSphere)
+			RenderWireframeVolume("ProxySphere", "DefaultColliderSphereData", glm::vec4(1, 0, 1, 1), count);
+	}
+
+	if (auto pointLightPool = registry->GetPool<PointLightComponent>())
+	{
+		uint32_t count = pointLightPool->GetDenseSize();
+
+		if (GlobalConfig::WireframeConfig::showPointLights)
+			RenderWireframeVolume("Cube", "PointLightTransform", glm::vec4(1, 1, 1, 1), count);
+	}
 
 	vkCmdEndRendering(commandBuffer);
 }

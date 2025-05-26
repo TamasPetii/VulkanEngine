@@ -12,13 +12,14 @@ layout(set = 0, binding = 3) uniform sampler2D u_normalTexture;
 
 layout( push_constant ) uniform constants
 {	 
-	uint cameraIndex;
 	uvec2 cameraBuffer;
 	uvec2 pointLightBuffer;
 	uvec2 transformBufferAddress;
 	uvec2 vertexBufferAddress;
 	uvec2 indexBufferAddress;
 	vec2 viewPortSize;
+	vec3 padding;
+	uint cameraIndex;
 } PushConstants;
 
 void main()
@@ -35,6 +36,5 @@ void main()
 	vec3 toLight = normalize(light.position - position);
 
 	float cosa = clamp(dot(normal, toLight), 0, 1);
-	//fs_out_col = vec4(cosa * color * light.color, 1);
-	fs_out_col = vec4(10, 10, 10, 1);
+	fs_out_col = vec4(light.color, 1);
 }

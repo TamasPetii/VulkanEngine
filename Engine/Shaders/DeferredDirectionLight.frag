@@ -14,9 +14,10 @@ layout(set = 0, binding = 3) uniform sampler2D u_normalTexture;
 
 layout( push_constant ) uniform constants
 {	
-	uint cameraIndex;
 	uvec2 cameraBuffer;
 	uvec2 directionLightBuffer;
+	vec3 padding;
+	uint cameraIndex;
 } PushConstants;
 
 void main()
@@ -29,5 +30,5 @@ void main()
 	DirectionLight light = DirectionLightBuffer(PushConstants.directionLightBuffer).lights[fs_in_id];
 
 	float cosa = clamp(dot(normal, -light.direction), 0, 1);
-	fs_out_col = vec4(cosa * color * light.color, 1);
+	fs_out_col = vec4(cosa * color * light.color * 1.25, 1);
 }

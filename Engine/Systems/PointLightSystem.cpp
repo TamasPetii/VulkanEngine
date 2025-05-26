@@ -67,6 +67,8 @@ void PointLightSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_
 
 				pointLightPool->SetBit<CHANGED_BIT>(entity);
 				pointLightComponent.version++;
+
+				std::cout << std::format("Point light: position({},{},{}) | radius({})", pointLightComponent.position.x, pointLightComponent.position.y, pointLightComponent.position.z, pointLightComponent.radius) << std::endl;
 			}
 		}
 	);

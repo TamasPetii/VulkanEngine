@@ -59,7 +59,6 @@ void Scene::InitializeRegistry()
 		registry->AddComponents<TransformComponent, PointLightComponent>(entity);
 	}
 
-	/*
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
@@ -75,7 +74,6 @@ void Scene::InitializeRegistry()
 		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Bistro_v5_2/BistroExterior.fbx");
 		modelComponent.hasDirectxNormals = true;
 	}
-	*/
 
 	{
 		auto entity = registry->CreateEntity();
@@ -84,8 +82,6 @@ void Scene::InitializeRegistry()
 		transformComponent.scale = glm::vec3(0.01);
 		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/VulkanEngine/Assets/Sponza/sponza.obj");
 	}
-	/*
-	*/
 
 	/*
 	{
@@ -165,7 +161,15 @@ void Scene::InitializeRegistry()
 		"C:/Users/User/Desktop/Animations/Worker_Dancing.dae"
 	};
 
-	for (uint32_t i = 0; i < 5; ++i)
+	{
+		auto entity = registry->CreateEntity();
+		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
+		auto [transformComponent, modelComponent] = registry->GetComponents<TransformComponent, ModelComponent>(entity);
+		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Animations/Worker_Standing.dae");
+		transformComponent.translation = 100.f * glm::vec3(dist(rng), 0, dist(rng));
+	}
+
+	for (uint32_t i = 0; i < 1; ++i)
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, AnimationComponent, DefaultColliderComponent>(entity);

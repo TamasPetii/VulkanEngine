@@ -8,8 +8,6 @@
 
 struct GeometryRendererPushConstants
 {
-	uint32_t renderMode;
-	uint32_t cameraIndex;
 	VkDeviceAddress cameraBuffer;
 	VkDeviceAddress transformBuffer;
 	VkDeviceAddress instanceIndexBuffer;
@@ -17,34 +15,37 @@ struct GeometryRendererPushConstants
 	VkDeviceAddress modelBufferAddresses;
 	VkDeviceAddress animationTransformBufferAddresses;
 	VkDeviceAddress animationVertexBoneBufferAddresses;
+	uint32_t renderMode;
+	uint32_t cameraIndex;
 };
 
 struct DeferredDirectionLightPushConstants
 {	
-	uint32_t cameraIndex;
 	VkDeviceAddress cameraBuffer;
 	VkDeviceAddress directionLightBufferAddress;
+	glm::vec3 padding;
+	uint32_t cameraIndex;
 };
 
 struct DeferredPointLightPushConstants
 {
-	uint32_t cameraIndex;
 	VkDeviceAddress cameraBuffer;
 	VkDeviceAddress pointLightBufferAddress;
 	VkDeviceAddress transformBufferAddress;
 	VkDeviceAddress vertexBufferAddress;
 	VkDeviceAddress indexBufferAddress;
 	glm::vec2 viewPortSize;
+	glm::vec3 padding;
+	uint32_t cameraIndex;
 };
 
 struct BoundingVolumeRendererPushConstants
 {
-	uint32_t renderMode;
-	uint32_t cameraIndex;
 	VkDeviceAddress cameraBufferAddress;
 	VkDeviceAddress transformBufferAddress;
 	VkDeviceAddress vertexBufferAddress;
 	VkDeviceAddress indexBufferAddress;
-	VkDeviceAddress padding;
 	glm::vec4 color;
+	glm::vec3 padding;
+	uint32_t cameraIndex;
 };

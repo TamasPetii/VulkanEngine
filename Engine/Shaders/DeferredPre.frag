@@ -21,8 +21,6 @@ layout (location = 3) out uint fs_out_entity;
 
 layout( push_constant ) uniform constants
 {	
-	uint renderMode;
-	uint cameraIndex;
 	uvec2 cameraBuffer;
 	uvec2 transformBuffer;
 	uvec2 instanceIndexBuffer;
@@ -30,6 +28,8 @@ layout( push_constant ) uniform constants
 	uvec2 modelBufferAddresses;
 	uvec2 animationTransformBufferAddresses;
 	uvec2 animationVertexBoneBufferAddresses;
+	uint renderMode;
+	uint cameraIndex;
 } PushConstants;
 
 void main() 

@@ -8,14 +8,13 @@
 
 layout( push_constant ) uniform constants
 {	
-	uint renderMode;
-	uint cameraIndex;
 	uvec2 cameraBufferAddress;
 	uvec2 transformBufferAddress;
 	uvec2 vertexBufferAddress;
 	uvec2 indexBufferAddress;
-	uvec2 padding;
 	vec4 color;
+	vec3 padding;
+	uint cameraIndex;
 } PushConstants;
 
 void main() 
