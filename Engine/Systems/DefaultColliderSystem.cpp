@@ -58,7 +58,7 @@ void DefaultColliderSystem::OnFinish(std::shared_ptr<Registry> registry)
 	if (!defaultColliderPool || !transformPool)
 		return;
 
-	std::for_each(std::execution::par, defaultColliderPool->GetDenseIndices().begin(), defaultColliderPool->GetDenseIndices().end(),
+	std::for_each(std::execution::seq, defaultColliderPool->GetDenseIndices().begin(), defaultColliderPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
 			[[unlikely]]
 			if(defaultColliderPool->IsBitSet<CHANGED_BIT>(entity))

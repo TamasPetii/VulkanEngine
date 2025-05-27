@@ -9,7 +9,7 @@ void AnimationSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_p
 	if (!animationPool || !modelPool)
 		return;
 
-	std::for_each(std::execution::par, animationPool->GetDenseIndices().begin(), animationPool->GetDenseIndices().end(),
+	std::for_each(std::execution::seq, animationPool->GetDenseIndices().begin(), animationPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
 			auto& animationComponent = animationPool->GetData(entity);
 
@@ -98,7 +98,7 @@ void AnimationSystem::OnFinish(std::shared_ptr<Registry> registry)
 	if (!animationPool)
 		return;
 
-	std::for_each(std::execution::par, animationPool->GetDenseIndices().begin(), animationPool->GetDenseIndices().end(),
+	std::for_each(std::execution::seq, animationPool->GetDenseIndices().begin(), animationPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
 			[[unlikely]]
 			if (animationPool->IsBitSet<CHANGED_BIT>(entity))

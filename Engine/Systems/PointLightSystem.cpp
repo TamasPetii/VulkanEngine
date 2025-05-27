@@ -55,7 +55,8 @@ void PointLightSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_
 				auto& transformComponent = transformPool->GetData(entity);
 				auto& pointLightComponent = pointLightPool->GetData(entity);
 
-				pointLightComponent.position = glm::vec3(transformComponent.transform * glm::vec4(0.f, 0.f, 0.f, 1.f));
+				glm::vec4 position = transformComponent.transform * glm::vec4(0.f, 0.f, 0.f, 1.f);
+				pointLightComponent.position = glm::vec3(position.x, position.y, position.z);
 
 				glm::vec3 scale;
 				scale.x = glm::length(glm::vec3(transformComponent.transform[0]));
@@ -63,7 +64,10 @@ void PointLightSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_
 				scale.z = glm::length(glm::vec3(transformComponent.transform[2]));
 
 				pointLightComponent.radius = defaultPointLightRadius * std::max({ scale.x, scale.y, scale.z });
-				pointLightComponent.transform = glm::translate(pointLightComponent.position) * glm::scale(glm::vec3(pointLightComponent.radius));
+				
+				pointLightComponent.transform = glm::mat4(1.0f);
+				pointLightComponent.transform = glm::translate(pointLightComponent.transform, pointLightComponent.position);
+				pointLightComponent.transform = glm::scale(pointLightComponent.transform, glm::vec3(pointLightComponent.radius));
 
 				//Todo: ViewProj calculation
 
@@ -105,7 +109,7 @@ void PointLightSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::sh
 	auto pointLightComponentBufferHandler = static_cast<PointLightGPU*>(pointLightComponentBuffer->buffer->GetHandler());
 
 	auto pointLightTransformBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("PointLightTransform", frameIndex);
-	auto pointLightTransformBufferHandler = static_cast<glm::mat4*>(pointLightComponentBuffer->buffer->GetHandler());
+	auto pointLightTransformBufferHandler = static_cast<glm::mat4*>(pointLightTransformBuffer->buffer->GetHandler());
 
 	std::for_each(std::execution::seq, pointLightPool->GetDenseIndices().begin(), pointLightPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {

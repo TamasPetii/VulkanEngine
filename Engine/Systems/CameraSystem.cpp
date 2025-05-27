@@ -13,7 +13,7 @@ void CameraSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<
 	if (!transformPool || !cameraPool)
 		return;
 
-	std::for_each(std::execution::par, cameraPool->GetDenseIndices().begin(), cameraPool->GetDenseIndices().end(),
+	std::for_each(std::execution::seq, cameraPool->GetDenseIndices().begin(), cameraPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void
 		{
 			if (inputManager->IsKeyHeld(KEY_W) || inputManager->IsKeyHeld(KEY_S) || inputManager->IsKeyHeld(KEY_A) || inputManager->IsKeyHeld(KEY_D) || inputManager->IsButtonHeld(BUTTON_RIGHT))
@@ -81,7 +81,7 @@ void CameraSystem::OnFinish(std::shared_ptr<Registry> registry)
 	if (!cameraPool)
 		return;
 
-	std::for_each(std::execution::par, cameraPool->GetDenseIndices().begin(), cameraPool->GetDenseIndices().end(),
+	std::for_each(std::execution::seq, cameraPool->GetDenseIndices().begin(), cameraPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
 			if(cameraPool->IsBitSet<CHANGED_BIT>(entity))
 				cameraPool->GetBitset(entity).reset();
@@ -99,7 +99,7 @@ void CameraSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::shared
 	auto componentBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("CameraData", frameIndex);
 	auto bufferHandler = static_cast<CameraComponentGPU*>(componentBuffer->buffer->GetHandler());
 
-	std::for_each(std::execution::par, cameraPool->GetDenseIndices().begin(), cameraPool->GetDenseIndices().end(),
+	std::for_each(std::execution::seq, cameraPool->GetDenseIndices().begin(), cameraPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
 			auto& cameraComponent = cameraPool->GetData(entity);
 			auto cameraIndex = cameraPool->GetDenseIndex(entity);

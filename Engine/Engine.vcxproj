@@ -183,6 +183,7 @@
     <ClInclude Include="Systems\AnimationSystem.h" />
     <ClInclude Include="Components\AnimationComponent.h" />
     <ClInclude Include="Animation\Animation.h" />
+    <ClInclude Include="Components\TagComponent.h" />
     <ClInclude Include="Utils\AsyncLoaded.h" />
     <ClInclude Include="Utils\BatchUploaded.h" />
     <ClInclude Include="Animation\Bone.h" />
@@ -312,6 +313,7 @@
     <ClCompile Include="Systems\AnimationSystem.cpp" />
     <ClCompile Include="Components\AnimationComponent.cpp" />
     <ClCompile Include="Animation\Animation.cpp" />
+    <ClCompile Include="Components\TagComponent.cpp" />
     <ClCompile Include="Utils\AsyncLoaded.cpp" />
     <ClCompile Include="Utils\BatchUploaded.cpp" />
     <ClCompile Include="Animation\Bone.cpp" />

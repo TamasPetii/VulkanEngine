@@ -236,6 +236,7 @@ void Scene::InitializeSystems()
 	InitSystem<AnimationSystem>();
 	InitSystem<DirectionLightSystem>();
 	InitSystem<PointLightSystem>();
+	InitSystem<SpotLightSystem>();
 }
 
 void Scene::UpdateSystems(uint32_t frameIndex, float deltaTime)
@@ -267,6 +268,7 @@ void Scene::UpdateSystems(uint32_t frameIndex, float deltaTime)
 	futures[Unique::typeID<TransformSystem>()].get();
 	LaunchSystemUpdateAsync.template operator() < DirectionLightSystem > ();
 	LaunchSystemUpdateAsync.template operator() < PointLightSystem > ();
+	LaunchSystemUpdateAsync.template operator() < SpotLightSystem > ();
 
 	futures[Unique::typeID<ShapeSystem>()].get();
 	futures[Unique::typeID<ModelSystem>()].get();
@@ -312,6 +314,7 @@ void Scene::FinishSystems()
 	LaunchSystemFinishAsync.template operator() < AnimationSystem > ();
 	LaunchSystemFinishAsync.template operator() < DirectionLightSystem > ();
 	LaunchSystemFinishAsync.template operator() < PointLightSystem > ();
+	LaunchSystemFinishAsync.template operator() < SpotLightSystem > ();
 
 	for (auto& [_, future] : futures) {
 		if (future.valid())
@@ -344,6 +347,7 @@ void Scene::UpdateSystemsGPU(uint32_t frameIndex)
 	LaunchSystemUpdateGpuAsync.template operator() < AnimationSystem > ();
 	LaunchSystemUpdateGpuAsync.template operator() < DirectionLightSystem > ();
 	LaunchSystemUpdateGpuAsync.template operator() < PointLightSystem > ();
+	LaunchSystemUpdateGpuAsync.template operator() < SpotLightSystem > ();
 
 	for (auto& [_, future] : futures) {
 		if (future.valid())

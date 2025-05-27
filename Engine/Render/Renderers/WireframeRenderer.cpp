@@ -74,7 +74,7 @@ void WireframeRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Re
 		uint32_t count = pointLightPool->GetDenseSize();
 
 		if (GlobalConfig::WireframeConfig::showPointLights)
-			RenderWireframeVolume("Cube", "PointLightTransform", glm::vec4(1, 1, 1, 1), count);
+			RenderWireframeVolume("ProxySphere", "PointLightTransform", glm::vec4(0, 0, 1, 1), count);
 	}
 
 	vkCmdEndRendering(commandBuffer);

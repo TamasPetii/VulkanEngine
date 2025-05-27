@@ -36,5 +36,5 @@ void main()
 	vec3 toLight = normalize(light.position - position);
 
 	float cosa = clamp(dot(normal, toLight), 0, 1);
-	fs_out_col = vec4(light.color, 1);
+	fs_out_col = vec4(cosa * light.color, 1);
 }

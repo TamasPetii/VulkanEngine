@@ -119,7 +119,7 @@ void TransformSystem::OnFinish(std::shared_ptr<Registry> registry)
 	if (!transformPool)
 		return;
 
-	std::for_each(std::execution::par, transformPool->GetDenseIndices().begin(), transformPool->GetDenseIndices().end(),
+	std::for_each(std::execution::seq, transformPool->GetDenseIndices().begin(), transformPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
 			[[unlikely]]
 			if(transformPool->IsBitSet<CHANGED_BIT>(entity))
@@ -138,7 +138,7 @@ void TransformSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::sha
 	auto componentBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("TransformData", frameIndex);
 	auto bufferHandler = static_cast<TransformComponentGPU*>(componentBuffer->buffer->GetHandler());
 
-	std::for_each(std::execution::par, transformPool->GetDenseIndices().begin(), transformPool->GetDenseIndices().end(),
+	std::for_each(std::execution::seq, transformPool->GetDenseIndices().begin(), transformPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
 			auto& transformComponent = transformPool->GetData(entity);
 			auto transformIndex = transformPool->GetDenseIndex(entity);
