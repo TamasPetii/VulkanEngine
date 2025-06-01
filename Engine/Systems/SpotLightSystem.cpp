@@ -49,7 +49,7 @@ void SpotLightSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_p
 		}
 	);
 
-	std::for_each(std::execution::seq, spotLightPool->GetDenseIndices().begin(), spotLightPool->GetDenseIndices().end(),
+	std::for_each(std::execution::par_unseq, spotLightPool->GetDenseIndices().begin(), spotLightPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
 			if (transformPool->HasComponent(entity) && (spotLightPool->IsBitSet<UPDATE_BIT>(entity) || transformPool->IsBitSet<CHANGED_BIT>(entity)))
 			{
@@ -96,7 +96,7 @@ void SpotLightSystem::OnFinish(std::shared_ptr<Registry> registry)
 	if (!spotLightPool)
 		return;
 
-	std::for_each(std::execution::seq, spotLightPool->GetDenseIndices().begin(), spotLightPool->GetDenseIndices().end(),
+	std::for_each(std::execution::par_unseq, spotLightPool->GetDenseIndices().begin(), spotLightPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
 			spotLightPool->GetData(entity).toRender = false;
 
@@ -120,7 +120,7 @@ void SpotLightSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::sha
 	auto spotLightTransformBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("SpotLightTransform", frameIndex);
 	auto spotLightTransformBufferHandler = static_cast<glm::mat4*>(spotLightTransformBuffer->buffer->GetHandler());
 
-	std::for_each(std::execution::seq, spotLightPool->GetDenseIndices().begin(), spotLightPool->GetDenseIndices().end(),
+	std::for_each(std::execution::par_unseq, spotLightPool->GetDenseIndices().begin(), spotLightPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
 			auto& spotLightComponent = spotLightPool->GetData(entity);
 			auto spotLightIndex = spotLightPool->GetDenseIndex(entity);

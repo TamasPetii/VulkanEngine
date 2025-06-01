@@ -45,7 +45,7 @@ void DirectionLightSystem::OnUpdate(std::shared_ptr<Registry> registry, std::sha
 		}
 	);
 
-	std::for_each(std::execution::seq, directionLightPool->GetDenseIndices().begin(), directionLightPool->GetDenseIndices().end(),
+	std::for_each(std::execution::par_unseq, directionLightPool->GetDenseIndices().begin(), directionLightPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
 			if (transformPool->HasComponent(entity) && (directionLightPool->IsBitSet<UPDATE_BIT>(entity) || transformPool->IsBitSet<CHANGED_BIT>(entity)))
 			{
@@ -71,7 +71,7 @@ void DirectionLightSystem::OnFinish(std::shared_ptr<Registry> registry)
 	if (!directionLightPool)
 		return;
 
-	std::for_each(std::execution::seq, directionLightPool->GetDenseIndices().begin(), directionLightPool->GetDenseIndices().end(),
+	std::for_each(std::execution::par_unseq, directionLightPool->GetDenseIndices().begin(), directionLightPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
 			[[unlikely]]
 			if (directionLightPool->IsBitSet<CHANGED_BIT>(entity))
@@ -90,7 +90,7 @@ void DirectionLightSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std
 	auto directionLightComponentBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("DirectionLightData", frameIndex);
 	auto directionLightComponentBufferHandler = static_cast<DirectionLightGPU*>(directionLightComponentBuffer->buffer->GetHandler());
 
-	std::for_each(std::execution::seq, directionLightPool->GetDenseIndices().begin(), directionLightPool->GetDenseIndices().end(),
+	std::for_each(std::execution::par_unseq, directionLightPool->GetDenseIndices().begin(), directionLightPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
 			auto& directionLightComponent = directionLightPool->GetData(entity);
 			auto directionLightIndex = directionLightPool->GetDenseIndex(entity);

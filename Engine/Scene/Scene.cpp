@@ -56,14 +56,18 @@ void Scene::InitializeRegistry()
 
 	{
 		auto entity = registry->CreateEntity();
-		registry->AddComponents<TransformComponent, PointLightComponent>(entity);
-	}
-
-	{
-		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, SpotLightComponent>(entity);
 	}
 
+	for (int i = 0; i < 10000; ++i)
+	{
+		auto entity = registry->CreateEntity();
+		registry->AddComponents<TransformComponent, PointLightComponent>(entity);
+		registry->GetComponent<TransformComponent>(entity).translation = glm::vec3(dist(rng), dist(rng), dist(rng)) * 50.f;
+		registry->GetComponent<PointLightComponent>(entity).color = glm::vec3(dist(rng), dist(rng), dist(rng));
+	}
+
+	/*
 	{
 		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
@@ -79,6 +83,7 @@ void Scene::InitializeRegistry()
 		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Bistro_v5_2/BistroExterior.fbx");
 		modelComponent.hasDirectxNormals = true;
 	}
+	*/
 
 	{
 		auto entity = registry->CreateEntity();
@@ -376,6 +381,9 @@ void Scene::UpdateComponentBuffers(uint32_t frameIndex)
 	RecalculateGpuBufferSize<DirectionLightComponent, DirectionLightGPU>("DirectionLightData", frameIndex);
 	RecalculateGpuBufferSize<PointLightComponent, PointLightGPU>("PointLightData", frameIndex);
 	RecalculateGpuBufferSize<PointLightComponent, glm::mat4>("PointLightTransform", frameIndex);
+	RecalculateGpuBufferSize<PointLightComponent, uint32_t>("PointLightInstanceIndices", frameIndex);
+	RecalculateGpuBufferSize<PointLightComponent, uint32_t>("PointLightOcclusionIndices", frameIndex);
+
 	RecalculateGpuBufferSize<SpotLightComponent, SpotLightGPU>("SpotLightData", frameIndex);
 	RecalculateGpuBufferSize<SpotLightComponent, glm::mat4>("SpotLightTransform", frameIndex);
 }

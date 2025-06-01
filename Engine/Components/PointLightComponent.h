@@ -3,6 +3,7 @@
 #include "BaseComponents/Light.h"
 #include "BaseComponents/VersionIndexed.h"
 #include "BaseComponents/FrustumCullable.h"
+#include "Engine/Renderable/Instanceable.h"
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -22,6 +23,8 @@ struct ENGINE_API PointLightShadow : public LightShadow
 struct ENGINE_API PointLightComponent : public Light, public Component, public FrustumCullable
 {
 	PointLightComponent();
+	static inline uint32_t instanceCount = 0; //Probably problematic with more scenes on the fly
+	static inline std::vector<uint32_t> instanceIndices;
 
 	glm::vec3 position; //Mapped to transform component translation!
 	float radius; //Mapped to transform component scale (max value)

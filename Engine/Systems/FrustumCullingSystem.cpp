@@ -10,6 +10,7 @@
 #include "Engine/Physics/Tester/TesterGJK.h"
 #include "Engine/Physics/Tester/TesterFrustum.h"
 #include "Engine/Systems/CameraSystem.h"
+#include "Engine/Components/PointLightComponent.h"
 
 void FrustumCullingSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex, float deltaTime)
 {
@@ -46,6 +47,7 @@ void FrustumCullingSystem::OnUpdate(std::shared_ptr<Registry> registry, std::sha
 	frustumCollider.faces[5] = FrustumFace(-cameraComponent.direction, cameraComponent.position + cameraComponent.direction * cameraComponent.farPlane);
 
 	DefaultColliderCulling(registry, &frustumCollider);
+	PointLightCulling(registry, &frustumCollider);
 }
 
 void FrustumCullingSystem::OnFinish(std::shared_ptr<Registry> registry)
@@ -62,7 +64,7 @@ void FrustumCullingSystem::DefaultColliderCulling(std::shared_ptr<Registry> regi
 	if (!defaultColliderPool || !transformPool)
 		return;
 
-	std::for_each(std::execution::par, defaultColliderPool->GetDenseIndices().begin(), defaultColliderPool->GetDenseIndices().end(),
+	std::for_each(std::execution::par_unseq, defaultColliderPool->GetDenseIndices().begin(), defaultColliderPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
 			bool hasShape = shapePool && shapePool->HasComponent(entity) && shapePool->GetData(entity).shape;
 			bool hasModel = modelPool && modelPool->HasComponent(entity) && modelPool->GetData(entity).model && modelPool->GetData(entity).model->state == LoadState::Ready;
@@ -71,11 +73,35 @@ void FrustumCullingSystem::DefaultColliderCulling(std::shared_ptr<Registry> regi
 			{
 				auto& defaultColliderComponent = defaultColliderPool->GetData(entity);
 
-				Simplex simplex;
 				if (TesterFrustum::Test(cameraCollider, static_cast<ColliderAABB*>(&defaultColliderComponent)))
 				{
 					RenderComponent* renderComponent = hasShape ? static_cast<RenderComponent*>(&shapePool->GetData(entity)) : static_cast<RenderComponent*>(&modelPool->GetData(entity));
 					renderComponent->toRender = true;
+				}
+			}
+		}
+	);
+}
+
+void FrustumCullingSystem::PointLightCulling(std::shared_ptr<Registry> registry, FrustumCollider* cameraCollider)
+{
+	auto [pointLightPool, transformPool] = registry->GetPools<PointLightComponent, TransformComponent>();
+	if (!pointLightPool || !transformPool)
+		return;
+
+	std::for_each(std::execution::par_unseq, pointLightPool->GetDenseIndices().begin(), pointLightPool->GetDenseIndices().end(),
+		[&](const Entity& entity) -> void {
+			if (transformPool->HasComponent(entity))
+			{
+				auto& pointLightComponent = pointLightPool->GetData(entity);
+
+				SphereColliderGJK collider;
+				collider.origin = pointLightComponent.position;
+				collider.radius = pointLightComponent.radius;
+
+				if (TesterFrustum::Test(cameraCollider, &collider))
+				{
+					pointLightComponent.toRender = true;
 				}
 			}
 		}

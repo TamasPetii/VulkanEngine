@@ -452,6 +452,10 @@ void VulkanManager::InitShaderModuls()
 	//Bounding Volume Wireframe Shaders
 	RegisterShaderModule("WireframeVert", std::make_shared<Vk::ShaderModule>("../Engine/Shaders/Wireframe.vert", VK_SHADER_STAGE_VERTEX_BIT));
 	RegisterShaderModule("WireframeFrag", std::make_shared<Vk::ShaderModule>("../Engine/Shaders/Wireframe.frag", VK_SHADER_STAGE_FRAGMENT_BIT));
+
+	//OcclusionCulling
+	RegisterShaderModule("OcclusionCullingVert", std::make_shared<Vk::ShaderModule>("../Engine/Shaders/OcclusionCulling.vert", VK_SHADER_STAGE_VERTEX_BIT));
+	RegisterShaderModule("OcclusionCullingFrag", std::make_shared<Vk::ShaderModule>("../Engine/Shaders/OcclusionCulling.frag", VK_SHADER_STAGE_FRAGMENT_BIT));
 }
 
 void VulkanManager::InitGraphicsPipelines()
@@ -607,6 +611,28 @@ void VulkanManager::InitGraphicsPipelines()
 			.AddPushConstant(0, pushConsantSize, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
 
 		RegisterGraphicsPipeline("Wireframe", pipelineBuilder.BuildDynamic());
+	}
+
+	{
+		uint32_t pushConsantSize = sizeof(OcclusionCullingPushConstants);
+
+		Vk::GraphicsPipelineBuilder pipelineBuilder;
+		pipelineBuilder
+			.ResetToDefault()
+			.AddShaderStage(shaderModuls["OcclusionCullingVert"])
+			.AddShaderStage(shaderModuls["OcclusionCullingFrag"])
+			.AddDynamicState(VK_DYNAMIC_STATE_VIEWPORT)
+			.AddDynamicState(VK_DYNAMIC_STATE_SCISSOR)
+			.SetVertexInput({}, {})
+			.SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
+			.SetRasterization(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE)
+			.SetMultisampling(VK_SAMPLE_COUNT_1_BIT)
+			.SetDepthStencil(VK_TRUE, VK_FALSE, VK_COMPARE_OP_LESS)
+			.SetColorBlend(VK_FALSE)
+			.SetDepthAttachmentFormat(VK_FORMAT_D32_SFLOAT)
+			.AddPushConstant(0, pushConsantSize, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
+
+		RegisterGraphicsPipeline("OcclusionCulling", pipelineBuilder.BuildDynamic());
 	}
 }
 

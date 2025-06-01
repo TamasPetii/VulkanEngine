@@ -298,7 +298,7 @@ void Model::ProcessMaterial(const aiScene* scene, uint32_t materialIndex)
         unsigned int uvIndex = 0;
         material->GetTexture(aiTextureType_NORMALS, 0, &path, NULL, &uvIndex);
         std::string real_path = directory + "/" + std::string(path.C_Str());
-        materialComponent.normal = imageManager->LoadImage(real_path, true);
+        materialComponent.normal = imageManager->LoadImage(real_path, false);
     }
 
     //Height texture

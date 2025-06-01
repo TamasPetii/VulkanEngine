@@ -76,40 +76,6 @@ void TransformSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_p
 		);
 	}
 	*/
-	
-	/*
-	//Might be better to use glm::decompose at the end in another foreach, when parent-child relation will affect transforms;
-	std::for_each(std::execution::par, transformPool->GetDenseEntities().begin(), transformPool->GetDenseEntities().end(),
-		[&](const Entity& entity) -> void {
-			if (transformPool->GetBitset(entity).test(CHANGED_BIT))
-			{
-				auto index = transformPool->GetIndex(entity);
-				auto transformComponent = transformPool->GetComponent(entity);
-				
-				glm::vec3 scale, translation, skew;
-				glm::vec4 perspective;
-				glm::quat rotation;
-				glm::decompose(transformComponent->transform, scale, rotation, translation, skew, perspective);
-
-				transformComponent->fullTranslation = translation;
-				transformComponent->fullRotation = glm::degrees(glm::eulerAngles(rotation));
-				transformComponent->fullScale = scale;
-
-				//Translation
-				transformComponent->fullTranslationMatrix = glm::translate(glm::mat4(1.0f), transformComponent->fullTranslation);
-		
-				//Rotation
-				transformComponent->fullRotationMatrix = glm::mat4(1.0f);
-				transformComponent->fullRotationMatrix = glm::rotate(transformComponent->fullRotationMatrix, glm::radians(transformComponent->fullRotation.z), glm::vec3(0, 0, 1));
-				transformComponent->fullRotationMatrix = glm::rotate(transformComponent->fullRotationMatrix, glm::radians(transformComponent->fullRotation.y), glm::vec3(0, 1, 0));
-				transformComponent->fullRotationMatrix = glm::rotate(transformComponent->fullRotationMatrix, glm::radians(transformComponent->fullRotation.x), glm::vec3(1, 0, 0));
-				
-				//Scale
-				transformComponent->fullScaleMatrix = glm::scale(glm::mat4(1.0f), transformComponent->fullScale);
-			}
-		}
-	);
-	*/
 }
 
 void TransformSystem::OnFinish(std::shared_ptr<Registry> registry)
@@ -119,7 +85,7 @@ void TransformSystem::OnFinish(std::shared_ptr<Registry> registry)
 	if (!transformPool)
 		return;
 
-	std::for_each(std::execution::seq, transformPool->GetDenseIndices().begin(), transformPool->GetDenseIndices().end(),
+	std::for_each(std::execution::par_unseq, transformPool->GetDenseIndices().begin(), transformPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
 			[[unlikely]]
 			if(transformPool->IsBitSet<CHANGED_BIT>(entity))
@@ -138,7 +104,7 @@ void TransformSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::sha
 	auto componentBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("TransformData", frameIndex);
 	auto bufferHandler = static_cast<TransformComponentGPU*>(componentBuffer->buffer->GetHandler());
 
-	std::for_each(std::execution::seq, transformPool->GetDenseIndices().begin(), transformPool->GetDenseIndices().end(),
+	std::for_each(std::execution::par_unseq, transformPool->GetDenseIndices().begin(), transformPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
 			auto& transformComponent = transformPool->GetData(entity);
 			auto transformIndex = transformPool->GetDenseIndex(entity);

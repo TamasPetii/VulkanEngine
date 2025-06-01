@@ -11,7 +11,7 @@ void ShapeSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<R
 	if (!shapePool)
 		return;
 
-	std::for_each(std::execution::seq, shapePool->GetDenseIndices().begin(), shapePool->GetDenseIndices().end(),
+	std::for_each(std::execution::par_unseq, shapePool->GetDenseIndices().begin(), shapePool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
 			[[unlikely]]
 			if (shapePool->IsBitSet<UPDATE_BIT>(entity) ||
@@ -32,7 +32,7 @@ void ShapeSystem::OnFinish(std::shared_ptr<Registry> registry)
 	if (!shapePool)
 		return;
 
-	std::for_each(std::execution::seq, shapePool->GetDenseIndices().begin(), shapePool->GetDenseIndices().end(),
+	std::for_each(std::execution::par_unseq, shapePool->GetDenseIndices().begin(), shapePool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
 			shapePool->GetData(entity).toRender = false;
 

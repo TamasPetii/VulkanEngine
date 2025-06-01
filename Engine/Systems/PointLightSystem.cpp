@@ -48,7 +48,7 @@ void PointLightSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_
 		}
 	);
 
-	std::for_each(std::execution::seq, pointLightPool->GetDenseIndices().begin(), pointLightPool->GetDenseIndices().end(),
+	std::for_each(std::execution::par_unseq, pointLightPool->GetDenseIndices().begin(), pointLightPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
 			if (transformPool->HasComponent(entity) && (pointLightPool->IsBitSet<UPDATE_BIT>(entity) || transformPool->IsBitSet<CHANGED_BIT>(entity)))
 			{
@@ -72,8 +72,6 @@ void PointLightSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_
 
 				pointLightPool->SetBit<CHANGED_BIT>(entity);
 				pointLightComponent.version++;
-
-				std::cout << std::format("Point light: position({},{},{}) | radius({})", pointLightComponent.position.x, pointLightComponent.position.y, pointLightComponent.position.z, pointLightComponent.radius) << std::endl;
 			}
 		}
 	);
@@ -86,7 +84,7 @@ void PointLightSystem::OnFinish(std::shared_ptr<Registry> registry)
 	if (!pointLightPool)
 		return;
 
-	std::for_each(std::execution::seq, pointLightPool->GetDenseIndices().begin(), pointLightPool->GetDenseIndices().end(),
+	std::for_each(std::execution::par_unseq, pointLightPool->GetDenseIndices().begin(), pointLightPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
 			pointLightPool->GetData(entity).toRender = false;
 
@@ -110,7 +108,7 @@ void PointLightSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::sh
 	auto pointLightTransformBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("PointLightTransform", frameIndex);
 	auto pointLightTransformBufferHandler = static_cast<glm::mat4*>(pointLightTransformBuffer->buffer->GetHandler());
 
-	std::for_each(std::execution::seq, pointLightPool->GetDenseIndices().begin(), pointLightPool->GetDenseIndices().end(),
+	std::for_each(std::execution::par_unseq, pointLightPool->GetDenseIndices().begin(), pointLightPool->GetDenseIndices().end(),
 		[&](const Entity& entity) -> void {
 			auto& pointLightComponent = pointLightPool->GetData(entity);
 			auto pointLightIndex = pointLightPool->GetDenseIndex(entity);

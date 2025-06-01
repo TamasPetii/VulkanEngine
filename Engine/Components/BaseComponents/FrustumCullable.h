@@ -4,6 +4,6 @@
 class ENGINE_API FrustumCullable
 {
 public:
-	bool toRender;
+	bool toRender = false;
 };
 

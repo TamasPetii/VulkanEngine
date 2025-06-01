@@ -3,9 +3,12 @@
 #include "Engine/Components/PointLightComponent.h"
 #include "Engine/Components/SpotLightComponent.h"
 #include "Engine/Render/GpuStructs.h"
+#include "OcclusionCuller.h"
 
 void DeferredRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex)
 {
+	OcclusionCuller::CullLights(registry, resourceManager, frameIndex);
+
 	auto frameBuffer = resourceManager->GetVulkanManager()->GetFrameDependentFrameBuffer("Main", frameIndex);
 
 	Vk::Image::TransitionImageLayoutDynamic(commandBuffer, frameBuffer->GetImage("Position")->Value(),
@@ -45,7 +48,7 @@ void DeferredRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Reg
 
 	RenderDirectionLights(commandBuffer, registry, resourceManager, frameIndex);
 	RenderPointLights(commandBuffer, registry, resourceManager, frameIndex);
-	RenderSpotLights(commandBuffer, registry, resourceManager, frameIndex);
+	//RenderSpotLights(commandBuffer, registry, resourceManager, frameIndex);
 }
 
 void DeferredRenderer::RenderDirectionLights(VkCommandBuffer commandBuffer, std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex)
@@ -105,11 +108,12 @@ void DeferredRenderer::RenderPointLights(VkCommandBuffer commandBuffer, std::sha
 {
 	auto pointLightPool = registry->GetPool<PointLightComponent>();
 
-	if (!pointLightPool || pointLightPool->GetDenseSize() == 0)
+	if (!pointLightPool || pointLightPool->GetDenseSize() == 0 || PointLightComponent::instanceCount == 0)
 		return;
 
 	auto vulkanContext = Vk::VulkanContext::GetContext();
 	auto device = vulkanContext->GetDevice();
+
 	auto graphicsQueue = device->GetQueue(Vk::QueueType::GRAPHICS);
 
 	auto frameBuffer = resourceManager->GetVulkanManager()->GetFrameDependentFrameBuffer("Main", frameIndex);
@@ -145,6 +149,7 @@ void DeferredRenderer::RenderPointLights(VkCommandBuffer commandBuffer, std::sha
 	pushConstants.cameraBuffer = resourceManager->GetComponentBufferManager()->GetComponentBuffer("CameraData", frameIndex)->buffer->GetAddress();
 	pushConstants.pointLightBufferAddress = resourceManager->GetComponentBufferManager()->GetComponentBuffer("PointLightData", frameIndex)->buffer->GetAddress();
 	pushConstants.transformBufferAddress = resourceManager->GetComponentBufferManager()->GetComponentBuffer("PointLightTransform", frameIndex)->buffer->GetAddress();
+	pushConstants.instanceBufferAddress = resourceManager->GetComponentBufferManager()->GetComponentBuffer("PointLightInstanceIndices", frameIndex)->buffer->GetAddress();
 	pushConstants.vertexBufferAddress = shape->GetVertexBuffer()->GetAddress();
 	pushConstants.indexBufferAddress = shape->GetIndexBuffer()->GetAddress();
 	pushConstants.viewPortSize = glm::vec2(viewport.width, viewport.height);
@@ -156,7 +161,7 @@ void DeferredRenderer::RenderPointLights(VkCommandBuffer commandBuffer, std::sha
 
 	//TODO: BIND POINT LIGHT DYNAMIC DESCRIPTOR ARRAY INDICES
 
-	vkCmdDraw(commandBuffer, shape->GetIndexCount(), pointLightPool->GetDenseSize(), 0, 0);
+	vkCmdDraw(commandBuffer, shape->GetIndexCount(), PointLightComponent::instanceCount, 0, 0);
 
 	vkCmdEndRendering(commandBuffer);
 }

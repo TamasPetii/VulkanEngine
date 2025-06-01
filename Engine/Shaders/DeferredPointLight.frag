@@ -11,30 +11,30 @@ layout(set = 0, binding = 2) uniform sampler2D u_colorTexture;
 layout(set = 0, binding = 3) uniform sampler2D u_normalTexture;
 
 layout( push_constant ) uniform constants
-{	 
+{	
 	uvec2 cameraBuffer;
 	uvec2 pointLightBuffer;
 	uvec2 transformBufferAddress;
+	uvec2 instanceBufferAddress;
 	uvec2 vertexBufferAddress;
 	uvec2 indexBufferAddress;
 	vec2 viewPortSize;
-	vec3 padding;
 	uint cameraIndex;
+	uint padding;
 } PushConstants;
 
 void main()
 {
 	vec2 fs_in_tex = gl_FragCoord.xy / PushConstants.viewPortSize;
-
 	vec3 position = texture(u_positionTexture, fs_in_tex).xyz;
-    vec3 color = texture(u_colorTexture, fs_in_tex).xyz;
-	vec3 normal = texture(u_normalTexture, fs_in_tex).xyz;
 
-	//With viewProj will be bad..., to much data
-	PointLight light = PointLightBuffer(PushConstants.pointLightBuffer).lights[fs_in_id];
-
+	PointLight light = PointLightBuffer(PushConstants.pointLightBuffer).lights[fs_in_id]; //With viewProj will be bad..., to much data
+		
 	if(distance(position, light.position) > light.radius)
 		discard;
+
+    vec3 color = texture(u_colorTexture, fs_in_tex).xyz;
+	vec3 normal = texture(u_normalTexture, fs_in_tex).xyz;
 
 	vec3 toLight = normalize(light.position - position);
 

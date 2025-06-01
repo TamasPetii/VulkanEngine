@@ -21,4 +21,3 @@ protected:
 	std::vector<uint32_t> instanceIndices;
 	std::array<std::pair<std::shared_ptr<Vk::Buffer>, uint32_t>, GlobalConfig::FrameConfig::maxFramesInFlights> instanceIndexBuffers;
 };
-

@@ -399,6 +399,9 @@
     <ClInclude Include="Components\TagComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Render\Renderers\OcclusionCuller.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -758,6 +761,9 @@
     <ClCompile Include="Components\TagComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Render\Renderers\OcclusionCuller.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Registry\Registry.inl">
@@ -794,5 +800,8 @@
     <None Include="Shaders\DeferredSpotLight.vert" />
     <None Include="Shaders\DeferredSpotLight.frag" />
     <None Include="Shaders\Common\Light\SpotLight.glsl" />
+    <None Include="Shaders\OcclusionCulling.vert" />
+    <None Include="Shaders\OcclusionCulling.frag" />
+    <None Include="Shaders\Common\Render\Occlusion.glsl" />
   </ItemGroup>
 </Project>

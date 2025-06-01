@@ -170,6 +170,7 @@
     <ClInclude Include="Components\BaseComponents\FrustumCullable.h" />
     <ClInclude Include="Components\SpotLightComponent.h" />
     <ClInclude Include="Components\BaseComponents\Light.h" />
+    <ClInclude Include="Render\Renderers\OcclusionCuller.h" />
     <ClInclude Include="Systems\SpotLightSystem.h" />
     <ClInclude Include="Systems\PointLightSystem.h" />
     <ClInclude Include="Systems\DirectionLightSystem.h" />
@@ -300,6 +301,7 @@
     <ClCompile Include="Components\BaseComponents\FrustumCullable.cpp" />
     <ClCompile Include="Components\SpotLightComponent.cpp" />
     <ClCompile Include="Components\BaseComponents\Light.cpp" />
+    <ClCompile Include="Render\Renderers\OcclusionCuller.cpp" />
     <ClCompile Include="Systems\SpotLightSystem.cpp" />
     <ClCompile Include="Systems\PointLightSystem.cpp" />
     <ClCompile Include="Systems\DirectionLightSystem.cpp" />
@@ -418,8 +420,11 @@
     <None Include="Shaders\Basic.frag" />
     <None Include="Shaders\Basic.vert" />
     <None Include="Shaders\Common\Light\SpotLight.glsl" />
+    <None Include="Shaders\Common\Render\Occlusion.glsl" />
     <None Include="Shaders\DeferredSpotLight.frag" />
     <None Include="Shaders\DeferredSpotLight.vert" />
+    <None Include="Shaders\OcclusionCulling.frag" />
+    <None Include="Shaders\OcclusionCulling.vert" />
     <None Include="Shaders\Wireframe.frag" />
     <None Include="Shaders\Wireframe.vert" />
     <None Include="Shaders\Common\Animation\AnimationBufferAddresses.glsl" />
