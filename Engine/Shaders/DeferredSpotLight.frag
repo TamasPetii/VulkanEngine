@@ -1,7 +1,7 @@
 #version 460
 
 #include "Common/Camera.glsl"
-#include "Common/Light/PointLight.glsl"
+#include "Common/Light/SpotLight.glsl"
 
 layout(location = 0) in flat uint fs_in_id;
 layout(location = 0) out vec4 fs_out_col;
@@ -31,13 +31,10 @@ void main()
 	vec3 normal = texture(u_normalTexture, fs_in_tex).xyz;
 
 	//With viewProj will be bad..., to much data
-	PointLight light = PointLightBuffer(PushConstants.pointLightBuffer).lights[fs_in_id];
-
-	if(distance(position, light.position) > light.radius)
-		discard;
+	SpotLight light = SpotLightBuffer(PushConstants.pointLightBuffer).lights[fs_in_id];
 
 	vec3 toLight = normalize(light.position - position);
 
 	float cosa = clamp(dot(normal, toLight), 0, 1);
-	fs_out_col = vec4(cosa * light.color, 1);
+	fs_out_col = vec4(light.color, 1);
 }

@@ -50,7 +50,7 @@ void CameraSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_ptr<
 					glm::sin(glm::radians(cameraComponent.yaw)) * glm::cos(glm::radians(cameraComponent.pitch))
 				};
 
-				constexpr glm::vec3 worldUp = glm::vec3(0, 1, 0);
+				glm::vec3 worldUp = GlobalConfig::World::up;
 
 				cameraComponent.direction = glm::normalize(direction);
 				cameraComponent.right = glm::normalize(glm::cross(cameraComponent.direction, worldUp));

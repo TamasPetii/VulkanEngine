@@ -791,5 +791,8 @@
     <None Include="Shaders\DeferredPointLight.frag" />
     <None Include="Shaders\DeferredPointLight.vert" />
     <None Include="Shaders\Common\SimpleTransform.glsl" />
+    <None Include="Shaders\DeferredSpotLight.vert" />
+    <None Include="Shaders\DeferredSpotLight.frag" />
+    <None Include="Shaders\Common\Light\SpotLight.glsl" />
   </ItemGroup>
 </Project>

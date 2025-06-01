@@ -46,6 +46,6 @@ struct ENGINE_API SpotLightGPU
 	glm::vec3 direction;
 	float length;
 	glm::vec4 angles; //xy = inner/outer | zw = cos(innver)/cos(outer)
-	uint32_t bitflag;
 	glm::vec3 padding;
+	uint32_t bitflag;
 };

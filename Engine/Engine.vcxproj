@@ -417,6 +417,9 @@
     <None Include="Registry\Registry.inl" />
     <None Include="Shaders\Basic.frag" />
     <None Include="Shaders\Basic.vert" />
+    <None Include="Shaders\Common\Light\SpotLight.glsl" />
+    <None Include="Shaders\DeferredSpotLight.frag" />
+    <None Include="Shaders\DeferredSpotLight.vert" />
     <None Include="Shaders\Wireframe.frag" />
     <None Include="Shaders\Wireframe.vert" />
     <None Include="Shaders\Common\Animation\AnimationBufferAddresses.glsl" />

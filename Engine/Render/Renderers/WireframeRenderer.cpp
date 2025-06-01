@@ -4,6 +4,7 @@
 #include <execution>
 #include "Engine/Components/DefaultColliderComponent.h"
 #include "Engine/Components/PointLightComponent.h"
+#include "Engine/Components/SpotLightComponent.h"
 
 void WireframeRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex)
 {
@@ -75,6 +76,14 @@ void WireframeRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Re
 
 		if (GlobalConfig::WireframeConfig::showPointLights)
 			RenderWireframeVolume("ProxySphere", "PointLightTransform", glm::vec4(0, 0, 1, 1), count);
+	}
+
+	if (auto spotLightPool = registry->GetPool<SpotLightComponent>())
+	{
+		uint32_t count = spotLightPool->GetDenseSize();
+
+		if (GlobalConfig::WireframeConfig::showSpotLights)
+			RenderWireframeVolume("Cone", "SpotLightTransform", glm::vec4(0, 1, 1, 1), count);
 	}
 
 	vkCmdEndRendering(commandBuffer);

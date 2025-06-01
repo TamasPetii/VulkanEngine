@@ -445,6 +445,10 @@ void VulkanManager::InitShaderModuls()
 	RegisterShaderModule("DeferredPointLightVert", std::make_shared<Vk::ShaderModule>("../Engine/Shaders/DeferredPointLight.vert", VK_SHADER_STAGE_VERTEX_BIT));
 	RegisterShaderModule("DeferredPointLightFrag", std::make_shared<Vk::ShaderModule>("../Engine/Shaders/DeferredPointLight.frag", VK_SHADER_STAGE_FRAGMENT_BIT));
 
+	//Deferred Point Light Shaders
+	RegisterShaderModule("DeferredSpotLightVert", std::make_shared<Vk::ShaderModule>("../Engine/Shaders/DeferredSpotLight.vert", VK_SHADER_STAGE_VERTEX_BIT));
+	RegisterShaderModule("DeferredSpotLightFrag", std::make_shared<Vk::ShaderModule>("../Engine/Shaders/DeferredSpotLight.frag", VK_SHADER_STAGE_FRAGMENT_BIT));
+
 	//Bounding Volume Wireframe Shaders
 	RegisterShaderModule("WireframeVert", std::make_shared<Vk::ShaderModule>("../Engine/Shaders/Wireframe.vert", VK_SHADER_STAGE_VERTEX_BIT));
 	RegisterShaderModule("WireframeFrag", std::make_shared<Vk::ShaderModule>("../Engine/Shaders/Wireframe.frag", VK_SHADER_STAGE_FRAGMENT_BIT));
@@ -545,14 +549,40 @@ void VulkanManager::InitGraphicsPipelines()
 			.SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
 			.SetRasterization(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_CLOCKWISE)
 			.SetMultisampling(VK_SAMPLE_COUNT_1_BIT)
-			.SetDepthStencil(VK_FALSE, VK_FALSE, VK_COMPARE_OP_LESS)
+			.SetDepthStencil(VK_TRUE, VK_FALSE, VK_COMPARE_OP_GREATER_OR_EQUAL)
 			.SetColorBlend(VK_FALSE)
 			.AddColorBlendAttachment(VK_TRUE, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_ONE, VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_ONE, VK_BLEND_OP_ADD)
 			.SetColorAttachmentFormats(VK_FORMAT_R16G16B16A16_SFLOAT, 0)
+			.SetDepthAttachmentFormat(VK_FORMAT_D32_SFLOAT)
 			.AddPushConstant(0, pushConsantSize, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
 			.AddDescriptorSetLayout(GetFrameDependentDescriptorSet("MainFrameBuffer", 0)->Layout());
 
 		RegisterGraphicsPipeline("DeferredPointLight", pipelineBuilder.BuildDynamic());
+	}
+
+	{
+		uint32_t pushConsantSize = sizeof(DeferredSpotLightPushConstants);
+
+		Vk::GraphicsPipelineBuilder pipelineBuilder;
+		pipelineBuilder
+			.ResetToDefault()
+			.AddShaderStage(shaderModuls["DeferredSpotLightVert"])
+			.AddShaderStage(shaderModuls["DeferredSpotLightFrag"])
+			.AddDynamicState(VK_DYNAMIC_STATE_VIEWPORT)
+			.AddDynamicState(VK_DYNAMIC_STATE_SCISSOR)
+			.SetVertexInput({}, {})
+			.SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
+			.SetRasterization(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_CLOCKWISE)
+			.SetMultisampling(VK_SAMPLE_COUNT_1_BIT)
+			.SetDepthStencil(VK_TRUE, VK_FALSE, VK_COMPARE_OP_GREATER_OR_EQUAL)
+			.SetColorBlend(VK_FALSE)
+			.AddColorBlendAttachment(VK_TRUE, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_ONE, VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_ONE, VK_BLEND_OP_ADD)
+			.SetColorAttachmentFormats(VK_FORMAT_R16G16B16A16_SFLOAT, 0)
+			.SetDepthAttachmentFormat(VK_FORMAT_D32_SFLOAT)
+			.AddPushConstant(0, pushConsantSize, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
+			.AddDescriptorSetLayout(GetFrameDependentDescriptorSet("MainFrameBuffer", 0)->Layout());
+
+		RegisterGraphicsPipeline("DeferredSpotLight", pipelineBuilder.BuildDynamic());
 	}
 
 	{

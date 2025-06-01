@@ -37,10 +37,6 @@ void GlobalSettingsWindow::Render(std::shared_ptr<Registry> registry, std::share
 				{
 					int offset = ImGui::GetContentRegionAvail().x / 2.f;
 
-					ImGui::Text("Point Light Volume");
-					ImGui::SameLine(offset);
-					ImGui::Checkbox("##Point Light Volume", &GlobalConfig::WireframeConfig::showPointLights);
-
 					ImGui::Text("AABB Colliders");
 					ImGui::SameLine(offset);
 					ImGui::Checkbox("##AABB Colliders", &GlobalConfig::WireframeConfig::showColliderAABB);
@@ -52,6 +48,14 @@ void GlobalSettingsWindow::Render(std::shared_ptr<Registry> registry, std::share
 					ImGui::Text("Sphere Colliders");
 					ImGui::SameLine(offset);
 					ImGui::Checkbox("##Sphere Colliders", &GlobalConfig::WireframeConfig::showColliderSphere);
+
+					ImGui::Text("Point Light Volume");
+					ImGui::SameLine(offset);
+					ImGui::Checkbox("##Point Light Volume", &GlobalConfig::WireframeConfig::showPointLights);
+
+					ImGui::Text("Spot Light Volume");
+					ImGui::SameLine(offset);
+					ImGui::Checkbox("##Spot Light Volume", &GlobalConfig::WireframeConfig::showSpotLights);
 				}
 			);
 		}

@@ -1,4 +1,5 @@
 #include "SpotLightSystem.h"
+#include "Engine/Config.h"
 #include "Engine/Components/SpotLightComponent.h"
 #include "Engine/Components/TransformComponent.h"
 
@@ -69,14 +70,15 @@ void SpotLightSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_p
 				spotLightComponent.angles.z = glm::cos(glm::radians(spotLightComponent.angles.x));
 				spotLightComponent.angles.w = glm::cos(glm::radians(spotLightComponent.angles.y));
 
-				/*
 				float scaleY = 0.5 * spotLightComponent.length;
 				float scaleXZ = glm::tan(glm::radians(spotLightComponent.angles.y)) * scaleY * 2;
-				spotLightComponent.transform = glm::inverse(glm::lookAt<float>(spotLightComponent.position,	spotLightComponent.position + glm::normalize(spotLightComponent.direction),	glm::vec3(0.f, 1.f, 0.f)))
-											 * glm::rotate<float>(glm::radians(90.f), glm::vec3(1, 0, 0))
-											 * glm::scale(glm::vec3(scaleXZ, scaleY, scaleXZ))
-											 * glm::translate(glm::vec3(0, -1, 0));
-				*/
+
+				spotLightComponent.transform = glm::inverse(glm::lookAt<float>(spotLightComponent.position, spotLightComponent.position + glm::normalize(spotLightComponent.direction), GlobalConfig::World::up));
+				spotLightComponent.transform = glm::rotate(spotLightComponent.transform, glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f));
+				spotLightComponent.transform = glm::scale(spotLightComponent.transform, glm::vec3(scaleXZ, scaleY, scaleXZ));
+				spotLightComponent.transform = glm::translate(spotLightComponent.transform, glm::vec3(0.f, -1.f, 0.f));
+
+				//Maybe cone is not good, need to reimplement shapes
 
 				//Todo: ViewProj calculation
 
@@ -123,12 +125,14 @@ void SpotLightSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::sha
 			auto& spotLightComponent = spotLightPool->GetData(entity);
 			auto spotLightIndex = spotLightPool->GetDenseIndex(entity);
 
+			[[unlikely]]
 			if (spotLightComponentBuffer->versions[spotLightIndex] != spotLightComponent.version)
 			{
 				spotLightComponentBuffer->versions[spotLightIndex] = spotLightComponent.version;
 				spotLightComponentBufferHandler[spotLightIndex] = SpotLightGPU(spotLightComponent);
 			}
 
+			[[unlikely]]
 			if (spotLightTransformBuffer->versions[spotLightIndex] != spotLightComponent.version)
 			{
 				spotLightTransformBuffer->versions[spotLightIndex] = spotLightComponent.version;

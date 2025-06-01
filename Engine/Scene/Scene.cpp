@@ -61,6 +61,11 @@ void Scene::InitializeRegistry()
 
 	{
 		auto entity = registry->CreateEntity();
+		registry->AddComponents<TransformComponent, SpotLightComponent>(entity);
+	}
+
+	{
+		auto entity = registry->CreateEntity();
 		registry->AddComponents<TransformComponent, ModelComponent, DefaultColliderComponent>(entity);
 		auto [transformComponent, modelComponent] = registry->GetComponents<TransformComponent, ModelComponent>(entity);
 		modelComponent.model = resourceManager->GetModelManager()->LoadModel("C:/Users/User/Desktop/Bistro_v5_2/BistroInterior.fbx");

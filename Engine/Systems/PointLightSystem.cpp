@@ -55,8 +55,7 @@ void PointLightSystem::OnUpdate(std::shared_ptr<Registry> registry, std::shared_
 				auto& transformComponent = transformPool->GetData(entity);
 				auto& pointLightComponent = pointLightPool->GetData(entity);
 
-				glm::vec4 position = transformComponent.transform * glm::vec4(0.f, 0.f, 0.f, 1.f);
-				pointLightComponent.position = glm::vec3(position.x, position.y, position.z);
+				pointLightComponent.position = glm::vec3(transformComponent.transform * glm::vec4(0.f, 0.f, 0.f, 1.f));
 
 				glm::vec3 scale;
 				scale.x = glm::length(glm::vec3(transformComponent.transform[0]));
@@ -116,12 +115,14 @@ void PointLightSystem::OnUploadToGpu(std::shared_ptr<Registry> registry, std::sh
 			auto& pointLightComponent = pointLightPool->GetData(entity);
 			auto pointLightIndex = pointLightPool->GetDenseIndex(entity);
 
+			[[unlikely]]
 			if (pointLightComponentBuffer->versions[pointLightIndex] != pointLightComponent.version)
 			{
 				pointLightComponentBuffer->versions[pointLightIndex] = pointLightComponent.version;
 				pointLightComponentBufferHandler[pointLightIndex] = PointLightGPU(pointLightComponent);
 			}
 
+			[[unlikely]]
 			if (pointLightTransformBuffer->versions[pointLightIndex] != pointLightComponent.version)
 			{
 				pointLightTransformBuffer->versions[pointLightIndex] = pointLightComponent.version;
