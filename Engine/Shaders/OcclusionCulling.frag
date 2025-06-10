@@ -3,6 +3,7 @@
 #include "Common/Render/Occlusion.glsl"
 
 layout(location = 0) in flat uint fs_in_id;
+layout(location = 0) out vec4 fs_out_col;
 
 layout( push_constant ) uniform constants
 {	
@@ -19,4 +20,5 @@ layout( push_constant ) uniform constants
 void main()
 {
 	OcclusionBuffer(PushConstants.occlusionBufferAddress).indices[fs_in_id] = 1;
+	fs_out_col = vec4(10, 10, 10, 1);
 }

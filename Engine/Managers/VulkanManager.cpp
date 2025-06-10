@@ -629,6 +629,8 @@ void VulkanManager::InitGraphicsPipelines()
 			.SetMultisampling(VK_SAMPLE_COUNT_1_BIT)
 			.SetDepthStencil(VK_TRUE, VK_FALSE, VK_COMPARE_OP_LESS)
 			.SetColorBlend(VK_FALSE)
+			.AddColorBlendAttachment(VK_TRUE, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_ONE, VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_ONE, VK_BLEND_OP_ADD)
+			.SetColorAttachmentFormats(VK_FORMAT_R16G16B16A16_SFLOAT, 0)
 			.SetDepthAttachmentFormat(VK_FORMAT_D32_SFLOAT)
 			.AddPushConstant(0, pushConsantSize, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
 

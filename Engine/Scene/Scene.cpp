@@ -383,7 +383,6 @@ void Scene::UpdateComponentBuffers(uint32_t frameIndex)
 	RecalculateGpuBufferSize<PointLightComponent, glm::mat4>("PointLightTransform", frameIndex);
 	RecalculateGpuBufferSize<PointLightComponent, uint32_t>("PointLightInstanceIndices", frameIndex);
 	RecalculateGpuBufferSize<PointLightComponent, uint32_t>("PointLightOcclusionIndices", frameIndex);
-
 	RecalculateGpuBufferSize<SpotLightComponent, SpotLightGPU>("SpotLightData", frameIndex);
 	RecalculateGpuBufferSize<SpotLightComponent, glm::mat4>("SpotLightTransform", frameIndex);
 }
