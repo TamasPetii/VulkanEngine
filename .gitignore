@@ -4,8 +4,8 @@
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
 *.dae
-# *.jpg
-# *.png
+*.jpg
+*.png
 *.obj
 *.fbx
 *.mtl
