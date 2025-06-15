@@ -1,6 +1,9 @@
 #pragma once
 #include "System.h"
 
+struct PointLightComponent;
+struct CameraComponent;
+
 class ENGINE_API InstanceSystem : public System
 {
 public:
@@ -15,5 +18,8 @@ private:
 	void UpdateModelInstancesGpu(std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex);
 	void UpdatePointLightInstances(std::shared_ptr<Registry> registry);
 	void UpdatePointLightInstancesGpu(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex);
+private:
+	static bool IsCameraInsidePointLightSphereVolume(const PointLightComponent& pointLightComponent, const CameraComponent& cameraComponent);
+	static bool IsCameraInsidePointLightCubeVolume(const PointLightComponent& pointLightComponent, const CameraComponent& cameraComponent);
 };
 

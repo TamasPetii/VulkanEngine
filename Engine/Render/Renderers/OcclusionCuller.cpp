@@ -11,8 +11,6 @@ void OcclusionCuller::CullLights(std::shared_ptr<Registry> registry, std::shared
 	if (!pointLightPool || pointLightPool->GetDenseSize() == 0 || PointLightComponent::instanceCount == 0)
 		return;
 
-	//std::cout << "[BEFORE] : Point Light Instance Count " << PointLightComponent::instanceCount << std::endl;
-
 	Vk::VulkanContext::GetContext()->GetImmediateQueue()->SubmitGraphics(
 		[&](VkCommandBuffer commandBuffer) -> void {
 			RenderPointLightsOcclusion(commandBuffer, registry, resourceManager, frameIndex);
@@ -20,8 +18,6 @@ void OcclusionCuller::CullLights(std::shared_ptr<Registry> registry, std::shared
 	);
 
 	InstanceSystem::UpdatePointLightInstancesWithOcclusion(registry, resourceManager, frameIndex);
-
-	//std::cout << "[AFTER] : Point Light Instance Count " << PointLightComponent::instanceCount << std::endl;
 }
 
 void OcclusionCuller::RenderPointLightsOcclusion(VkCommandBuffer commandBuffer, std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex)
@@ -62,7 +58,7 @@ void OcclusionCuller::RenderPointLightsOcclusion(VkCommandBuffer commandBuffer, 
 	scissor.extent = frameBuffer->GetSize();
 	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-	auto shape = resourceManager->GetGeometryManager()->GetShape("Sphere");
+	auto shape = resourceManager->GetGeometryManager()->GetShape("Cube");
 
 	OcclusionCullingPushConstants pushConstants;
 	pushConstants.cameraIndex = 0; //TODO: MAIN CAMERA

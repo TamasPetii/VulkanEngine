@@ -1,4 +1,5 @@
 #include "InstanceSystem.h"
+#include "CameraSystem.h"
 #include "Engine/Vulkan/Buffer.h"
 #include "Engine/Components/ModelComponent.h"
 #include "Engine/Components/ShapeComponent.h"
@@ -162,16 +163,24 @@ void InstanceSystem::UpdatePointLightInstancesGpu(std::shared_ptr<Registry> regi
 
 void InstanceSystem::UpdatePointLightInstancesWithOcclusion(std::shared_ptr<Registry> registry, std::shared_ptr<ResourceManager> resourceManager, uint32_t frameIndex)
 {
-	auto pointLightPool = registry->GetPool<PointLightComponent>();
-	if (!pointLightPool || PointLightComponent::instanceCount == 0)
+	auto [pointLightPool, cameraPool] = registry->GetPools<PointLightComponent, CameraComponent>();
+
+	if (!pointLightPool || !cameraPool || PointLightComponent::instanceCount == 0)
 		return;
+
+	auto mainCameraEntity = CameraSystem::GetMainCameraEntity(registry);
+	auto& cameraComponent = cameraPool->GetData(mainCameraEntity);
 
 	auto pointLightOcclusionIndicesBufferHandler = static_cast<uint32_t*>(resourceManager->GetComponentBufferManager()->GetComponentBuffer("PointLightOcclusionIndices", frameIndex)->buffer->GetHandler());
 
 	uint32_t currentIndex = 0;
 	for (uint32_t i = 0; i < PointLightComponent::instanceCount; ++i)
 	{
-		if (pointLightOcclusionIndicesBufferHandler[i] == 1)
+		auto& pointLightComponent = pointLightPool->GetDenseData()[PointLightComponent::instanceIndices[i]];
+
+		//Camera in inside the light volume it won't be rendered which means no fragments created because of Back Face Culling.
+		//In this case we still need to add the instance index to the final instance indices list.
+		if (pointLightOcclusionIndicesBufferHandler[i] == 1 || IsCameraInsidePointLightCubeVolume(pointLightComponent, cameraComponent))
 			PointLightComponent::instanceIndices[currentIndex++] = PointLightComponent::instanceIndices[i];
 	}
 
@@ -181,4 +190,15 @@ void InstanceSystem::UpdatePointLightInstancesWithOcclusion(std::shared_ptr<Regi
 	VkDeviceSize bufferSize = sizeof(uint32_t) * PointLightComponent::instanceCount;
 	auto pointLightInstanceIndicesBufferHandler = resourceManager->GetComponentBufferManager()->GetComponentBuffer("PointLightInstanceIndices", frameIndex)->buffer->GetHandler();
 	memcpy(pointLightInstanceIndicesBufferHandler, PointLightComponent::instanceIndices.data(), (size_t)bufferSize);
+}
+
+bool InstanceSystem::IsCameraInsidePointLightSphereVolume(const PointLightComponent& pointLightComponent, const CameraComponent& cameraComponent)
+{
+	return glm::distance(pointLightComponent.position, cameraComponent.position) - 0.01f < pointLightComponent.radius;
+}
+
+bool InstanceSystem::IsCameraInsidePointLightCubeVolume(const PointLightComponent& pointLightComponent, const CameraComponent& cameraComponent)
+{
+	glm::vec3 difference = glm::abs(pointLightComponent.position - cameraComponent.position) - 0.01f;
+	return difference.x < pointLightComponent.radius && difference.y < pointLightComponent.radius && difference.z < pointLightComponent.radius;
 }

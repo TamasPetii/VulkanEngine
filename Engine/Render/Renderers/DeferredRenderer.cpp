@@ -46,7 +46,7 @@ void DeferredRenderer::Render(VkCommandBuffer commandBuffer, std::shared_ptr<Reg
 
 	OcclusionCuller::CullLights(registry, resourceManager, frameIndex);
 	RenderDirectionLights(commandBuffer, registry, resourceManager, frameIndex);
-	//RenderPointLights(commandBuffer, registry, resourceManager, frameIndex);
+	RenderPointLights(commandBuffer, registry, resourceManager, frameIndex);
 	//RenderSpotLights(commandBuffer, registry, resourceManager, frameIndex);
 }
 
@@ -141,7 +141,7 @@ void DeferredRenderer::RenderPointLights(VkCommandBuffer commandBuffer, std::sha
 	scissor.extent = frameBuffer->GetSize();
 	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-	auto shape = resourceManager->GetGeometryManager()->GetShape("Sphere");
+	auto shape = resourceManager->GetGeometryManager()->GetShape("Cube");
 
 	DeferredPointLightPushConstants pushConstants;
 	pushConstants.cameraIndex = 0; //TODO: MAIN CAMERA
